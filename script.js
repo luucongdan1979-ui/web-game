@@ -1,573 +1,827 @@
 
 "use strict";
 
-const ADMIN_CODE = "171113";
+/* =========================
+   CARD ARENA - GAME SCRIPT
+   ========================= */
+
 const USERS_KEY = "cardArenaInteractiveUsersV1";
 const SESSION_KEY = "cardArenaInteractiveSessionV1";
+const ADMIN_CODE = "171113";
 
-const CARDS = [
+const CARD_DATA = [
   {
-    id: "khabanh",
+    id: "kha-banh",
     name: "Khá Bảnh",
-    category: "character",
+    category: "CHARACTER",
     rarity: "RARE",
-    description: "Thẻ nhân vật Khá Bảnh.",
-    image: "./kh%C3%A1%20b%E1%BA%A3nh%20nv.png"
+    image: "./kh%C3%A1%20b%E1%BA%A3nh%20nv.png",
+    description: "Một nhân vật trong bộ sưu tập meme CARD ARENA.",
+    power: 75
   },
   {
     id: "jack",
-    name: "Jack",
-    category: "character",
+    name: "Jack J97",
+    category: "CHARACTER",
     rarity: "LEGENDARY",
-    description: "Thẻ nhân vật Jack.",
-    image: "./jack%20nv.png"
+    image: "./jack%20nv.png",
+    description: "Lá nhân vật huyền thoại trong bộ sưu tập meme CARD ARENA.",
+    power: 95
   }
 ];
 
-const ALBUM_SLOTS = { character: 3, skill: 3, situation: 3 };
-
-const PACKS = {
+const PACK_DATA = {
   basic: {
     name: "Basic Pack",
-    price: 10,
-    rates: { RARE: 70, LEGENDARY: 30 }
+    rarity: "RARE",
+    description: "70% cơ hội nhận Rare, 30% cơ hội nhận Legendary.",
+    rareRate: 70,
+    legendaryRate: 30
   },
   premium: {
     name: "Premium Pack",
-    price: 20,
-    rates: { RARE: 40, LEGENDARY: 60 }
+    rarity: "LEGENDARY",
+    description: "40% cơ hội nhận Rare, 60% cơ hội nhận Legendary.",
+    rareRate: 40,
+    legendaryRate: 60
   }
 };
 
-let users = readUsers();
 let currentUser = null;
 let authMode = "login";
-let currentAlbumCategory = "character";
-let selectedPack = "basic";
-let pendingPurchasedPack = "basic";
+let albumFilter = "ALL";
+let selectedPackId = null;
+let starterClaimedThisSession = false;
+let toastTimeout = null;
 
-const $ = id => document.getElementById(id);
+/* ---------- STORAGE ---------- */
 
 function readUsers() {
   try {
-    const value = JSON.parse(localStorage.getItem(USERS_KEY) || "{}");
-    return value && typeof value === "object" ? value : {};
+    const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+    return Array.isArray(users) ? users : [];
   } catch {
-    return {};
+    return [];
   }
 }
 
-function saveUsers() {
+function writeUsers(users) {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+function createId() {
+  return Date.now().toString(36) +
+    Math.random().toString(36).slice(2, 9);
+}
+
+function normalizePlayer(player) {
+  if (!Array.isArray(player.ownedCards)) player.ownedCards = [];
+  if (!Array.isArray(player.inventoryPacks)) player.inventoryPacks = [];
+  if (!Number.isFinite(player.coins)) player.coins = 17;
+  if (typeof player.claimedStarter !== "boolean") {
+    player.claimedStarter = false;
+  }
+  return player;
 }
 
 function savePlayer() {
   if (!currentUser || currentUser.isAdmin) return;
-  users[currentUser.username] = currentUser;
-  saveUsers();
+
+  const users = readUsers();
+  const index = users.findIndex(user => user.username === currentUser.username);
+
+  if (index !== -1) {
+    users[index] = currentUser;
+    writeUsers(users);
+  }
 }
 
-function saveSession() {
-  if (!currentUser) {
-    localStorage.removeItem(SESSION_KEY);
-    return;
-  }
-  localStorage.setItem(SESSION_KEY, JSON.stringify({
-    username: currentUser.username,
-    isAdmin: Boolean(currentUser.isAdmin)
-  }));
+function setSession(username, isAdmin = false) {
+  sessionStorage.setItem(
+    SESSION_KEY,
+    JSON.stringify({ username, isAdmin })
+  );
+}
+
+function clearSession() {
+  sessionStorage.removeItem(SESSION_KEY);
+}
+
+/* ---------- DOM HELPERS ---------- */
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+function showModal(id) {
+  const modal = $(id);
+  if (modal) modal.classList.add("show");
+}
+
+function hideModal(id) {
+  const modal = $(id);
+  if (modal) modal.classList.remove("show");
 }
 
 function showToast(message) {
   const toast = $("toast");
+  if (!toast) return;
+
   toast.textContent = message;
   toast.classList.add("show");
-  clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(() => toast.classList.remove("show"), 2500);
+
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2600);
 }
 
-function showModal(id) {
-  $(id).classList.remove("hidden");
+function setMessage(id, message, isError = false) {
+  const element = $(id);
+  if (!element) return;
+
+  element.textContent = message;
+  element.classList.toggle("error", isError);
 }
 
-function hideModal(id) {
-  $(id).classList.add("hidden");
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[character]);
 }
 
-function updateMoneyDisplay() {
-  $("coinAmount").textContent = currentUser?.isAdmin
-    ? "∞"
-    : String(currentUser?.coins ?? 17);
+function getCardById(id) {
+  return CARD_DATA.find(card => card.id === id);
+}
 
-  $("adminBadge").classList.toggle("hidden", !currentUser?.isAdmin);
-  $("greeting").textContent = currentUser?.isAdmin
-    ? "👑 CHÀO MỪNG ADMIN"
-    : `CHÀO MỪNG ${currentUser?.username || "ĐẾN CARD ARENA"}`;
+function getOwnedCards() {
+  if (!currentUser) return [];
+
+  return currentUser.ownedCards
+    .map(getCardById)
+    .filter(Boolean);
+}
+
+function isCardOwned(cardId) {
+  return Boolean(currentUser?.ownedCards.includes(cardId));
+}
+
+/* ---------- AUTH MODAL ---------- */
+
+function setAuthMode(mode) {
+  authMode = mode;
+
+  const isRegister = mode === "register";
+
+  $("authTitle").textContent = isRegister ? "ĐĂNG KÝ" : "ĐĂNG NHẬP";
+  $("authSubmitBtn").textContent = isRegister ? "TẠO TÀI KHOẢN" : "ĐĂNG NHẬP";
+  $("registerFields").classList.toggle("hidden", !isRegister);
+  $("authEmail").required = isRegister;
+  $("switchAuthText").textContent = isRegister
+    ? "Đã có tài khoản?"
+    : "Chưa có tài khoản?";
+  $("switchAuthBtn").textContent = isRegister ? "Đăng nhập" : "Đăng ký";
+
+  $("authPassword").autocomplete = isRegister
+    ? "new-password"
+    : "current-password";
+
+  setMessage("authMessage", "");
 }
 
 function openAuth(mode) {
-  authMode = mode;
-  $("authTitle").textContent = mode === "register" ? "TẠO TÀI KHOẢN" : "ĐĂNG NHẬP";
-  $("authSubmitBtn").textContent = mode === "register" ? "ĐĂNG KÝ" : "ĐĂNG NHẬP";
-  $("emailGroup").classList.toggle("hidden", mode !== "register");
-  $("emailInput").required = mode === "register";
+  setAuthMode(mode);
   $("authForm").reset();
+  setMessage("authMessage", "");
   showModal("authModal");
+  setTimeout(() => $("authUsername").focus(), 100);
 }
 
-function submitAuth(event) {
+function registerAccount(username, email, password) {
+  const users = readUsers();
+
+  if (username.length < 3) {
+    return "Tên tài khoản phải có ít nhất 3 ký tự.";
+  }
+
+  if (password.length < 6) {
+    return "Mật khẩu phải có ít nhất 6 ký tự.";
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return "Vui lòng nhập địa chỉ email hợp lệ.";
+  }
+
+  if (users.some(user =>
+    user.username.toLowerCase() === username.toLowerCase()
+  )) {
+    return "Tên tài khoản này đã tồn tại.";
+  }
+
+  if (users.some(user =>
+    String(user.email || "").toLowerCase() === email.toLowerCase()
+  )) {
+    return "Email này đã được đăng ký.";
+  }
+
+  const player = normalizePlayer({
+    username,
+    email,
+    password,
+    coins: 17,
+    ownedCards: [],
+    inventoryPacks: [],
+    claimedStarter: false,
+    createdAt: Date.now()
+  });
+
+  users.push(player);
+  writeUsers(users);
+
+  return null;
+}
+
+function loginAccount(username, password) {
+  const users = readUsers();
+  const player = users.find(user =>
+    user.username.toLowerCase() === username.toLowerCase()
+  );
+
+  if (!player || player.password !== password) {
+    return null;
+  }
+
+  return normalizePlayer(player);
+}
+
+$("showLoginBtn").addEventListener("click", () => openAuth("login"));
+$("showRegisterBtn").addEventListener("click", () => openAuth("register"));
+$("tapStartBtn").addEventListener("click", () => openAuth("login"));
+
+$("switchAuthBtn").addEventListener("click", () => {
+  setAuthMode(authMode === "login" ? "register" : "login");
+});
+
+$("authForm").addEventListener("submit", event => {
   event.preventDefault();
 
-  const username = $("usernameInput").value.trim();
-  const password = $("passwordInput").value;
-  const email = $("emailInput").value.trim();
-
-  if (!username || !password) {
-    showToast("Vui lòng nhập đủ thông tin.");
-    return;
-  }
-
-  if (username.toLowerCase() === "admin") {
-    showToast("Tên ADMIN dành riêng. Hãy dùng mục ADMIN.");
-    return;
-  }
+  const username = $("authUsername").value.trim();
+  const email = $("authEmail").value.trim();
+  const password = $("authPassword").value;
 
   if (authMode === "register") {
-    if (users[username]) {
-      showToast("Tên tài khoản đã tồn tại.");
+    const error = registerAccount(username, email, password);
+
+    if (error) {
+      setMessage("authMessage", error, true);
       return;
     }
 
-    currentUser = {
-      username,
-      password,
-      email,
-      coins: 17,
-      claimedStarter: false,
-      ownedCards: []
-    };
+    setMessage("authMessage", "Đăng ký thành công! Đang vào game...");
 
-    users[username] = currentUser;
-    saveUsers();
-    saveSession();
+    currentUser = loginAccount(username, password);
+    setSession(currentUser.username);
+
+    setTimeout(() => {
+      hideModal("authModal");
+      enterGame();
+      showToast("🎉 Đăng ký và đăng nhập thành công!");
+    }, 500);
+
+    return;
+  }
+
+  const player = loginAccount(username, password);
+
+  if (!player) {
+    setMessage("authMessage", "Sai tên tài khoản hoặc mật khẩu.", true);
+    return;
+  }
+
+  currentUser = player;
+  setSession(player.username);
+
+  setMessage("authMessage", "Đăng nhập thành công! Đang vào game...");
+
+  setTimeout(() => {
     hideModal("authModal");
     enterGame();
-    showToast("Tạo tài khoản thành công! +17 COIN");
-    return;
-  }
+    showToast("🎉 Vào game thành công!");
+  }, 450);
+});
 
-  const account = users[username];
-  if (!account || account.password !== password) {
-    showToast("Tên tài khoản hoặc mật khẩu không đúng.");
-    return;
-  }
+/* ---------- ADMIN ---------- */
 
-  currentUser = account;
-  if (!Array.isArray(currentUser.ownedCards)) currentUser.ownedCards = [];
-  if (typeof currentUser.coins !== "number") currentUser.coins = 17;
-  if (typeof currentUser.claimedStarter !== "boolean") currentUser.claimedStarter = false;
+$("adminAccessBtn").addEventListener("click", () => {
+  $("adminCode").value = "";
+  setMessage("adminMessage", "");
+  showModal("adminModal");
+});
 
-  savePlayer();
-  saveSession();
-  hideModal("authModal");
-  enterGame();
-  showToast("Đăng nhập thành công!");
-}
-
-function enterAdmin() {
-  currentUser = {
-    username: "ADMIN",
-    isAdmin: true,
-    coins: Infinity,
-    claimedStarter: true,
-    ownedCards: CARDS.map(card => card.id)
-  };
-
-  saveSession();
-  hideModal("adminModal");
-  enterGame();
-  showToast("👑 ADMIN đăng nhập thành công!");
-}
-
-function submitAdmin(event) {
+$("adminForm").addEventListener("submit", event => {
   event.preventDefault();
 
-  if ($("adminCodeInput").value.trim() !== ADMIN_CODE) {
-    showToast("Mã ADMIN không chính xác!");
-    $("adminCodeInput").select();
+  if ($("adminCode").value !== ADMIN_CODE) {
+    setMessage("adminMessage", "Mã quản trị không chính xác.", true);
     return;
   }
 
-  $("adminForm").reset();
-  enterAdmin();
-}
+  currentUser = normalizePlayer({
+    username: "ADMIN",
+    email: "",
+    coins: Infinity,
+    ownedCards: CARD_DATA.map(card => card.id),
+    inventoryPacks: [],
+    claimedStarter: true,
+    isAdmin: true
+  });
+
+  setSession("ADMIN", true);
+  hideModal("adminModal");
+  enterGame();
+  showToast("♛ Đã vào chế độ Admin!");
+});
+
+/* ---------- ENTER GAME / NAVIGATION ---------- */
 
 function enterGame() {
   $("welcomeScreen").classList.add("hidden");
   $("gameScreen").classList.remove("hidden");
-  updateMoneyDisplay();
-  setActiveTab("home");
 
-  $("chestArea").classList.add("hidden");
-  $("packArea").classList.add("hidden");
-  $("revealArea").classList.add("hidden");
-  $("claimedMessage").classList.add("hidden");
+  currentUser = normalizePlayer(currentUser);
 
-  if (!currentUser.claimedStarter) {
-    $("chestArea").classList.remove("hidden");
-  } else {
-    $("claimedMessage").classList.remove("hidden");
-  }
+  $("adminBadge").classList.toggle("hidden", !currentUser.isAdmin);
+  $("starterPanel").classList.toggle(
+    "hidden",
+    currentUser.isAdmin || currentUser.claimedStarter
+  );
+
+  $("starterMessage").textContent = currentUser.claimedStarter
+    ? "Bạn đã nhận quà khởi đầu."
+    : "";
+
+  updateCoins();
+  renderAlbum();
+  renderBag();
+  showPage("home");
 }
 
-function openChest() {
-  if (!currentUser) return;
+function showPage(pageName) {
+  const validPages = ["home", "album", "shop", "bag"];
+  if (!validPages.includes(pageName)) return;
 
-  $("chest").classList.add("chest-opening");
-  $("openChestBtn").disabled = true;
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+  });
 
-  setTimeout(() => {
-    $("chest").classList.remove("chest-opening");
-    $("chestArea").classList.add("hidden");
-    selectedPack = "basic";
-    showActivePack(selectedPack);
-    $("packArea").classList.remove("hidden");
-    $("openChestBtn").disabled = false;
-    showToast("Bạn đã nhận được Basic Pack!");
-  }, 600);
-}
+  const page = $(pageName + "Page");
+  if (page) page.classList.add("active");
 
-function setActiveTab(page) {
   document.querySelectorAll(".nav-btn[data-page]").forEach(button => {
-    button.classList.toggle("active", button.dataset.page === page);
+    button.classList.toggle(
+      "active",
+      button.dataset.page === pageName
+    );
   });
+
+  if (pageName === "album") renderAlbum();
+  if (pageName === "bag") renderBag();
+  if (pageName === "home") updateStarterPanel();
 }
 
-function getOwnedCardIds() {
-  if (!currentUser) return [];
-  if (currentUser.isAdmin) return CARDS.map(card => card.id);
-  return currentUser.ownedCards || [];
-}
+document.querySelectorAll("[data-page]").forEach(button => {
+  button.addEventListener("click", () => {
+    showPage(button.dataset.page);
+  });
+});
 
-function chooseRandomCard(packType) {
-  const pack = PACKS[packType] || PACKS.basic;
-  const roll = Math.random() * 100;
-  const targetRarity = roll < pack.rates.LEGENDARY ? "LEGENDARY" : "RARE";
+$("goShopBtn").addEventListener("click", () => showPage("shop"));
 
-  let candidates = CARDS.filter(card => card.rarity === targetRarity);
+$("logoutBtn").addEventListener("click", () => {
+  currentUser = null;
+  clearSession();
 
-  // Nếu chưa có thẻ thuộc độ hiếm được quay, chọn thẻ có sẵn.
-  if (candidates.length === 0) {
-    candidates = CARDS;
-  }
-  if (candidates.length === 0) return null;
+  $("gameScreen").classList.add("hidden");
+  $("welcomeScreen").classList.remove("hidden");
 
-  return candidates[Math.floor(Math.random() * candidates.length)];
-}
+  document.querySelectorAll(".modal").forEach(modal => {
+    modal.classList.remove("show");
+  });
 
-function makeImageFallback() {
-  const fallback = document.createElement("div");
-  fallback.className = "card-placeholder";
-  fallback.textContent = "🎴";
-  return fallback;
-}
+  showToast("Đã đăng xuất.");
+});
 
-function buildCardElement(card, className = "trading-card") {
-  const element = document.createElement("div");
-  element.className = `${className} ${card.rarity.toLowerCase()}`;
+/* ---------- COINS ---------- */
 
-  const img = document.createElement("img");
-  img.src = card.image;
-  img.alt = card.name;
-  img.onerror = () => img.replaceWith(makeImageFallback());
-
-  const title = document.createElement("h3");
-  title.textContent = card.name;
-
-  const rarity = document.createElement("div");
-  rarity.className = "rarity";
-  rarity.textContent = card.rarity;
-
-  const description = document.createElement("p");
-  description.className = "card-description";
-  description.textContent = card.description || "";
-
-  element.append(img, title, rarity, description);
-  return element;
-}
-
-function showActivePack(packType) {
-  selectedPack = packType;
-  const pack = PACKS[packType];
-  const display = $("activePackDisplay");
-  display.replaceChildren();
-
-  const wrapper = document.createElement("div");
-  wrapper.className = `pack-product active-pack-card ${packType === "premium" ? "premium-product" : "basic-product"}`;
-
-  const art = document.createElement("div");
-  art.className = `product-art ${packType === "premium" ? "premium-art" : "basic-art"}`;
-
-  const stars = document.createElement("div");
-  stars.className = "pack-stars";
-  stars.textContent = "✦ · ✧ · ✦";
-
-  const emblem = document.createElement("div");
-  emblem.className = "pack-emblem";
-  emblem.textContent = "CA";
-
-  const name = document.createElement("div");
-  name.className = "pack-name";
-  name.innerHTML = packType === "premium" ? "PREMIUM<br>PACK" : "BASIC<br>PACK";
-
-  const ribbon = document.createElement("div");
-  ribbon.className = "pack-ribbon";
-  ribbon.textContent = packType === "premium" ? "LEGENDARY COLLECTION" : "MEME COLLECTION";
-
-  art.append(stars, emblem, name, ribbon);
-  wrapper.appendChild(art);
-
-  const caption = document.createElement("p");
-  caption.className = "active-pack-caption";
-  caption.textContent = `${pack.name} • ${packType === "premium" ? "40% Rare / 60% Legendary" : "70% Rare / 30% Legendary"}`;
-  wrapper.appendChild(caption);
-
-  display.appendChild(wrapper);
-}
-
-function tearPack() {
+function updateCoins() {
   if (!currentUser) return;
 
-  const card = chooseRandomCard(selectedPack);
-  if (!card) {
-    showToast("Chưa có thẻ nào trong dữ liệu game.");
-    return;
-  }
-
-  $("tearPackBtn").disabled = true;
-  $("activePackDisplay").classList.add("pack-tearing");
-
-  setTimeout(() => {
-    $("activePackDisplay").classList.remove("pack-tearing");
-    $("packArea").classList.add("hidden");
-    $("revealedCard").replaceChildren(buildCardElement(card));
-    $("revealArea").classList.remove("hidden");
-
-    if (!currentUser.ownedCards.includes(card.id)) {
-      currentUser.ownedCards.push(card.id);
-    }
-    currentUser.claimedStarter = true;
-    savePlayer();
-    updateMoneyDisplay();
-    $("tearPackBtn").disabled = false;
-    showToast(`Bạn nhận được ${card.name}!`);
-  }, 700);
+  $("coinAmount").textContent = currentUser.isAdmin
+    ? "∞"
+    : String(currentUser.coins);
 }
 
-function continueGame() {
-  $("revealArea").classList.add("hidden");
-  $("claimedMessage").classList.remove("hidden");
-  updateMoneyDisplay();
-}
+/* ---------- ALBUM ---------- */
 
-function renderAlbum(category = "character") {
-  currentAlbumCategory = category;
-
-  document.querySelectorAll(".album-tab").forEach(tab => {
-    tab.classList.toggle("active", tab.dataset.category === category);
-  });
+function renderAlbum() {
+  if (!currentUser) return;
 
   const grid = $("albumGrid");
-  grid.replaceChildren();
+  grid.innerHTML = "";
 
-  const cards = CARDS.filter(card => card.category === category);
-  const ownedIds = getOwnedCardIds();
-  const ownedCount = cards.filter(card => ownedIds.includes(card.id)).length;
-  const totalSlots = Math.max(ALBUM_SLOTS[category] || 3, cards.length);
+  const ownedCards = getOwnedCards();
+  const filteredCards = ownedCards.filter(card =>
+    albumFilter === "ALL" || card.category === albumFilter
+  );
 
-  $("albumProgress").textContent = `Đã sở hữu ${ownedCount}/${totalSlots} thẻ trong mục này`;
+  $("collectionCount").textContent = `${ownedCards.length} thẻ`;
+  $("emptyAlbum").classList.toggle("hidden", filteredCards.length > 0);
 
-  for (let i = 0; i < totalSlots; i++) {
-    const card = cards[i];
-    const owned = card && ownedIds.includes(card.id);
-    const slot = document.createElement("button");
-    slot.type = "button";
-    slot.className = `album-card ${owned ? "owned" : ""}`;
-    slot.disabled = !owned;
-
-    if (owned) {
-      const img = document.createElement("img");
-      img.src = card.image;
-      img.alt = card.name;
-      img.onerror = () => img.replaceWith(makeImageFallback());
-
-      const title = document.createElement("h3");
-      title.textContent = card.name;
-
-      const rarity = document.createElement("p");
-      rarity.textContent = card.rarity;
-
-      slot.append(img, title, rarity);
-      slot.addEventListener("click", () => showCardDetail(card));
-    } else {
-      slot.appendChild(makeImageFallback());
-
-      const title = document.createElement("h3");
-      title.textContent = card ? "🔒 Chưa sở hữu" : "Ô trống";
-
-      const note = document.createElement("p");
-      note.textContent = card ? "Chưa mở khóa" : "Chưa có thẻ";
-
-      slot.append(title, note);
-    }
-
-    grid.appendChild(slot);
-  }
+  filteredCards.forEach(card => {
+    grid.appendChild(makeCardElement(card));
+  });
 }
 
-function openAlbum() {
-  if (!currentUser) return;
-  renderAlbum("character");
-  showModal("albumModal");
-  setActiveTab("album");
+function makeCardElement(card) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "collection-card";
+
+  const rarityClass = card.rarity === "LEGENDARY"
+    ? "legendary-tag"
+    : "rare-tag";
+
+  const rarityText = card.rarity === "LEGENDARY"
+    ? "LEGENDARY"
+    : "RARE";
+
+  button.innerHTML = `
+    <img src="${card.image}" alt="${escapeHTML(card.name)}"
+         onerror="this.style.display='none'">
+    <span class="rarity-tag ${rarityClass}">${rarityText}</span>
+    <span class="card-name">${escapeHTML(card.name)}</span>
+    <span class="card-category">${categoryName(card.category)}</span>
+  `;
+
+  button.addEventListener("click", () => openCardDetail(card));
+  return button;
 }
 
-function showCardDetail(card) {
-  const oldCard = $("detailCard");
-  const newCard = buildCardElement(card);
-  newCard.id = "detailCard";
-  oldCard.replaceWith(newCard);
-  $("detailDescription").textContent = card.description || "Thẻ trong bộ sưu tập của bạn.";
+function categoryName(category) {
+  const names = {
+    CHARACTER: "Nhân vật",
+    SKILL: "Skill",
+    SITUATION: "Tình huống"
+  };
+
+  return names[category] || category;
+}
+
+$("albumFilters").addEventListener("click", event => {
+  const button = event.target.closest("[data-filter]");
+  if (!button) return;
+
+  albumFilter = button.dataset.filter;
+
+  document.querySelectorAll(".filter-btn").forEach(filterButton => {
+    filterButton.classList.toggle("active", filterButton === button);
+  });
+
+  renderAlbum();
+});
+
+function openCardDetail(card) {
+  const rarityText = card.rarity === "LEGENDARY" ? "LEGENDARY" : "RARE";
+
+  $("cardDetailContent").innerHTML = `
+    <img src="${card.image}" alt="${escapeHTML(card.name)}"
+         onerror="this.style.display='none'">
+    <h2>${escapeHTML(card.name)}</h2>
+    <p><span class="rarity-tag ${card.rarity === "LEGENDARY" ? "legendary-tag" : "rare-tag"}">${rarityText}</span></p>
+    <p>Loại thẻ: ${categoryName(card.category)}</p>
+    <p>${escapeHTML(card.description)}</p>
+    <p>Sức mạnh: ${card.power}/100</p>
+  `;
+
   showModal("cardDetailModal");
 }
 
-function openShop() {
-  if (!currentUser) return;
-  showModal("shopModal");
-  setActiveTab("shop");
-}
+/* ---------- SHOP -> BAG ---------- */
 
-function buyItem(item) {
+document.querySelectorAll("[data-buy]").forEach(button => {
+  button.addEventListener("click", () => buyItem(button.dataset.buy));
+});
+
+function buyItem(itemType) {
   if (!currentUser) return;
 
-  const pack = PACKS[item];
+  const pack = PACK_DATA[itemType];
   if (!pack) return;
 
-  if (!currentUser.isAdmin && currentUser.coins < pack.price) {
-    showToast("Bạn không đủ COIN để mua gói này!");
+  const price = itemType === "premium" ? 20 : 10;
+
+  if (!currentUser.isAdmin && currentUser.coins < price) {
+    setMessage("shopMessage", "Bạn không đủ COIN để mua pack.", true);
+    showToast("❌ Không đủ COIN!");
     return;
   }
 
   if (!currentUser.isAdmin) {
-    currentUser.coins -= pack.price;
-    savePlayer();
+    currentUser.coins -= price;
   }
 
-  pendingPurchasedPack = item;
-  selectedPack = item;
-  currentUser.claimedStarter = false;
+  currentUser.inventoryPacks.push({
+    id: createId(),
+    type: itemType,
+    purchasedAt: Date.now()
+  });
+
   savePlayer();
-  saveSession();
-  updateMoneyDisplay();
-  hideModal("shopModal");
+  updateCoins();
+  renderBag();
 
-  $("claimedMessage").classList.add("hidden");
-  $("chestArea").classList.add("hidden");
-  $("revealArea").classList.add("hidden");
-
-  showActivePack(item);
-  $("packArea").classList.remove("hidden");
-  setActiveTab("home");
-
-  showToast(`${pack.name} đã sẵn sàng!`);
+  setMessage("shopMessage", "");
+  showPage("bag");
+  showToast(`🎒 Đã mua ${pack.name}! Pack đã được chuyển vào Balo.`);
 }
 
-function goHome() {
-  setActiveTab("home");
+/* ---------- BAG ---------- */
+
+function getBagPacks() {
+  if (!currentUser) return [];
+  if (!Array.isArray(currentUser.inventoryPacks)) {
+    currentUser.inventoryPacks = [];
+  }
+
+  return currentUser.inventoryPacks;
+}
+
+function renderBag() {
+  const grid = $("bagGrid");
+  if (!grid || !currentUser) return;
+
+  grid.innerHTML = "";
+
+  const packs = getBagPacks();
+
+  $("bagCount").textContent = `${packs.length} pack`;
+  $("emptyBag").classList.toggle("hidden", packs.length > 0);
+
+  packs.forEach(pack => {
+    const packInfo = PACK_DATA[pack.type];
+    if (!packInfo) return;
+
+    const isPremium = pack.type === "premium";
+    const packElement = document.createElement("button");
+
+    packElement.type = "button";
+    packElement.className = "bag-pack";
+
+    packElement.innerHTML = `
+      <div class="pack-art ${isPremium ? "premium-art" : "basic-art"}">
+        <div class="pack-shine"></div>
+        <span class="pack-top-label">CARD ARENA</span>
+        <div class="pack-symbol">${isPremium ? "✧" : "✦"}</div>
+        <strong>${isPremium ? "PREMIUM" : "BASIC"}</strong>
+        <small>CARD PACK</small>
+      </div>
+      <span class="bag-pack-name">${packInfo.name}</span>
+      <span class="bag-pack-hint">Bấm để xem / mở</span>
+    `;
+
+    packElement.addEventListener("click", () => openBagPack(pack.id));
+    grid.appendChild(packElement);
+  });
+}
+
+function openBag() {
+  showPage("bag");
+  renderBag();
+}
+
+function openBagPack(packId) {
+  const pack = getBagPacks().find(item => item.id === packId);
+  if (!pack) {
+    showToast("Không tìm thấy pack này trong Balo.");
+    renderBag();
+    return;
+  }
+
+  selectedPackId = packId;
+
+  const isPremium = pack.type === "premium";
+  const packInfo = PACK_DATA[pack.type];
+
+  $("detailPackTitle").textContent = packInfo.name.toUpperCase();
+  $("detailPackDescription").textContent = packInfo.description;
+
+  const detailArt = $("detailPackArt");
+  detailArt.className = `pack-art detail-pack-art ${isPremium ? "premium-art" : "basic-art"}`;
+
+  detailArt.innerHTML = `
+    <div class="pack-shine"></div>
+    <span class="pack-top-label">CARD ARENA</span>
+    <div class="pack-symbol">${isPremium ? "✧" : "✦"}</div>
+    <strong>${isPremium ? "PREMIUM" : "BASIC"}</strong>
+    <small>CARD PACK</small>
+  `;
+
+  $("openSelectedPackBtn").disabled = false;
+  $("openSelectedPackBtn").textContent = "XÉ PACK ✨";
+  showModal("packDetailModal");
+}
+
+/* ---------- OPEN PACK ---------- */
+
+$("openSelectedPackBtn").addEventListener("click", () => {
+  if (!selectedPackId) return;
+
+  const packIndex = getBagPacks().findIndex(pack =>
+    pack.id === selectedPackId
+  );
+
+  if (packIndex === -1) {
+    hideModal("packDetailModal");
+    showToast("Pack không còn trong Balo.");
+    renderBag();
+    return;
+  }
+
+  const pack = currentUser.inventoryPacks[packIndex];
+  const packInfo = PACK_DATA[pack.type];
+
+  if (!packInfo) return;
+
+  // Xóa pack khỏi Balo khi bắt đầu mở.
+  currentUser.inventoryPacks.splice(packIndex, 1);
+
+  const roll = Math.random() * 100;
+  const targetRarity = roll < packInfo.legendaryRate
+    ? "LEGENDARY"
+    : "RARE";
+
+  let possibleCards = CARD_DATA.filter(card =>
+    card.rarity === targetRarity
+  );
+
+  // Nếu sau này chưa có thẻ đúng độ hiếm, dùng các thẻ hiện có.
+  if (possibleCards.length === 0) {
+    possibleCards = CARD_DATA;
+  }
+
+  const receivedCard =
+    possibleCards[Math.floor(Math.random() * possibleCards.length)];
+
+  if (!currentUser.ownedCards.includes(receivedCard.id)) {
+    currentUser.ownedCards.push(receivedCard.id);
+  }
+
+  selectedPackId = null;
+  savePlayer();
+  updateCoins();
+  renderAlbum();
+  renderBag();
+
+  hideModal("packDetailModal");
+
+  $("revealTitle").textContent = `BẠN NHẬN ĐƯỢC ${receivedCard.name.toUpperCase()}!`;
+  $("revealedCard").innerHTML = "";
+  $("tearEffect").classList.remove("tear-animate");
+  $("tearEffect").textContent = "✦ PACK OPENING ✦";
+
+  showModal("revealModal");
+
+  // Hiệu ứng xé pack trước khi lật ra lá bài.
+  $("openSelectedPackBtn").disabled = true;
+
+  setTimeout(() => {
+    $("tearEffect").classList.add("tear-animate");
+    $("tearEffect").textContent = "✂️ ĐANG XÉ PACK...";
+  }, 100);
+
+  setTimeout(() => {
+    $("tearEffect").textContent = "✨ THẺ BÀI XUẤT HIỆN ✨";
+    $("revealedCard").appendChild(makeCardElement(receivedCard));
+    showToast(`🎉 Bạn nhận được thẻ ${receivedCard.name}!`);
+  }, 750);
+});
+
+$("revealDoneBtn").addEventListener("click", () => {
+  hideModal("revealModal");
+  showPage("album");
+});
+
+/* ---------- STARTER CHEST ---------- */
+
+function updateStarterPanel() {
   if (!currentUser) return;
 
-  $("chestArea").classList.add("hidden");
-  $("packArea").classList.add("hidden");
-  $("revealArea").classList.add("hidden");
-  $("claimedMessage").classList.remove("hidden");
+  $("starterPanel").classList.toggle(
+    "hidden",
+    currentUser.isAdmin || currentUser.claimedStarter
+  );
+
+  $("starterMessage").textContent = currentUser.claimedStarter
+    ? "Bạn đã nhận quà khởi đầu."
+    : "";
 }
 
-function logout() {
-  currentUser = null;
-  localStorage.removeItem(SESSION_KEY);
-  $("gameScreen").classList.add("hidden");
-  $("welcomeScreen").classList.remove("hidden");
-  document.querySelectorAll(".modal").forEach(modal => modal.classList.add("hidden"));
-  showToast("Bạn đã đăng xuất.");
-}
+$("openChestBtn").addEventListener("click", () => {
+  if (!currentUser || currentUser.claimedStarter || currentUser.isAdmin) {
+    return;
+  }
 
-$("startBtn").addEventListener("click", () => {
-  if (currentUser) enterGame();
-  else openAuth("login");
+  showModal("chestModal");
 });
-$("loginBtn").addEventListener("click", () => openAuth("login"));
-$("registerBtn").addEventListener("click", () => openAuth("register"));
-$("adminBtn").addEventListener("click", () => {
-  $("adminCodeInput").value = "";
-  showModal("adminModal");
-});
-$("authForm").addEventListener("submit", submitAuth);
-$("adminForm").addEventListener("submit", submitAdmin);
-$("openChestBtn").addEventListener("click", openChest);
-$("tearPackBtn").addEventListener("click", tearPack);
-$("continueBtn").addEventListener("click", continueGame);
-$("openAlbumHomeBtn").addEventListener("click", openAlbum);
-$("openShopHomeBtn").addEventListener("click", openShop);
-$("logoutBtn").addEventListener("click", logout);
 
-document.querySelectorAll(".nav-btn[data-page]").forEach(button => {
-  button.addEventListener("click", () => {
-    if (button.dataset.page === "home") goHome();
-    if (button.dataset.page === "album") openAlbum();
-    if (button.dataset.page === "shop") openShop();
+$("claimStarterBtn").addEventListener("click", () => {
+  if (!currentUser || currentUser.claimedStarter || currentUser.isAdmin) {
+    hideModal("chestModal");
+    return;
+  }
+
+  currentUser.claimedStarter = true;
+
+  // Quà khởi đầu cũng chuyển vào Balo để người chơi tự mở.
+  currentUser.inventoryPacks.push({
+    id: createId(),
+    type: "basic",
+    purchasedAt: Date.now(),
+    starterGift: true
   });
+
+  savePlayer();
+  updateStarterPanel();
+  renderBag();
+
+  hideModal("chestModal");
+  showPage("bag");
+  showToast("🎁 Bạn nhận được 1 Basic Pack miễn phí trong Balo!");
 });
+
+/* ---------- MODAL CLOSE BUTTONS ---------- */
 
 document.querySelectorAll("[data-close]").forEach(button => {
-  button.addEventListener("click", () => hideModal(button.dataset.close));
+  button.addEventListener("click", () => {
+    hideModal(button.dataset.close);
+  });
 });
 
 document.querySelectorAll(".modal").forEach(modal => {
   modal.addEventListener("click", event => {
-    if (event.target === modal) modal.classList.add("hidden");
+    if (event.target === modal) {
+      modal.classList.remove("show");
+    }
   });
 });
 
-document.querySelectorAll(".album-tab").forEach(button => {
-  button.addEventListener("click", () => renderAlbum(button.dataset.category));
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") {
+    document.querySelectorAll(".modal.show").forEach(modal => {
+      modal.classList.remove("show");
+    });
+  }
 });
 
-document.querySelectorAll(".buy-btn").forEach(button => {
-  button.addEventListener("click", () => buyItem(button.dataset.item));
-});
+/* ---------- RESTORE SESSION ---------- */
 
 function restoreSession() {
+  let session;
+
   try {
-    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
-    if (!session) return;
-
-    if (session.isAdmin) {
-      enterAdmin();
-      return;
-    }
-
-    const account = users[session.username];
-    if (account) {
-      currentUser = account;
-      if (!Array.isArray(currentUser.ownedCards)) currentUser.ownedCards = [];
-      if (typeof currentUser.coins !== "number") currentUser.coins = 17;
-      if (typeof currentUser.claimedStarter !== "boolean") currentUser.claimedStarter = false;
-      enterGame();
-    } else {
-      localStorage.removeItem(SESSION_KEY);
-    }
+    session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
   } catch {
-    localStorage.removeItem(SESSION_KEY);
+    session = null;
+  }
+
+  if (!session) return;
+
+  if (session.isAdmin) {
+    currentUser = normalizePlayer({
+      username: "ADMIN",
+      coins: Infinity,
+      ownedCards: CARD_DATA.map(card => card.id),
+      inventoryPacks: [],
+      claimedStarter: true,
+      isAdmin: true
+    });
+
+    enterGame();
+    return;
+  }
+
+  const users = readUsers();
+  const player = users.find(user => user.username === session.username);
+
+  if (player) {
+    currentUser = normalizePlayer(player);
+    enterGame();
+  } else {
+    clearSession();
   }
 }
 
