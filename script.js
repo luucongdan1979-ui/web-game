@@ -504,7 +504,6 @@ function openCardDetail(card) {
     <p><span class="rarity-tag ${card.rarity === "LEGENDARY" ? "legendary-tag" : "rare-tag"}">${rarityText}</span></p>
     <p>Loại thẻ: ${categoryName(card.category)}</p>
     <p>${escapeHTML(card.description)}</p>
-    <p>Sức mạnh: ${card.power}/100</p>
   `;
 
   showModal("cardDetailModal");
