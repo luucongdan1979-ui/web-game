@@ -13,12 +13,12 @@ const btnBackFromLogin = document.getElementById('btn-back-from-login');
 const linkRegToLogin = document.getElementById('link-reg-to-login');
 const linkLoginToReg = document.getElementById('link-login-to-reg');
 
-const formRegister = document.getElementById('form-register');
-const formLogin = document.getElementById('form-login');
+const btnSubmitReg = document.getElementById('btn-submit-reg');
+const btnSubmitLogin = document.getElementById('btn-submit-login');
 const playerNameDisplay = document.getElementById('player-name-display');
 const btnLogout = document.getElementById('btn-logout');
 
-// GACHA & POPUP THÀNH CÔNG
+// GACHA & POPUP
 const btnOpenGacha = document.getElementById('btn-open-gacha');
 const gachaModal = document.getElementById('gacha-modal');
 const btnCloseModal = document.getElementById('btn-close-modal');
@@ -47,16 +47,13 @@ btnBackFromLogin.addEventListener('click', () => switchScreen(screenMain));
 linkRegToLogin.addEventListener('click', (e) => { e.preventDefault(); switchScreen(screenLogin); });
 linkLoginToReg.addEventListener('click', (e) => { e.preventDefault(); switchScreen(screenRegister); });
 
-// --- XỬ LÝ ĐĂNG KÝ (HIỆN THÀNH CÔNG -> RƯƠNG BÁU) ---
-formRegister.addEventListener('submit', (e) => {
-  e.preventDefault();
+// --- BẤM NÚT ĐĂNG KÝ (LUÔN ĂN 100%) ---
+btnSubmitReg.addEventListener('click', () => {
   const username = document.getElementById('reg-username').value;
   playerNameDisplay.textContent = username || "Tân Thủ";
   
-  // 1. Vào giao diện sảnh chính trước
   switchScreen(screenLobby);
 
-  // 2. Tự động bật bảng rương báu và hiện dòng chữ thành công
   gachaModal.classList.remove('hidden');
   successBanner.classList.remove('hidden');
   stepChest.classList.remove('hidden');
@@ -64,9 +61,8 @@ formRegister.addEventListener('submit', (e) => {
   stepCard.classList.add('hidden');
 });
 
-// --- XỬ LÝ ĐĂNG NHẬP (VÀO THẲNG SẢNH KHÔNG HIỆN RƯƠNG) ---
-formLogin.addEventListener('submit', (e) => {
-  e.preventDefault();
+// --- BẤM NÚT ĐĂNG NHẬP ---
+btnSubmitLogin.addEventListener('click', () => {
   const username = document.getElementById('login-username').value;
   playerNameDisplay.textContent = username || "Tân Thủ";
   switchScreen(screenLobby);
@@ -74,18 +70,16 @@ formLogin.addEventListener('submit', (e) => {
 
 btnLogout.addEventListener('click', () => switchScreen(screenMain));
 
-// Nút chiến đấu thủ công nếu muốn mở rương lần nữa
 btnOpenGacha.addEventListener('click', () => {
   gachaModal.classList.remove('hidden');
-  successBanner.classList.add('hidden'); // Ẩn chữ đăng ký thành công khi bấm từ nút chiến đấu
+  successBanner.classList.add('hidden');
   stepChest.classList.remove('hidden');
   stepPack.classList.add('hidden');
   stepCard.classList.add('hidden');
 });
 
-// Thao tác bấm rương -> gói thẻ -> thẻ bài Khá Bảnh
 stepChest.addEventListener('click', () => {
-  successBanner.classList.add('hidden'); // Ẩn thông báo đi khi bắt đầu mở rương
+  successBanner.classList.add('hidden');
   stepChest.classList.add('hidden');
   stepPack.classList.remove('hidden');
 });
@@ -101,8 +95,4 @@ btnCollectCard.addEventListener('click', () => {
 
 btnCloseModal.addEventListener('click', () => {
   gachaModal.classList.add('hidden');
-});
-linkLoginToReg.addEventListener('click', (e) => {
-  e.preventDefault();
-  switchScreen(screenRegister);
 });
