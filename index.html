@@ -9,141 +9,127 @@
   <script src="./script.js" defer></script>
 </head>
 <body>
-  <div class="background-effects">
-    <div class="glow glow-one"></div>
-    <div class="glow glow-two"></div>
-  </div>
+  <div class="background-glow"></div>
 
-  <header class="topbar">
-    <a class="logo" href="#" id="logoHome">
-      <span class="logo-symbol">✦</span>
-      <span>ANIME <b>CARD</b></span>
-    </a>
+  <!-- Màn hình đăng nhập -->
+  <main id="welcomeScreen" class="welcome-screen">
+    <div class="login-panel">
+      <div class="logo">✦ CARD ARENA ✦</div>
+      <p class="subtitle">YOUR CARD ADVENTURE BEGINS</p>
 
-    <div class="account-area">
-      <span id="playerName">Khách</span>
-      <button class="small-btn" id="loginOpen">Đăng nhập</button>
-      <button class="small-btn hidden" id="logoutBtn">Đăng xuất</button>
+      <button id="startBtn" class="start-btn">TAP TO START</button>
+
+      <div class="auth-buttons">
+        <button id="loginOpen" class="secondary-btn">ĐĂNG NHẬP</button>
+        <button id="registerOpen" class="secondary-btn">ĐĂNG KÝ</button>
+      </div>
+
+      <p class="small-note">Collect cards. Open packs. Have fun.</p>
     </div>
-  </header>
-
-  <main>
-    <!-- MÀN HÌNH CHÀO -->
-    <section class="welcome-screen" id="welcomeScreen">
-      <div class="hero-badge">✦ YOUR CARD ADVENTURE ✦</div>
-
-      <h1>ANIME CARD<br><span>ARENA</span></h1>
-
-      <p class="hero-description">
-        Thu thập thẻ bài, mở pack và xây dựng bộ sưu tập của riêng bạn.
-      </p>
-
-      <div class="hero-actions">
-        <button class="primary-btn pulse" id="startBtn">
-          TAP TO START
-        </button>
-        <button class="secondary-btn" id="registerOpen">
-          ✦ ĐĂNG KÝ TÀI KHOẢN
-        </button>
-      </div>
-
-      <div class="hero-decoration">
-        <div class="floating-card card-purple">✦</div>
-        <div class="floating-card card-pink">ACE</div>
-        <div class="floating-card card-blue">SSR</div>
-      </div>
-    </section>
-
-    <!-- MÀN HÌNH GAME -->
-    <section class="game-screen hidden" id="gameScreen">
-      <div class="welcome-banner">
-        <div>
-          <div class="eyebrow">WELCOME TO THE ARENA</div>
-          <h2>Chào mừng trở lại!</h2>
-          <p>Mở rương khởi đầu để nhận pack thẻ đầu tiên.</p>
-        </div>
-        <div class="banner-icon">⚔️</div>
-      </div>
-
-      <!-- RƯƠNG KHỞI ĐẦU -->
-      <section class="starter-section" id="starterChestPanel">
-        <div class="section-heading">
-          <div>
-            <span class="eyebrow">BEGINNER REWARD</span>
-            <h2>Rương khởi đầu</h2>
-          </div>
-          <span class="once-badge">NHẬN 1 LẦN</span>
-        </div>
-
-        <button class="chest-button" id="chestBtn" type="button">
-          <span class="chest-aura"></span>
-          <span class="chest-emoji">🎁</span>
-          <span class="chest-label">MỞ RƯƠNG</span>
-        </button>
-
-        <p class="muted-text" id="chestDescription">
-          Phần thưởng dành riêng cho người chơi mới.
-        </p>
-
-        <button class="primary-btn hidden" id="resumePackBtn" type="button">
-          TIẾP TỤC MỞ PACK
-        </button>
-
-        <div class="claimed-message hidden" id="claimedMessage">
-          ✓ Bạn đã nhận rương khởi đầu.
-        </div>
-      </section>
-
-      <!-- THỐNG KÊ -->
-      <section class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-icon">🃏</span>
-          <span class="stat-number" id="totalCards">0</span>
-          <span class="stat-label">Thẻ sở hữu</span>
-        </div>
-
-        <div class="stat-card">
-          <span class="stat-icon">🎁</span>
-          <span class="stat-number" id="totalPacks">0</span>
-          <span class="stat-label">Pack đã mở</span>
-        </div>
-      </section>
-    </section>
   </main>
 
-  <!-- TASKBAR DƯỚI MÀN HÌNH: CHỈ HIỆN ICON -->
-  <nav class="game-taskbar hidden" id="gameTaskbar">
-    <button class="taskbar-icon active" id="homeTab"
-      type="button" title="Trang chủ" aria-label="Trang chủ">
-      🏠
+  <!-- Màn hình game -->
+  <main id="gameScreen" class="game-screen hidden">
+    <div class="game-background"></div>
+    <div class="game-title">CARD ARENA</div>
+    <p class="game-subtitle">Một kho báu đang chờ bạn khám phá...</p>
+  </main>
+
+  <!-- Lớp làm tối nền phía sau rương -->
+  <div id="sceneOverlay" class="scene-overlay hidden"></div>
+
+  <!-- Rương và pack -->
+  <section id="chestScene" class="chest-scene hidden">
+    <div class="scene-heading">✨ STARTER TREASURE ✨</div>
+
+    <button id="chestBtn" class="chest-button" aria-label="Mở rương">
+      <span class="chest-sparkle">✦</span>
+      <span class="chest-icon">🎁</span>
+      <span class="chest-caption">NHẤN ĐỂ MỞ RƯƠNG</span>
     </button>
 
-    <button class="taskbar-icon" id="openBagBtn"
-      type="button" title="Túi thẻ bài" aria-label="Túi thẻ bài">
+    <button id="packBtn" class="pack-button hidden" aria-label="Xé gói thẻ">
+      <span class="pack-shine"></span>
+      <span class="pack-symbol">★</span>
+      <span class="pack-name">MEME CARD</span>
+      <span class="pack-subtitle">COLLECTOR PACK</span>
+      <span class="tear-line">━━━━ XÉ TẠI ĐÂY ━━━━</span>
+    </button>
+
+    <p id="sceneHint" class="scene-hint">Rương bí ẩn chứa một gói thẻ đặc biệt.</p>
+  </section>
+
+  <!-- Hiệu ứng lá bài -->
+  <section id="revealScene" class="reveal-scene hidden">
+    <p class="reveal-label">✨ BẠN NHẬN ĐƯỢC ✨</p>
+    <div id="revealedCard" class="trading-card">
+      <div class="card-rarity">★ RARE ★</div>
+      <div class="card-art">
+        <img
+          src="https://raw.githubusercontent.com/luucongdan1979-ui/web-game/main/kh%C3%A1%20b%E1%BA%A3nh%20nv.png"
+          alt="Khá Bảnh"
+          onerror="this.style.display='none';this.parentElement.classList.add('no-image')"
+        >
+        <span class="fallback-name">KHÁ BẢNH</span>
+      </div>
+      <div class="card-info">
+        <h2>KHÁ BẢNH</h2>
+        <p>MEME CHARACTER</p>
+      </div>
+    </div>
+    <button id="continueBtn" class="continue-btn">TIẾP TỤC</button>
+  </section>
+
+  <!-- Taskbar chỉ có biểu tượng -->
+  <nav id="gameTaskbar" class="game-taskbar hidden" aria-label="Thanh công cụ">
+    <button id="homeTab" class="task-icon" aria-label="Trang chủ" title="Trang chủ">⌂</button>
+    <button id="openBagBtn" class="task-icon bag-icon" aria-label="Túi thẻ" title="Túi thẻ">
       🎒
-      <span class="taskbar-notification" id="bagCount">0</span>
+      <span id="bagCount" class="bag-count">0</span>
     </button>
-
-    <button class="taskbar-icon" id="collectionTab"
-      type="button" title="Bộ sưu tập" aria-label="Bộ sưu tập">
-      🃏
-    </button>
-
-    <button class="taskbar-icon" id="shopTab"
-      type="button" title="Cửa hàng" aria-label="Cửa hàng">
-      🛒
-    </button>
+    <button id="collectionTab" class="task-icon" aria-label="Bộ sưu tập" title="Bộ sưu tập">🃏</button>
+    <button id="shopTab" class="task-icon" aria-label="Cửa hàng" title="Cửa hàng">🛒</button>
   </nav>
 
-  <!-- CỬA SỔ THÔNG TIN -->
-  <div class="modal-backdrop hidden" id="modal">
-    <div class="modal-box" role="dialog" aria-modal="true">
-      <button class="modal-close" id="modalClose"
-        type="button" aria-label="Đóng">✕</button>
-      <div id="modalContent"></div>
+  <!-- Hộp đăng nhập / đăng ký -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <button id="modalClose" class="modal-close" aria-label="Đóng">×</button>
+      <h2 id="modalTitle">ĐĂNG NHẬP</h2>
+      <p id="modalDescription">Chào mừng bạn trở lại!</p>
+
+      <form id="authForm">
+        <label for="username">Tên tài khoản</label>
+        <input id="username" name="username" autocomplete="username"
+          placeholder="Nhập tên tài khoản" required>
+
+        <div id="emailGroup" class="hidden">
+          <label for="email">Gmail</label>
+          <input id="email" name="email" type="email" autocomplete="email"
+            placeholder="example@gmail.com">
+        </div>
+
+        <label for="password">Mật khẩu</label>
+        <input id="password" name="password" type="password"
+          autocomplete="current-password" placeholder="Nhập mật khẩu" required>
+
+        <button id="authSubmit" class="submit-btn" type="submit">ĐĂNG NHẬP</button>
+      </form>
+      <p id="authMessage" class="auth-message"></p>
     </div>
   </div>
 
-  <div class="toast hidden" id="toast" role="status"></div>
+  <!-- Túi thẻ -->
+  <div id="bagModal" class="modal hidden">
+    <div class="modal-box bag-box">
+      <button id="bagClose" class="modal-close" aria-label="Đóng">×</button>
+      <h2>🎒 TÚI THẺ</h2>
+      <p>Những lá bài bạn đã sưu tầm</p>
+      <div id="cardInventory" class="card-inventory"></div>
+    </div>
+  </div>
+
+  <!-- Thông báo -->
+  <div id="toast" class="toast hidden"></div>
 </body>
 </html>
