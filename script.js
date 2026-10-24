@@ -26,7 +26,14 @@ const CARD_DATA = [
     image: "./jack%20nv.png",
     description: "Một nhân vật nổi bật trong bộ sưu tập meme CARD ARENA."
   },
-
+{
+  id: "vao-tu",
+  name: "Vào Tù",
+  type: "SITUATION",
+  rarity: "LEGENDARY",
+  image: "./Vào Tù Th.png",
+  description: "Lá bài tình huống Legendary."
+},
   ...Array.from({ length: 7 }, (_, i) => ({
     id: `character-${i + 3}`,
     name: `Nhân vật ${i + 3}`,
