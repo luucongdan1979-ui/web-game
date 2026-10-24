@@ -6,224 +6,254 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CARD ARENA</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="background-glow"></div>
+  <div class="bg-glow glow-one"></div>
+  <div class="bg-glow glow-two"></div>
 
   <header class="topbar">
     <div class="logo" onclick="goPage('home')">CARD<span>ARENA</span></div>
-    <div class="coin">🪙 <b id="coinAmount">17</b> COIN</div>
+
+    <div class="header-actions">
+      <div class="coin">🪙 <b id="coinAmount">17</b> COIN</div>
+      <button class="admin-top-btn" onclick="openAdmin()">♛ ADMIN</button>
+    </div>
   </header>
 
-  <!-- ĐĂNG NHẬP -->
-  <section id="welcomeScreen" class="screen welcome-screen">
-    <div class="welcome-art">
-      <div class="orbit orbit-one"></div>
-      <div class="orbit orbit-two"></div>
-      <div class="hero-symbol">✦</div>
-      <div class="welcome-tag">COLLECT • OPEN • BATTLE</div>
-    </div>
+  <!-- MÀN HÌNH ĐĂNG NHẬP -->
+  <main id="welcomeScreen" class="welcome-screen">
+    <div class="login-orb orb-one"></div>
+    <div class="login-orb orb-two"></div>
 
-    <h1>CARD <span>ARENA</span></h1>
-    <p class="subtitle">Mở pack. Sưu tầm thẻ. Xây dựng bộ sưu tập của bạn.</p>
+    <section class="login-layout">
+      <div class="login-art">
+        <div class="art-badge">✦ COLLECT • OPEN • PLAY ✦</div>
+        <div class="art-title">YOUR CARDS.<br><span>YOUR ARENA.</span></div>
+        <p>Thu thập thẻ bài, mở pack và xây dựng bộ sưu tập của riêng bạn.</p>
 
-    <div class="welcome-buttons">
-      <button class="primary-btn" onclick="openAuth('login')">ĐĂNG NHẬP</button>
-      <button class="secondary-btn" onclick="openAuth('register')">ĐĂNG KÝ</button>
-    </div>
-    <button class="tap-btn" onclick="tapToStart()">✦ TAP TO START ✦</button>
-    <button class="admin-link" onclick="openAdmin()">👑 ADMIN</button>
-  </section>
-
-  <!-- FORM TÀI KHOẢN -->
-  <div id="authModal" class="modal hidden">
-    <div class="modal-box">
-      <button class="close-btn" onclick="closeModal('authModal')">✕</button>
-      <h2 id="authTitle">ĐĂNG NHẬP</h2>
-      <p class="muted">Chào mừng đến với CARD ARENA</p>
-      <form id="authForm">
-        <label>Tên tài khoản</label>
-        <input id="usernameInput" required minlength="3" placeholder="Nhập tên tài khoản">
-        <div id="emailGroup" class="hidden">
-          <label>Gmail</label>
-          <input id="emailInput" type="email" placeholder="example@gmail.com">
+        <div class="floating-cards">
+          <div class="float-card float-left">
+            <div class="mini-card-shine"></div>
+            <span>RARE</span>
+            <div class="mini-card-symbol">✦</div>
+            <small>CARD ARENA</small>
+          </div>
+          <div class="float-card float-middle">
+            <div class="mini-card-shine"></div>
+            <span>LEGENDARY</span>
+            <div class="mini-card-symbol">✧</div>
+            <small>COLLECTION</small>
+          </div>
+          <div class="float-card float-right">
+            <div class="mini-card-shine"></div>
+            <span>RARE</span>
+            <div class="mini-card-symbol">◇</div>
+            <small>OPEN PACK</small>
+          </div>
         </div>
-        <label>Mật khẩu</label>
-        <input id="passwordInput" type="password" required minlength="4" placeholder="Nhập mật khẩu">
-        <button class="primary-btn full-btn" type="submit">XÁC NHẬN</button>
+      </div>
+
+      <div class="login-panel">
+        <div class="panel-topline"></div>
+        <div class="login-icon">✦</div>
+        <div class="eyebrow">WELCOME TO THE ARENA</div>
+        <h1 id="authHeading">BẮT ĐẦU<br><span>CUỘC CHƠI</span></h1>
+        <p class="login-subtitle" id="authSubtitle">Đăng nhập để bước vào thế giới thẻ bài.</p>
+
+        <div class="auth-buttons">
+          <button class="primary-btn" onclick="openAuth('login')">ĐĂNG NHẬP <span>↗</span></button>
+          <button class="secondary-btn" onclick="openAuth('register')">TẠO TÀI KHOẢN <span>＋</span></button>
+        </div>
+
+        <div class="login-divider"><span>OR</span></div>
+
+        <button class="tap-btn" onclick="tapToStart()">
+          <span class="tap-pulse"></span>
+          TAP TO START
+          <span class="tap-arrow">➜</span>
+        </button>
+
+        <div class="login-footnote">CARD ARENA <span>•</span> COLLECT YOUR UNIVERSE</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ -->
+  <div class="modal" id="authModal">
+    <div class="modal-box auth-box">
+      <button class="close-btn" onclick="closeModal('authModal')">×</button>
+      <div class="modal-eyebrow">CARD ARENA ACCOUNT</div>
+      <h2 id="authTitle">ĐĂNG NHẬP</h2>
+      <p class="muted">Nhập thông tin tài khoản của bạn.</p>
+
+      <form id="authForm">
+        <label for="authUsername">Tên tài khoản</label>
+        <input id="authUsername" autocomplete="username" placeholder="Ví dụ: cardplayer01" required>
+
+        <div id="emailField" class="hidden">
+          <label for="authEmail">Gmail</label>
+          <input id="authEmail" type="email" autocomplete="email" placeholder="ban@gmail.com">
+        </div>
+
+        <label for="authPassword">Mật khẩu</label>
+        <input id="authPassword" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" required>
+
+        <button class="primary-btn full-btn" type="submit" id="authSubmit">ĐĂNG NHẬP ↗</button>
       </form>
-      <p id="authSwitch" class="switch-text"></p>
-      <p id="authMessage" class="message"></p>
+
+      <p class="switch-auth" id="switchAuthText">
+        Chưa có tài khoản?
+        <button onclick="openAuth('register')">Đăng ký</button>
+      </p>
     </div>
   </div>
 
   <!-- ADMIN -->
-  <div id="adminModal" class="modal hidden">
-    <div class="modal-box">
-      <button class="close-btn" onclick="closeModal('adminModal')">✕</button>
-      <h2>👑 ADMIN</h2>
-      <p class="muted">Nhập mã quản trị để mở quyền Admin</p>
-      <input id="adminCode" type="password" placeholder="Mã Admin">
-      <button class="primary-btn full-btn" onclick="loginAdmin()">ĐĂNG NHẬP ADMIN</button>
-      <p id="adminMessage" class="message"></p>
+  <div class="modal" id="adminModal">
+    <div class="modal-box admin-box">
+      <button class="close-btn" onclick="closeModal('adminModal')">×</button>
+      <div class="admin-emblem">♛</div>
+      <div class="modal-eyebrow">RESTRICTED ACCESS</div>
+      <h2>ADMIN LOGIN</h2>
+      <p class="muted">Nhập mã quản trị để mở bảng Admin.</p>
+      <form id="adminForm">
+        <label for="adminCode">Mã quản trị</label>
+        <input id="adminCode" type="password" placeholder="Nhập mã Admin" required>
+        <button class="primary-btn full-btn" type="submit">ĐĂNG NHẬP ADMIN ↗</button>
+      </form>
     </div>
   </div>
 
   <!-- GAME -->
-  <main id="gameScreen" class="hidden">
+  <main id="gameScreen" class="game-screen hidden">
     <section id="homePage" class="page">
-      <div class="hero-panel">
+      <div class="page-hero">
         <div>
-          <p class="eyebrow">WELCOME TO THE ARENA</p>
-          <h2>YOUR NEXT<br><span>LEGENDARY CARD</span></h2>
-          <p>Khám phá những lá bài đặc biệt và hoàn thiện Album của bạn.</p>
-          <button class="primary-btn" onclick="goPage('shop')">MỞ SHOP NGAY ↗</button>
+          <div class="eyebrow">MAIN CONTROL CENTER</div>
+          <h1>CHÀO MỪNG ĐẾN<br><span>CARD ARENA</span></h1>
+          <p>Thu thập thẻ bài và khám phá những gói bài mới.</p>
+          <button class="primary-btn hero-btn" onclick="goPage('shop')">KHÁM PHÁ SHOP ↗</button>
         </div>
-        <div class="hero-card">
-          <div class="hero-card-top">CARD ARENA</div>
-          <div class="hero-card-star">✦</div>
-          <div class="hero-card-bottom">MYSTERY PACK</div>
-        </div>
+        <div class="hero-emblem">✦<span>CA</span>✦</div>
       </div>
 
-      <h3 class="section-title">KHU VỰC CỦA BẠN</h3>
+      <div class="section-heading">
+        <div><div class="eyebrow">YOUR JOURNEY</div><h2>TRUNG TÂM</h2></div>
+      </div>
+
       <div class="feature-grid">
         <button class="feature-card" onclick="goPage('album')">
-          <span>🃏</span><b>ALBUM</b><small>Bộ sưu tập thẻ</small>
+          <span class="feature-icon">▤</span><b>ALBUM</b><small>Xem bộ sưu tập thẻ</small><span class="feature-arrow">↗</span>
         </button>
         <button class="feature-card" onclick="goPage('shop')">
-          <span>🛍️</span><b>SHOP</b><small>Mua gói thẻ</small>
+          <span class="feature-icon">✧</span><b>SHOP</b><small>Mua các gói bài</small><span class="feature-arrow">↗</span>
         </button>
         <button class="feature-card" onclick="goPage('bag')">
-          <span>🎒</span><b>BALO</b><small>Pack của bạn</small>
+          <span class="feature-icon">▣</span><b>BALO</b><small>Các pack đang sở hữu</small><span class="feature-arrow">↗</span>
         </button>
         <button class="feature-card" onclick="openChest()">
-          <span>🎁</span><b>RƯƠNG</b><small>Nhận quà khởi đầu</small>
+          <span class="feature-icon">♜</span><b>RƯƠNG</b><small>Nhận phần thưởng</small><span class="feature-arrow">↗</span>
         </button>
       </div>
-
-      <div class="notice-panel">
-        <span>✨</span>
-        <div><b>Chào mừng đến CARD ARENA!</b><p>Mua pack tại Shop rồi vào Balo để mở thẻ.</p></div>
-      </div>
     </section>
 
-    <!-- ALBUM -->
     <section id="albumPage" class="page hidden">
       <div class="page-heading">
-        <div><p class="eyebrow">YOUR COLLECTION</p><h2>🃏 ALBUM</h2></div>
-        <span class="count-badge" id="albumCount">0 THẺ</span>
+        <div><div class="eyebrow">YOUR COLLECTION</div><h1>ALBUM <span>THẺ BÀI</span></h1><p>Nhấn vào một thẻ để xem thông tin cơ bản.</p></div>
+        <div class="count-pill">ĐÃ SƯU TẬP: <b id="albumCount">0</b></div>
       </div>
-      <p class="muted">Bấm vào thẻ để xem thông tin chi tiết.</p>
       <div id="albumGrid" class="card-grid"></div>
+      <div id="albumEmpty" class="empty-state hidden"><span>▤</span><h3>ALBUM ĐANG TRỐNG</h3><p>Hãy mua pack trong Shop và mở tại Balo.</p><button class="primary-btn" onclick="goPage('shop')">ĐẾN SHOP ↗</button></div>
     </section>
 
-    <!-- SHOP -->
     <section id="shopPage" class="page hidden">
-      <div class="page-heading">
-        <div><p class="eyebrow">SPEND YOUR COINS</p><h2>🛍️ SHOP</h2></div>
-      </div>
+      <div class="page-heading"><div><div class="eyebrow">CARD MARKET</div><h1>SHOP <span>PACK</span></h1><p>Chọn gói bài để thêm vào Balo.</p></div></div>
       <div class="shop-grid">
-        <article class="pack-shop-card basic">
-          <div class="pack-art"><span>✦</span><small>BASIC</small></div>
-          <h3>Basic Pack</h3>
-          <p>Gói thẻ cơ bản, có cơ hội nhận Rare hoặc Legendary.</p>
-          <div class="price">🪙 10 COIN</div>
-          <button class="primary-btn full-btn" onclick="buyPack('basic')">MUA PACK</button>
+        <article class="shop-card basic-shop">
+          <div class="pack-art"><span>✦</span><small>BASIC SERIES</small></div>
+          <div class="shop-card-content"><div class="rarity-label">STANDARD PACK</div><h2>Basic Pack</h2><p>Gói bài cơ bản dành cho bộ sưu tập của bạn.</p><div class="price">🪙 10 COIN</div><button class="primary-btn full-btn" onclick="buyPack('basic')">MUA PACK</button></div>
         </article>
-        <article class="pack-shop-card premium">
-          <div class="pack-art"><span>✧</span><small>PREMIUM</small></div>
-          <h3>Premium Pack</h3>
-          <p>Gói cao cấp, cơ hội nhận thẻ Legendary cao hơn.</p>
-          <div class="price">🪙 20 COIN</div>
-          <button class="primary-btn full-btn" onclick="buyPack('premium')">MUA PACK</button>
+        <article class="shop-card premium-shop">
+          <div class="pack-art premium-art"><span>✧</span><small>PREMIUM SERIES</small></div>
+          <div class="shop-card-content"><div class="rarity-label legendary-label">PREMIUM PACK</div><h2>Premium Pack</h2><p>Gói bài đặc biệt với hiệu ứng mở pack nổi bật.</p><div class="price">🪙 20 COIN</div><button class="primary-btn full-btn" onclick="buyPack('premium')">MUA PACK</button></div>
         </article>
       </div>
     </section>
 
-    <!-- BALO -->
     <section id="bagPage" class="page hidden">
-      <div class="page-heading">
-        <div><p class="eyebrow">YOUR ITEMS</p><h2>🎒 BALO</h2></div>
-        <span id="bagCount" class="count-badge">0 PACK</span>
-      </div>
-      <p class="muted">Chọn một pack để phóng to, sau đó bấm Xé pack.</p>
+      <div class="page-heading"><div><div class="eyebrow">YOUR INVENTORY</div><h1>BALO <span>PACK</span></h1><p>Chọn pack bạn muốn mở.</p></div></div>
       <div id="bagGrid" class="bag-grid"></div>
+      <div id="bagEmpty" class="empty-state hidden"><span>▣</span><h3>BALO ĐANG TRỐNG</h3><p>Mua pack tại Shop để bắt đầu mở bài.</p><button class="primary-btn" onclick="goPage('shop')">ĐẾN SHOP ↗</button></div>
     </section>
 
-    <!-- ADMIN PAGE -->
     <section id="adminPage" class="page hidden">
-      <div class="page-heading"><div><p class="eyebrow">CONTROL CENTER</p><h2>👑 ADMIN</h2></div></div>
-      <div class="admin-panel">
-        <h3>Quản lý tài khoản</h3>
-        <p>Chế độ Admin trong bản demo có thể cộng COIN và xem toàn bộ thẻ.</p>
-        <button class="primary-btn" onclick="addAdminCoins()">+1000 COIN</button>
-        <button class="secondary-btn" onclick="goPage('album')">XEM ALBUM</button>
+      <div class="page-heading"><div><div class="eyebrow">CONTROL PANEL</div><h1>ADMIN <span>AREA</span></h1><p>Quản lý tài khoản trong bản demo.</p></div></div>
+      <div class="admin-dashboard">
+        <div class="admin-stat"><small>TÀI KHOẢN HIỆN CÓ</small><h2 id="adminUserCount">0</h2></div>
+        <div class="admin-stat"><small>COIN CỦA BẠN</small><h2 id="adminCoinCount">∞</h2></div>
+      </div>
+      <div class="admin-action-panel">
+        <h3>QUẢN LÝ COIN</h3>
+        <p>Cộng coin vào tài khoản đang đăng nhập.</p>
+        <button class="primary-btn" onclick="addAdminCoins(100)">＋ 100 COIN</button>
+        <button class="secondary-btn" onclick="addAdminCoins(500)">＋ 500 COIN</button>
       </div>
     </section>
-
-    <nav id="taskbar" class="taskbar">
-      <button class="nav-btn active" data-page="home" onclick="goPage('home')"><span>⌂</span>Home</button>
-      <button class="nav-btn" data-page="album" onclick="goPage('album')"><span>🃏</span>Album</button>
-      <button class="nav-btn" data-page="shop" onclick="goPage('shop')"><span>🛍️</span>Shop</button>
-      <button class="nav-btn" data-page="bag" onclick="goPage('bag')"><span>🎒</span>Balo</button>
-      <button class="nav-btn" onclick="openChest()"><span>🎁</span>Rương</button>
-      <button class="nav-btn hidden" id="adminNav" onclick="goPage('admin')"><span>👑</span>Admin</button>
-      <button class="nav-btn" onclick="logout()"><span>↪</span>Thoát</button>
-    </nav>
   </main>
 
-  <!-- XEM PACK TRONG BALO -->
-  <div id="packModal" class="modal hidden">
+  <nav id="taskbar" class="taskbar hidden">
+    <button class="nav-item active" data-page="home" onclick="goPage('home')"><span>⌂</span>Home</button>
+    <button class="nav-item" data-page="album" onclick="goPage('album')"><span>▤</span>Album</button>
+    <button class="nav-item" data-page="shop" onclick="goPage('shop')"><span>✧</span>Shop</button>
+    <button class="nav-item" data-page="bag" onclick="goPage('bag')"><span>▣</span>Balo</button>
+    <button class="nav-item" onclick="openChest()"><span>♜</span>Rương</button>
+    <button id="adminNavItem" class="nav-item hidden" data-page="admin" onclick="goPage('admin')"><span>♛</span>Admin</button>
+    <button class="nav-item logout-nav" onclick="logout()"><span>↪</span>Thoát</button>
+  </nav>
+
+  <!-- MỞ PACK -->
+  <div class="modal" id="packModal">
     <div class="modal-box pack-modal-box">
-      <button class="close-btn" onclick="closeModal('packModal')">✕</button>
-      <p class="eyebrow">MYSTERY ITEM</p>
-      <div id="selectedPackArt" class="big-pack">✦</div>
-      <h2 id="selectedPackName">Basic Pack</h2>
+      <button class="close-btn" onclick="closeModal('packModal')">×</button>
+      <div class="modal-eyebrow">SEALED PACK</div>
+      <h2 id="selectedPackName">BASIC PACK</h2>
+      <div class="opening-pack-art" id="openingPackArt"><span>✦</span><small>CARD ARENA</small></div>
       <p class="muted">Sẵn sàng khám phá lá bài bên trong?</p>
-      <button id="openSelectedPackBtn" class="primary-btn full-btn">✂ XÉ PACK</button>
-      <button class="secondary-btn full-btn" onclick="closeModal('packModal')">✕ THOÁT</button>
+      <button id="openPackButton" class="primary-btn full-btn" onclick="openSelectedPack()">✦ XÉ PACK ✦</button>
+      <button class="secondary-btn full-btn" onclick="closeModal('packModal')">THOÁT</button>
     </div>
   </div>
 
-  <!-- HIỆN THẺ SAU KHI MỞ -->
-  <div id="revealModal" class="modal hidden">
-    <div class="modal-box reveal-box">
-      <p class="eyebrow">PACK OPENED!</p>
-      <div id="revealCard" class="trading-card">
-        <div id="revealRarity" class="rarity">RARE</div>
-        <div class="card-image-wrap"><img id="revealImage" src="" alt="Lá bài"></div>
-        <h2 id="revealName">Khá Bảnh</h2>
-        <p id="revealDescription">Lá bài đã được thêm vào Album.</p>
-      </div>
-      <button class="primary-btn full-btn" onclick="closeModal('revealModal');goPage('album')">XEM ALBUM</button>
-      <button class="secondary-btn full-btn" onclick="closeModal('revealModal')">ĐÓNG</button>
+  <!-- KẾT QUẢ MỞ PACK -->
+  <div class="modal" id="revealModal">
+    <div class="modal-box reveal-modal-box">
+      <div class="modal-eyebrow">CARD DISCOVERED</div>
+      <h2>CHÚC MỪNG!</h2>
+      <div id="revealedCard"></div>
+      <button class="primary-btn full-btn" onclick="closeModal('revealModal')">TIẾP TỤC</button>
     </div>
   </div>
 
-  <!-- CHI TIẾT THẺ -->
-  <div id="cardModal" class="modal hidden">
-    <div class="modal-box">
-      <button class="close-btn" onclick="closeModal('cardModal')">✕</button>
-      <div id="detailCard" class="trading-card">
-        <div id="detailRarity" class="rarity">RARE</div>
-        <div class="card-image-wrap"><img id="detailImage" src="" alt="Lá bài"></div>
-        <h2 id="detailName">Tên lá bài</h2>
-        <p id="detailDescription"></p>
-      </div>
-      <button class="secondary-btn full-btn" onclick="closeModal('cardModal')">ĐÓNG</button>
+  <!-- CHI TIẾT THẺ: CHỈ THÔNG TIN CƠ BẢN -->
+  <div class="modal" id="cardDetailModal">
+    <div class="modal-box card-detail-box">
+      <button class="close-btn" onclick="closeModal('cardDetailModal')">×</button>
+      <div class="modal-eyebrow">CARD INFORMATION</div>
+      <div id="cardDetailContent"></div>
+      <button class="secondary-btn full-btn" onclick="closeModal('cardDetailModal')">ĐÓNG</button>
     </div>
   </div>
 
   <!-- RƯƠNG -->
-  <div id="chestModal" class="modal hidden">
-    <div class="modal-box chest-box">
-      <button class="close-btn" onclick="closeModal('chestModal')">✕</button>
-      <p class="eyebrow">STARTER REWARD</p>
-      <div class="chest-icon">🎁</div>
-      <h2>RƯƠNG KHỞI ĐẦU</h2>
-      <p id="chestDescription" class="muted">Nhận một Basic Pack miễn phí!</p>
-      <button id="claimChestBtn" class="primary-btn full-btn" onclick="claimChest()">MỞ RƯƠNG</button>
+  <div class="modal" id="chestModal">
+    <div class="modal-box chest-modal-box">
+      <button class="close-btn" onclick="closeModal('chestModal')">×</button>
+      <div class="modal-eyebrow">DAILY REWARD</div>
+      <div class="chest-icon">♜</div>
+      <h2>RƯƠNG PHẦN THƯỞNG</h2>
+      <p id="chestDescription" class="muted">Mỗi tài khoản có thể nhận một Basic Pack miễn phí.</p>
+      <button id="claimChestButton" class="primary-btn full-btn" onclick="claimChest()">MỞ RƯƠNG</button>
     </div>
   </div>
 
