@@ -1,41 +1,43 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Roboto:wght@400;500;700&display=swap');
 
-* { box-sizing: border-box; }
-
 :root {
   --purple: #a855f7;
   --pink: #ff4fd8;
+  --cyan: #56eaff;
 }
+
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
   min-height: 100vh;
   overflow: hidden;
-  color: white;
+  color: #fff;
   font-family: Roboto, sans-serif;
-  background: #090716;
+  background: #080615;
 }
 
 button, input { font: inherit; }
 button { cursor: pointer; }
 .hidden { display: none !important; }
 
-.background-glow {
+.ambient {
   position: fixed;
-  inset: -20%;
+  z-index: 0;
+  inset: -25%;
   pointer-events: none;
   background:
-    radial-gradient(circle at 20% 30%, #8b35ff35, transparent 38%),
-    radial-gradient(circle at 80% 70%, #ff36d526, transparent 38%);
-  animation: bgPulse 8s ease-in-out infinite alternate;
+    radial-gradient(circle at 20% 30%, #8b35ff38, transparent 35%),
+    radial-gradient(circle at 80% 70%, #ff36d526, transparent 35%);
+  animation: ambientMove 9s ease-in-out infinite alternate;
 }
 
-@keyframes bgPulse {
+@keyframes ambientMove {
   to { transform: scale(1.15) rotate(8deg); }
 }
 
-/* Màn hình đăng nhập */
+/* Màn hình đầu */
 
 .welcome-screen {
   position: relative;
@@ -49,16 +51,16 @@ button { cursor: pointer; }
 .login-panel {
   width: min(440px, 100%);
   padding: 42px 28px;
+  border: 1px solid #c87cff;
+  border-radius: 26px;
   text-align: center;
-  border: 1px solid #bd75ff99;
-  border-radius: 25px;
-  background: #100c25e8;
-  box-shadow: 0 0 35px #a855f744, inset 0 0 25px #a855f710;
-  backdrop-filter: blur(15px);
-  animation: floatPanel 4s ease-in-out infinite;
+  background: #100c25eF;
+  box-shadow: 0 0 38px #a855f755, inset 0 0 24px #a855f710;
+  backdrop-filter: blur(14px);
+  animation: panelFloat 4s ease-in-out infinite;
 }
 
-@keyframes floatPanel {
+@keyframes panelFloat {
   50% { transform: translateY(-7px); }
 }
 
@@ -68,48 +70,49 @@ button { cursor: pointer; }
 }
 
 .subtitle {
-  margin: 16px 0 32px;
-  color: #c9b6ff;
-  font: 11px Orbitron, sans-serif;
+  margin: 15px 0 32px;
+  color: #cbb7ff;
+  font: 10px Orbitron, sans-serif;
   letter-spacing: 2px;
 }
 
 .start-btn, .submit-btn, .continue-btn {
   width: 100%;
   padding: 15px;
-  color: white;
-  font: 700 13px Orbitron, sans-serif;
   border: 0;
   border-radius: 12px;
+  color: white;
   background: linear-gradient(100deg, #8b35f7, #e642c7);
+  font: 700 13px Orbitron, sans-serif;
   box-shadow: 0 0 22px #bb4cff55;
-  transition: transform .2s, box-shadow .2s;
+  transition: .2s;
 }
 
-.start-btn { animation: pulse 1.7s ease-in-out infinite; }
+.start-btn { animation: buttonPulse 1.7s ease-in-out infinite; }
 
-@keyframes pulse {
+@keyframes buttonPulse {
   50% { transform: scale(1.04); box-shadow: 0 0 32px #ed52ff99; }
 }
 
 .start-btn:hover, .submit-btn:hover, .continue-btn:hover {
   transform: scale(1.025);
-  box-shadow: 0 0 35px #d85cffaa;
+  box-shadow: 0 0 32px #d85cffaa;
 }
 
 .auth-buttons {
   display: flex;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 17px;
 }
 
 .secondary-btn {
   flex: 1;
   padding: 12px 6px;
-  border: 1px solid #a855f7a0;
+  border: 1px solid #a855f7;
   border-radius: 10px;
   color: #eee2ff;
   background: #21153b;
+  transition: .2s;
 }
 
 .secondary-btn:hover {
@@ -117,33 +120,38 @@ button { cursor: pointer; }
   border-color: var(--pink);
 }
 
-/* Nền game đơn giản */
+/* Nền game */
 
 .game-screen {
   position: fixed;
   z-index: 1;
   inset: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   background:
-    radial-gradient(ellipse at 50% 75%, #6e32ad55, transparent 45%),
+    radial-gradient(ellipse at 50% 70%, #6e32ad50, transparent 48%),
     linear-gradient(180deg, #0b0920, #191034 55%, #080715);
 }
 
-.game-title {
-  color: #fff;
+.game-screen h1 {
+  margin: 0 0 12px;
   font: 900 clamp(32px, 7vw, 65px) Orbitron, sans-serif;
   text-shadow: 0 0 25px #b74dff;
 }
 
-/* Nền tối mờ sau đăng nhập */
+.game-screen p { color: #c9b6e8; }
+
+/* Nền mờ */
 
 .scene-overlay {
   position: fixed;
   z-index: 5;
   inset: 0;
-  background: #05030c9c;
-  backdrop-filter: blur(8px);
+  background: #05030cc7;
+  backdrop-filter: blur(9px);
   animation: fadeIn .35s ease;
 }
 
@@ -167,7 +175,7 @@ button { cursor: pointer; }
 }
 
 .scene-heading {
-  margin-bottom: 25px;
+  margin: 0 0 25px;
   color: #ffe6a1;
   font: 700 clamp(16px, 4vw, 24px) Orbitron, sans-serif;
   letter-spacing: 2px;
@@ -176,19 +184,19 @@ button { cursor: pointer; }
 
 .chest-button {
   position: relative;
+  width: min(310px, 75vw);
+  aspect-ratio: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: min(310px, 75vw);
-  aspect-ratio: 1;
   border: 2px solid #ffd879;
   border-radius: 30px;
   color: white;
   background: radial-gradient(circle, #673d89, #1d1136 70%);
-  box-shadow: 0 0 30px #b95aff8c, inset 0 0 30px #ffcb5530;
+  box-shadow: 0 0 35px #b95aff99, inset 0 0 30px #ffcb5530;
   animation: chestFloat 2.5s ease-in-out infinite;
-  transition: transform .3s;
+  transition: transform .2s;
 }
 
 .chest-button:hover { transform: scale(1.05); }
@@ -198,22 +206,21 @@ button { cursor: pointer; }
 }
 
 .chest-icon {
+  position: relative;
+  z-index: 1;
   font-size: clamp(100px, 22vw, 155px);
   filter: drop-shadow(0 0 20px #ffbd55);
 }
 
-.chest-sparkle {
+.chest-glow {
   position: absolute;
-  top: 20px;
-  right: 25px;
-  color: #fff2ae;
-  font-size: 35px;
-  animation: sparkle 1s infinite alternate;
+  inset: 15%;
+  border-radius: 50%;
+  background: #ffbd5530;
+  filter: blur(28px);
 }
 
-@keyframes sparkle {
-  to { transform: rotate(35deg) scale(1.3); opacity: .45; }
-}
+.chest-sparkle { color: #fff2ae; }
 
 .chest-caption {
   margin-top: 6px;
@@ -243,7 +250,7 @@ button { cursor: pointer; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 15px;
   border: 2px solid #ffe18a;
   border-radius: 18px;
   color: white;
@@ -257,22 +264,23 @@ button { cursor: pointer; }
   to { transform: scale(1) rotate(0); opacity: 1; }
 }
 
-.pack-symbol {
+.pack-star {
   color: #ffeaa4;
   font-size: 80px;
   text-shadow: 0 0 20px #fff4ae;
 }
 
-.pack-name { font: 900 22px Orbitron, sans-serif; }
-.pack-subtitle, .tear-line {
+.pack-title { font: 900 22px Orbitron, sans-serif; }
+
+.pack-subtitle, .pack-tear {
   font: 10px Orbitron, sans-serif;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
 }
 
-.tear-line {
+.pack-tear {
   margin-top: 18px;
   color: #fff3b5;
-  animation: pulse 1.4s infinite;
+  animation: buttonPulse 1.4s infinite;
 }
 
 .pack-shine {
@@ -310,14 +318,14 @@ button { cursor: pointer; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px 20px 100px;
-  background: #05030c66;
+  padding: 20px 20px 105px;
+  background: #05030c60;
   backdrop-filter: blur(5px);
   animation: fadeIn .4s ease;
 }
 
-.reveal-label {
-  margin-bottom: 20px;
+.reveal-title {
+  margin: 0 0 20px;
   color: #ffe9a4;
   font: 700 17px Orbitron, sans-serif;
   letter-spacing: 2px;
@@ -339,14 +347,14 @@ button { cursor: pointer; }
   to { transform: rotateY(0) scale(1); opacity: 1; }
 }
 
-.card-rarity {
+.rarity {
   padding: 8px;
   color: #fff2b1;
   text-align: center;
   font: 900 13px Orbitron, sans-serif;
 }
 
-.card-art {
+.card-picture {
   position: relative;
   height: 235px;
   overflow: hidden;
@@ -355,14 +363,13 @@ button { cursor: pointer; }
   background: radial-gradient(circle, #7e4bc3, #171027);
 }
 
-.card-art img {
+.card-picture img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-.fallback-name {
-  display: none;
+.image-fallback {
   position: absolute;
   inset: 0;
   align-items: center;
@@ -370,15 +377,15 @@ button { cursor: pointer; }
   font: 900 22px Orbitron, sans-serif;
 }
 
-.card-art.no-image .fallback-name { display: flex; }
+.image-fallback:not(.hidden) { display: flex; }
 
-.card-info { padding: 8px 0 3px; text-align: center; }
-.card-info h2 { margin: 6px 0; font: 900 19px Orbitron, sans-serif; }
-.card-info p { margin: 4px 0; color: #ffe7a3; font-size: 10px; letter-spacing: 2px; }
+.card-details { padding: 8px 0 3px; text-align: center; }
+.card-details h2 { margin: 6px 0; font: 900 19px Orbitron, sans-serif; }
+.card-details p { margin: 4px 0; color: #ffe7a3; font-size: 10px; letter-spacing: 2px; }
 
 .continue-btn {
   width: min(270px, 70vw);
-  margin-top: 24px;
+  margin-top: 22px;
 }
 
 /* Taskbar */
@@ -392,8 +399,8 @@ button { cursor: pointer; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: 10px;
+  padding: 10px 13px;
   border: 1px solid #cb83ff;
   border-radius: 23px;
   background: #100b23ef;
@@ -405,19 +412,19 @@ button { cursor: pointer; }
   position: relative;
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
   border: 1px solid #9e65d9;
-  border-radius: 15px;
+  border-radius: 14px;
   color: white;
   background: linear-gradient(145deg, #30204d, #171027);
-  font-size: 25px;
-  transition: .2s;
+  font-size: 24px;
+  transition: transform .2s, box-shadow .2s;
 }
 
-.task-icon:hover {
-  transform: translateY(-5px);
+.task-icon:hover, .task-icon.active {
+  transform: translateY(-3px);
   border-color: #ff6be2;
   box-shadow: 0 0 18px #e65bff8c;
 }
@@ -439,7 +446,7 @@ button { cursor: pointer; }
   font-weight: 700;
 }
 
-/* Form đăng nhập */
+/* Modal */
 
 .modal {
   position: fixed;
@@ -515,7 +522,7 @@ button { cursor: pointer; }
 .submit-btn { margin-top: 10px; }
 .auth-message { min-height: 18px; color: #ff9dcf; text-align: center; font-size: 13px; }
 
-.bag-box { width: min(650px, 100%); }
+.inventory-box { width: min(650px, 100%); }
 
 .card-inventory {
   display: grid;
@@ -551,7 +558,7 @@ button { cursor: pointer; }
 .toast {
   position: fixed;
   z-index: 30;
-  top: 22px;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
   width: max-content;
@@ -565,9 +572,9 @@ button { cursor: pointer; }
   text-align: center;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 430px) {
   .login-panel { padding: 35px 20px; }
-  .game-taskbar { gap: 8px; padding: 8px 10px; }
-  .task-icon { width: 44px; height: 44px; flex-basis: 44px; }
+  .game-taskbar { gap: 6px; padding: 8px; }
+  .task-icon { width: 42px; height: 42px; flex-basis: 42px; }
   .pack-button { height: 290px; }
 }
