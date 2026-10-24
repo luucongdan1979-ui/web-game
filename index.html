@@ -32,10 +32,7 @@
     <section class="welcome-screen" id="welcomeScreen">
       <div class="hero-badge">✦ YOUR CARD ADVENTURE ✦</div>
 
-      <h1>
-        ANIME CARD<br>
-        <span>ARENA</span>
-      </h1>
+      <h1>ANIME CARD<br><span>ARENA</span></h1>
 
       <p class="hero-description">
         Thu thập thẻ bài, mở pack và xây dựng bộ sưu tập của riêng bạn.
@@ -80,7 +77,7 @@
 
         <button class="chest-button" id="chestBtn" type="button">
           <span class="chest-aura"></span>
-          <span class="chest-emoji" id="chestEmoji">🎁</span>
+          <span class="chest-emoji">🎁</span>
           <span class="chest-label">MỞ RƯƠNG</span>
         </button>
 
@@ -104,49 +101,45 @@
           <span class="stat-number" id="totalCards">0</span>
           <span class="stat-label">Thẻ sở hữu</span>
         </div>
+
         <div class="stat-card">
           <span class="stat-icon">🎁</span>
           <span class="stat-number" id="totalPacks">0</span>
           <span class="stat-label">Pack đã mở</span>
         </div>
       </section>
-
-      <section class="notice-panel">
-        <span>💡</span>
-        <p>Toàn bộ thẻ bạn nhận được sẽ được lưu trong Túi thẻ bài ở thanh bên dưới.</p>
-      </section>
     </section>
   </main>
 
-  <!-- TASKBAR DƯỚI MÀN HÌNH -->
-  <nav class="taskbar hidden" id="gameTaskbar" aria-label="Thanh điều hướng">
-    <button class="taskbar-item active" id="homeTab" type="button">
-      <span class="taskbar-icon">🏠</span>
-      <span>Trang chủ</span>
+  <!-- TASKBAR DƯỚI MÀN HÌNH: CHỈ HIỆN ICON -->
+  <nav class="game-taskbar hidden" id="gameTaskbar">
+    <button class="taskbar-icon active" id="homeTab"
+      type="button" title="Trang chủ" aria-label="Trang chủ">
+      🏠
     </button>
 
-    <button class="taskbar-item" id="openBagBtn" type="button">
-      <span class="taskbar-icon">🎒</span>
-      <span>Túi thẻ bài</span>
-      <span class="taskbar-count" id="bagCount">0</span>
+    <button class="taskbar-icon" id="openBagBtn"
+      type="button" title="Túi thẻ bài" aria-label="Túi thẻ bài">
+      🎒
+      <span class="taskbar-notification" id="bagCount">0</span>
     </button>
 
-    <button class="taskbar-item" id="collectionTab" type="button">
-      <span class="taskbar-icon">🃏</span>
-      <span>Bộ sưu tập</span>
+    <button class="taskbar-icon" id="collectionTab"
+      type="button" title="Bộ sưu tập" aria-label="Bộ sưu tập">
+      🃏
     </button>
 
-    <button class="taskbar-item" id="shopTab" type="button">
-      <span class="taskbar-icon">🛒</span>
-      <span>Cửa hàng</span>
+    <button class="taskbar-icon" id="shopTab"
+      type="button" title="Cửa hàng" aria-label="Cửa hàng">
+      🛒
     </button>
   </nav>
 
-  <!-- MODAL -->
+  <!-- CỬA SỔ THÔNG TIN -->
   <div class="modal-backdrop hidden" id="modal">
     <div class="modal-box" role="dialog" aria-modal="true">
-      <button class="modal-close" id="modalClose" type="button"
-        aria-label="Đóng">✕</button>
+      <button class="modal-close" id="modalClose"
+        type="button" aria-label="Đóng">✕</button>
       <div id="modalContent"></div>
     </div>
   </div>
