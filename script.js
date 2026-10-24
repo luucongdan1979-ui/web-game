@@ -1,234 +1,154 @@
 
-const $ = (id) => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-const loginScreen = $("loginScreen");
-const homeScreen = $("homeScreen");
-const authForm = $("authForm");
-const username = $("username");
-const email = $("email");
-const password = $("password");
+const IMAGE =
+  "https://raw.githubusercontent.com/luucongdan1979-ui/web-game/main/kh%C3%A1%20b%E1%BA%A3nh%20nv.png";
 
-let authMode = "login";
-let currentUser = "";
-let packOpened = false;
-let cardCollected = false;
-let busy = false;
+let mode = "login";
 
-function showToast(message) {
-  const toast = $("toast");
-  toast.textContent = message;
-  toast.classList.remove("hidden");
+$("email").hidden = true;
 
-  setTimeout(() => toast.classList.add("hidden"), 2200);
+function getUsers() {
+  return JSON.parse(localStorage.getItem("memeUsers") || "{}");
 }
 
-function switchScreen(screen) {
-  loginScreen.classList.toggle("hidden", screen !== "login");
-  homeScreen.classList.toggle("hidden", screen !== "home");
-}
+function register() {
+  const username = $("username").value.trim();
+  const password = $("password").value;
+  const email = $("email");
 
-function switchAuthMode(mode) {
-  authMode = mode;
-
-  const registering = mode === "register";
-  $("authTitle").textContent = registering ? "ĐĂNG KÝ" : "ĐĂNG NHẬP";
-  $("authSubmit").textContent = registering ? "TẠO TÀI KHOẢN" : "ĐĂNG NHẬP";
-  $("switchAuth").textContent = registering
-    ? "Đã có tài khoản? Đăng nhập"
-    : "Chưa có tài khoản? Đăng ký";
-
-  email.classList.toggle("hidden", !registering);
-  email.required = registering;
-  $("authMessage").textContent = "";
-}
-
-$("switchAuth").addEventListener("click", () => {
-  switchAuthMode(authMode === "login" ? "register" : "login");
-});
-
-function getAccounts() {
-  try {
-    return JSON.parse(localStorage.getItem("memeCardAccounts") || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function showHome(name) {
-  currentUser = name;
-  $("playerName").textContent = name;
-  switchScreen("home");
-  $("authMessage").textContent = "";
-}
-
-authForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-
-  const name = username.value.trim();
-  const mail = email.value.trim().toLowerCase();
-  const pass = password.value;
-
-  if (!name || !pass) {
-    $("authMessage").textContent = "Vui lòng điền đủ thông tin!";
+  if (email.hidden) {
+    email.hidden = false;
+    $("message").textContent = "Nhập Gmail rồi bấm Đăng ký lần nữa nhé!";
     return;
   }
 
-  const accounts = getAccounts();
-
-  if (authMode === "register") {
-    if (!mail) {
-      $("authMessage").textContent = "Vui lòng nhập Gmail!";
-      return;
-    }
-
-    if (pass.length < 4) {
-      $("authMessage").textContent = "Mật khẩu cần ít nhất 4 ký tự.";
-      return;
-    }
-
-    if (accounts[name.toLowerCase()]) {
-      $("authMessage").textContent = "Tên tài khoản đã tồn tại!";
-      return;
-    }
-
-    const duplicateEmail = Object.values(accounts).some(
-      account => account.email === mail
-    );
-
-    if (duplicateEmail) {
-      $("authMessage").textContent = "Gmail này đã được đăng ký!";
-      return;
-    }
-
-    accounts[name.toLowerCase()] = {
-      username: name,
-      email: mail,
-      password: pass
-    };
-
-    try {
-      localStorage.setItem("memeCardAccounts", JSON.stringify(accounts));
-    } catch {
-      $("authMessage").textContent =
-        "Không thể lưu tài khoản. Hãy kiểm tra cài đặt trình duyệt.";
-      return;
-    }
-
-    showToast("🎉 Đăng ký thành công! Vào game thành công!");
-    showHome(name);
+  if (!username || !email.value || password.length < 6) {
+    $("message").textContent = "Hãy nhập đủ thông tin, mật khẩu ít nhất 6 ký tự.";
     return;
   }
 
-  const account = accounts[name.toLowerCase()];
+  const users = getUsers();
+  const key = username.toLowerCase();
 
-  if (!account || account.password !== pass) {
-    $("authMessage").textContent =
-      "Tài khoản hoặc mật khẩu không chính xác!";
+  if (users[key]) {
+    $("message").textContent = "Tên tài khoản đã tồn tại!";
     return;
   }
 
-  showToast("✨ Đăng nhập thành công! Vào game thành công!");
-  showHome(account.username);
-});
+  users[key] = {
+    username,
+    email: email.value,
+    password
+  };
 
-// Nút TAP TO START
-$("startBtn").addEventListener("click", () => {
-  if (currentUser) {
-    switchScreen("home");
-  } else {
-    $("authMessage").textContent =
-      "Hãy đăng nhập hoặc đăng ký trước nhé!";
-    $("authForm").scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-});
+  localStorage.setItem("memeUsers", JSON.stringify(users));
+  localStorage.setItem("memePlayer", username);
+  enterGame(username);
+}
 
-// Đăng xuất
-$("logoutBtn").addEventListener("click", () => {
-  currentUser = "";
-  switchScreen("login");
-  switchAuthMode("login");
-  username.value = "";
-  email.value = "";
-  password.value = "";
-  showToast("Bạn đã đăng xuất!");
-});
+function login() {
+  const username = $("username").value.trim();
+  const password = $("password").value;
+  const user = getUsers()[username.toLowerCase()];
 
-// Đóng cửa sổ
-document.querySelectorAll("[data-close]").forEach(button => {
-  button.addEventListener("click", () => {
-    $(button.dataset.close).classList.add("hidden");
-  });
-});
-
-// MỞ RƯƠNG
-$("chestBtn").addEventListener("click", () => {
-  if (busy) return;
-
-  $("chestModal").classList.remove("hidden");
-  $("openedChest").classList.remove("opening");
-
-  void $("openedChest").offsetWidth;
-  $("openedChest").classList.add("opening");
-
-  $("chestMessage").textContent = cardCollected
-    ? "Bạn đã nhận lá bài Khá Bảnh rồi!"
-    : "Một gói bài đang chờ bạn!";
-});
-
-// NHẬN PACK
-$("getPackBtn").addEventListener("click", () => {
-  if (cardCollected) {
-    showToast("Bạn đã sưu tầm lá bài Khá Bảnh!");
+  if (!user || user.password !== password) {
+    $("message").textContent = "Sai tài khoản hoặc mật khẩu. Hãy đăng ký trước!";
     return;
   }
 
-  $("chestModal").classList.add("hidden");
-  $("packModal").classList.remove("hidden");
+  localStorage.setItem("memePlayer", user.username);
+  enterGame(user.username);
+}
 
-  const pack = $("packBtn");
-  pack.classList.remove("tearing");
-  packOpened = false;
-  $("packMessage").textContent = "Nhấn vào gói bài để mở!";
-});
+function enterGame(username) {
+  $("loginScreen").hidden = true;
+  $("gameScreen").hidden = false;
+  $("player").textContent = username;
+  $("message").textContent = "";
+  renderCollection();
+}
 
-// XÉ PACK
-$("packBtn").addEventListener("click", () => {
-  if (packOpened || busy || cardCollected) return;
+function logout() {
+  localStorage.removeItem("memePlayer");
+  $("gameScreen").hidden = true;
+  $("loginScreen").hidden = false;
+}
 
-  packOpened = true;
-  busy = true;
+function openModal(title, body, buttons) {
+  $("modalTitle").textContent = title;
+  $("modalBody").innerHTML = body;
+  $("modalButtons").innerHTML = buttons;
+  $("modal").hidden = false;
+}
 
-  const pack = $("packBtn");
-  pack.classList.add("tearing");
-  $("packMessage").textContent = "Đang mở gói bài...";
+function closeModal() {
+  $("modal").hidden = true;
+}
+
+function openChest() {
+  openModal(
+    "🎁 RƯƠNG BÁU ĐÃ MỞ!",
+    '<div class="emoji">✨🎁✨</div><p>Bạn tìm thấy một gói thẻ bí ẩn!</p>',
+    '<button onclick="openPack()">NHẬN GÓI THẺ →</button>'
+  );
+}
+
+function openPack() {
+  openModal(
+    "💥 XÉ GÓI THẺ!",
+    '<div id="pack" class="emoji">🃏</div><p>Khám phá nhân vật bên trong!</p>',
+    '<button onclick="revealCard()">XÉ GÓI NGAY ✦</button>'
+  );
+}
+
+function revealCard() {
+  $("modalBody").innerHTML =
+    '<div class="emoji reveal">🌟</div><p>ĐANG TRIỆU HỒI...</p>';
 
   setTimeout(() => {
-    $("packModal").classList.add("hidden");
+    openModal(
+      "⭐ THẺ HUYỀN THOẠI!",
+      `<div class="owned-card reveal">
+        <img src="${IMAGE}" alt="Khá Bảnh"
+          onerror="this.alt='Không tải được ảnh';this.style.height='60px'">
+        <h3>KHÁ BẢNH</h3>
+        <p>✦ MEME LEGEND ✦</p>
+      </div>`,
+      '<button onclick="saveCard()">LƯU THẺ ✓</button>' +
+      '<button onclick="openPack()">MỞ GÓI KHÁC ↻</button>'
+    );
+  }, 700);
+}
 
-    const cardModal = $("cardModal");
-    const card = $("cardReveal");
+function saveCard() {
+  const cards = JSON.parse(localStorage.getItem("memeCards") || "[]");
 
-    card.classList.remove("revealed");
-    cardModal.classList.remove("hidden");
+  cards.push({
+    name: "Khá Bảnh",
+    image: IMAGE,
+    rarity: "MEME LEGEND",
+    date: new Date().toLocaleDateString("vi-VN")
+  });
 
-    void card.offsetWidth;
-    card.classList.add("revealed");
+  localStorage.setItem("memeCards", JSON.stringify(cards));
+  closeModal();
+  renderCollection();
+}
 
-    cardCollected = true;
-    busy = false;
+function renderCollection() {
+  const cards = JSON.parse(localStorage.getItem("memeCards") || "[]");
 
-    $("collection").textContent = "✨ KHÁ BẢNH — LEGENDARY";
-    $("getPackBtn").textContent = "ĐÃ NHẬN LÁ BÀI";
-  }, 750);
-});
+  $("count").textContent = cards.length;
+  $("collection").innerHTML = cards.map(card => `
+    <article class="owned-card">
+      <img src="${card.image}" alt="${card.name}">
+      <h3>${card.name}</h3>
+      <p>✦ ${card.rarity} ✦</p>
+      <small>${card.date}</small>
+    </article>
+  `).join("");
+}
 
-// Trở về màn hình chính
-$("backHomeBtn").addEventListener("click", () => {
-  $("cardModal").classList.add("hidden");
-  switchScreen("home");
-  showToast("🎉 Đã thêm Khá Bảnh vào bộ sưu tập!");
-});
-
-// Mặc định hiện màn hình đăng nhập
-switchAuthMode("login");
-switchScreen("login");
+const savedPlayer = localStorage.getItem("memePlayer");
+if (savedPlayer) enterGame(savedPlayer);
