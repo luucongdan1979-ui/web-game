@@ -495,3 +495,100 @@ h1 span, .hero h1 span {
   .nav-btn small { font-size: 9px; }
   .modal-box { padding: 27px 20px 22px; }
 }
+
+/* Ô thẻ chưa sở hữu trong Album */
+.empty-card-slot {
+  position: relative;
+  display: flex;
+  min-height: 255px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px;
+  overflow: hidden;
+  color: var(--muted);
+  text-align: center;
+  border: 1px dashed rgba(190, 145, 255, .38);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(168, 85, 247, .12), transparent 60%),
+    linear-gradient(150deg, rgba(32, 25, 54, .7), rgba(16, 12, 32, .8));
+}
+
+.empty-card-slot::before {
+  position: absolute;
+  inset: 7px;
+  content: "";
+  pointer-events: none;
+  border: 1px solid rgba(190, 145, 255, .08);
+  border-radius: 10px;
+}
+
+.empty-card-symbol {
+  display: grid;
+  width: 76px;
+  height: 100px;
+  place-items: center;
+  color: rgba(196, 181, 253, .65);
+  border: 1px solid rgba(190, 145, 255, .3);
+  border-radius: 10px;
+  background: linear-gradient(145deg, #211735, #0c0918);
+  box-shadow: inset 0 0 22px rgba(168, 85, 247, .08);
+  font: 900 40px 'Orbitron', sans-serif;
+}
+
+.empty-card-number {
+  position: absolute;
+  top: 13px;
+  left: 13px;
+  color: rgba(196, 181, 253, .65);
+  font: 700 10px 'Orbitron', sans-serif;
+}
+
+.empty-card-slot strong {
+  color: #d8c9ef;
+  font-size: 12px;
+}
+
+.empty-card-slot small {
+  color: #8e83a9;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.card-image-fallback {
+  display: grid;
+  height: 190px;
+  place-items: center;
+  color: var(--muted);
+  background: #0c0918;
+  border-radius: 9px;
+  font-size: 52px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+@media (max-width: 450px) {
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .empty-card-slot {
+    min-height: 220px;
+    padding: 9px;
+  }
+
+  .empty-card-symbol {
+    width: 65px;
+    height: 85px;
+  }
+
+  .collection-card img {
+    height: 160px;
+  }
+}
