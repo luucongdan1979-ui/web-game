@@ -547,9 +547,20 @@ function buyPack(packType) {
   if (!currentUser) return;
 
   if (currentUser.isAdmin) {
-    showToast("Chế độ ADMIN không cần mua pack.");
-    return;
-  }
+  const pack = {
+    id: `pack-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    type: packType,
+    purchasedAt: Date.now()
+  };
+
+  currentUser.inventoryPacks.push(pack);
+
+  renderBag();
+  navigateTo("bag");
+
+  showToast("ADMIN đã nhận pack miễn phí!");
+  return;
+}
 
   const packInfo = PACK_DATA[packType];
   if (!packInfo) return;
