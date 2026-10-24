@@ -4,48 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shadow Card - Game Thẻ Bài</title>
-  <link rel="stylesheet" href="style.css">
-  <!-- Import Font chữ Anime & Gaming -->
+  <link rel="stylesheet" href="style.css?v=3">
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <!-- Hiệu ứng hạt sao lấp lánh nền -->
   <div class="stars-bg"></div>
 
-  <!-- ================= MÀN HÌNH 1: SẢNH CHỜ CHÍNH ================= -->
+  <!-- MÀN HÌNH 1: SẢNH CHỜ CHÍNH -->
   <div id="screen-main" class="game-screen">
     <div class="top-controls">
-      <button class="icon-btn" title="Âm thanh">🔊</button>
-      <button class="icon-btn" title="Cài đặt">⚙️</button>
+      <button class="icon-btn">🔊</button>
+      <button class="icon-btn">⚙️</button>
     </div>
 
-    <!-- Logo & Slogan -->
     <div class="logo-box">
       <h1 class="game-logo">Shadow Card</h1>
       <p class="game-subtitle">Bắt đầu hành trình của bạn</p>
     </div>
 
-    <!-- Nút Đăng nhập / Đăng ký bên trái -->
     <div class="left-menu-group">
       <button id="btn-main-login" class="menu-pill-btn">
-        <span class="btn-icon">👤</span> Đăng nhập
+        <span>👤</span> Đăng nhập
       </button>
       <button id="btn-main-reg" class="menu-pill-btn">
-        <span class="btn-icon">✨</span> Đăng ký
+        <span>✨</span> Đăng ký
       </button>
     </div>
 
-    <!-- Nút Tap to Start rực rỡ bên phải -->
     <div class="center-start-box">
       <button id="btn-tap-start" class="tap-to-start-glow">
-        <span class="sparkle">✦</span> Tap to Start <span class="sparkle">✦</span>
+        ✦ Tap to Start ✦
       </button>
     </div>
   </div>
 
-
-  <!-- ================= MÀN HÌNH 2: ĐĂNG KÝ ================= -->
+  <!-- MÀN HÌNH 2: ĐĂNG KÝ -->
   <div id="screen-register" class="game-screen hidden">
     <button class="back-pill-btn" id="btn-back-from-reg">←</button>
     
@@ -55,14 +49,12 @@
 
       <form onsubmit="return false;">
         <div class="input-box">
-          <span class="input-icon">👤</span>
+          <span>👤</span>
           <input type="text" placeholder="Tên tài khoản (gmail)" required>
-          <span class="input-icon-right">✉️</span>
         </div>
         <div class="input-box">
-          <span class="input-icon">🔒</span>
+          <span>🔒</span>
           <input type="password" placeholder="Mật khẩu" required>
-          <span class="input-icon-right">👁️</span>
         </div>
         <button type="submit" class="submit-action-btn">Đăng ký</button>
       </form>
@@ -71,8 +63,7 @@
     </div>
   </div>
 
-
-  <!-- ================= MÀN HÌNH 3: ĐĂNG NHẬP ================= -->
+  <!-- MÀN HÌNH 3: ĐĂNG NHẬP -->
   <div id="screen-login" class="game-screen hidden">
     <button class="back-pill-btn" id="btn-back-from-login">←</button>
     
@@ -82,13 +73,12 @@
 
       <form onsubmit="return false;">
         <div class="input-box">
-          <span class="input-icon">👤</span>
-          <input type="text" placeholder="Tên tài khoản (gmail hoặc tên đăng nhập)" required>
+          <span>👤</span>
+          <input type="text" placeholder="Tên tài khoản (gmail hoặc tên)" required>
         </div>
         <div class="input-box">
-          <span class="input-icon">🔒</span>
+          <span>🔒</span>
           <input type="password" placeholder="Mật khẩu" required>
-          <span class="input-icon-right">👁️</span>
         </div>
         <button type="submit" class="submit-action-btn">Đăng nhập</button>
       </form>
@@ -96,6 +86,10 @@
       <p class="switch-prompt">Chưa có tài khoản? <a href="#" id="link-login-to-reg">Đăng ký ngay</a></p>
     </div>
   </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
 
   <script src="script.js"></script>
 </body>
