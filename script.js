@@ -16,43 +16,82 @@ const CARD_DATA = [
     category: "CHARACTER",
     rarity: "RARE",
     image: "./kh%C3%A1%20b%E1%BA%A3nh%20nv.png",
-    description: "Một nhân vật trong bộ sưu tập meme CARD ARENA.",
+    description: "Một nhân vật trong bộ sưu tập meme CARD ARENA."
   },
   {
-    id: "jack",
+    id: "jack-j97",
     name: "Jack J97",
     category: "CHARACTER",
     rarity: "LEGENDARY",
     image: "./jack%20nv.png",
-    description: "Lá nhân vật huyền thoại trong bộ sưu tập meme CARD ARENA.",
-  }
+    description: "Một nhân vật nổi bật trong bộ sưu tập meme CARD ARENA."
+  },
+
+  ...Array.from({ length: 7 }, (_, i) => ({
+    id: `character-${i + 3}`,
+    name: `Nhân vật ${i + 3}`,
+    category: "CHARACTER",
+    rarity: "RARE",
+    placeholder: true,
+    description: "Ô thẻ nhân vật chưa được mở khóa."
+  })),
+
+  ...Array.from({ length: 3 }, (_, i) => ({
+    id: `skill-${i + 1}`,
+    name: `Skill ${i + 1}`,
+    category: "SKILL",
+    rarity: "RARE",
+    placeholder: true,
+    description: "Ô thẻ skill chưa được mở khóa."
+  })),
+
+  ...Array.from({ length: 3 }, (_, i) => ({
+    id: `situation-${i + 1}`,
+    name: `Tình huống ${i + 1}`,
+    category: "SITUATION",
+    rarity: "RARE",
+    placeholder: true,
+    description: "Ô thẻ tình huống chưa được mở khóa."
+  }))
 ];
+
+const CATEGORY_LABELS = {
+  CHARACTER: "Nhân vật",
+  SKILL: "Skill",
+  SITUATION: "Tình huống"
+};
+
+const CATEGORY_LIMITS = {
+  CHARACTER: 9,
+  SKILL: 3,
+  SITUATION: 3
+};
 
 const PACK_DATA = {
   basic: {
     name: "Basic Pack",
-    rarity: "RARE",
-    description: "70% cơ hội nhận Rare, 30% cơ hội nhận Legendary.",
-    rareRate: 70,
-    legendaryRate: 30
+    price: 10,
+    description: "70% Rare · 30% Legendary",
+    rareChance: 0.7
   },
   premium: {
     name: "Premium Pack",
-    rarity: "LEGENDARY",
-    description: "40% cơ hội nhận Rare, 60% cơ hội nhận Legendary.",
-    rareRate: 40,
-    legendaryRate: 60
+    price: 20,
+    description: "40% Rare · 60% Legendary",
+    rareChance: 0.4
   }
 };
 
 let currentUser = null;
-let authMode = "login";
-let albumFilter = "ALL";
+let isRegisterMode = false;
+let isAdminMode = false;
+let activeFilter = "ALL";
 let selectedPackId = null;
-let starterClaimedThisSession = false;
 let toastTimeout = null;
 
-/* ---------- STORAGE ---------- */
+/* =========================
+   STORAGE
+   ========================= */
 
 function readUsers() {
   try {
@@ -63,66 +102,59 @@ function readUsers() {
   }
 }
 
-function writeUsers(users) {
+function saveUsers(users) {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
-function createId() {
-  return Date.now().toString(36) +
-    Math.random().toString(36).slice(2, 9);
-}
-
-function normalizePlayer(player) {
-  if (!Array.isArray(player.ownedCards)) player.ownedCards = [];
-  if (!Array.isArray(player.inventoryPacks)) player.inventoryPacks = [];
-  if (!Number.isFinite(player.coins)) player.coins = 17;
-  if (typeof player.claimedStarter !== "boolean") {
-    player.claimedStarter = false;
-  }
-  return player;
-}
-
-function savePlayer() {
+function saveCurrentUser() {
   if (!currentUser || currentUser.isAdmin) return;
 
   const users = readUsers();
-  const index = users.findIndex(user => user.username === currentUser.username);
+  const index = users.findIndex(
+    user => user.username.toLowerCase() === currentUser.username.toLowerCase()
+  );
 
   if (index !== -1) {
     users[index] = currentUser;
-    writeUsers(users);
+    saveUsers(users);
   }
 }
 
-function setSession(username, isAdmin = false) {
-  sessionStorage.setItem(
-    SESSION_KEY,
-    JSON.stringify({ username, isAdmin })
-  );
+function setSession(username) {
+  localStorage.setItem(SESSION_KEY, username);
 }
 
 function clearSession() {
-  sessionStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_KEY);
 }
 
-/* ---------- DOM HELPERS ---------- */
-
-function $(id) {
-  return document.getElementById(id);
+function ensureUserData(user) {
+  if (!Number.isFinite(user.coins)) user.coins = 17;
+  if (!Array.isArray(user.ownedCards)) user.ownedCards = [];
+  if (!Array.isArray(user.inventoryPacks)) user.inventoryPacks = [];
+  if (typeof user.starterClaimed !== "boolean") user.starterClaimed = false;
+  return user;
 }
+
+/* =========================
+   ELEMENT HELPERS
+   ========================= */
+
+const $ = selector => document.querySelector(selector);
+const $$ = selector => [...document.querySelectorAll(selector)];
 
 function showModal(id) {
-  const modal = $(id);
+  const modal = document.getElementById(id);
   if (modal) modal.classList.add("show");
 }
 
 function hideModal(id) {
-  const modal = $(id);
+  const modal = document.getElementById(id);
   if (modal) modal.classList.remove("show");
 }
 
 function showToast(message) {
-  const toast = $("toast");
+  const toast = $("#toast");
   if (!toast) return;
 
   toast.textContent = message;
@@ -134,10 +166,8 @@ function showToast(message) {
   }, 2600);
 }
 
-function setMessage(id, message, isError = false) {
-  const element = $(id);
+function setMessage(element, message, isError = false) {
   if (!element) return;
-
   element.textContent = message;
   element.classList.toggle("error", isError);
 }
@@ -148,300 +178,215 @@ function escapeHTML(value) {
     "<": "&lt;",
     ">": "&gt;",
     '"': "&quot;",
-    "'": "&#39;"
+    "'": "&#039;"
   })[character]);
 }
 
-function getCardById(id) {
-  return CARD_DATA.find(card => card.id === id);
+/* =========================
+   LOGIN / REGISTER
+   ========================= */
+
+function openAuth(registerMode = false) {
+  isRegisterMode = registerMode;
+  updateAuthForm();
+  setMessage($("#authMessage"), "");
+  showModal("authModal");
 }
 
-function getOwnedCards() {
-  if (!currentUser) return [];
-
-  return currentUser.ownedCards
-    .map(getCardById)
-    .filter(Boolean);
-}
-
-function isCardOwned(cardId) {
-  return Boolean(currentUser?.ownedCards.includes(cardId));
-}
-
-/* ---------- AUTH MODAL ---------- */
-
-function setAuthMode(mode) {
-  authMode = mode;
-
-  const isRegister = mode === "register";
-
-  $("authTitle").textContent = isRegister ? "ĐĂNG KÝ" : "ĐĂNG NHẬP";
-  $("authSubmitBtn").textContent = isRegister ? "TẠO TÀI KHOẢN" : "ĐĂNG NHẬP";
-  $("registerFields").classList.toggle("hidden", !isRegister);
-  $("authEmail").required = isRegister;
-  $("switchAuthText").textContent = isRegister
+function updateAuthForm() {
+  $("#authTitle").textContent = isRegisterMode ? "ĐĂNG KÝ" : "ĐĂNG NHẬP";
+  $("#authSubmitBtn").textContent = isRegisterMode ? "TẠO TÀI KHOẢN" : "ĐĂNG NHẬP";
+  $("#switchAuthText").textContent = isRegisterMode
     ? "Đã có tài khoản?"
     : "Chưa có tài khoản?";
-  $("switchAuthBtn").textContent = isRegister ? "Đăng nhập" : "Đăng ký";
+  $("#switchAuthBtn").textContent = isRegisterMode ? "Đăng nhập" : "Đăng ký";
 
-  $("authPassword").autocomplete = isRegister
+  $("#registerFields").classList.toggle("hidden", !isRegisterMode);
+  $("#authEmail").required = isRegisterMode;
+  $("#authPassword").autocomplete = isRegisterMode
     ? "new-password"
     : "current-password";
-
-  setMessage("authMessage", "");
 }
 
-function openAuth(mode) {
-  setAuthMode(mode);
-  $("authForm").reset();
-  setMessage("authMessage", "");
-  showModal("authModal");
-  setTimeout(() => $("authUsername").focus(), 100);
-}
-
-function registerAccount(username, email, password) {
-  const users = readUsers();
-
-  if (username.length < 3) {
-    return "Tên tài khoản phải có ít nhất 3 ký tự.";
-  }
-
-  if (password.length < 6) {
-    return "Mật khẩu phải có ít nhất 6 ký tự.";
-  }
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return "Vui lòng nhập địa chỉ email hợp lệ.";
-  }
-
-  if (users.some(user =>
-    user.username.toLowerCase() === username.toLowerCase()
-  )) {
-    return "Tên tài khoản này đã tồn tại.";
-  }
-
-  if (users.some(user =>
-    String(user.email || "").toLowerCase() === email.toLowerCase()
-  )) {
-    return "Email này đã được đăng ký.";
-  }
-
-  const player = normalizePlayer({
-    username,
-    email,
-    password,
-    coins: 17,
-    ownedCards: [],
-    inventoryPacks: [],
-    claimedStarter: false,
-    createdAt: Date.now()
-  });
-
-  users.push(player);
-  writeUsers(users);
-
-  return null;
-}
-
-function loginAccount(username, password) {
-  const users = readUsers();
-  const player = users.find(user =>
-    user.username.toLowerCase() === username.toLowerCase()
-  );
-
-  if (!player || player.password !== password) {
-    return null;
-  }
-
-  return normalizePlayer(player);
-}
-
-$("showLoginBtn").addEventListener("click", () => openAuth("login"));
-$("showRegisterBtn").addEventListener("click", () => openAuth("register"));
-$("tapStartBtn").addEventListener("click", () => openAuth("login"));
-
-$("switchAuthBtn").addEventListener("click", () => {
-  setAuthMode(authMode === "login" ? "register" : "login");
-});
-
-$("authForm").addEventListener("submit", event => {
+function handleAuthSubmit(event) {
   event.preventDefault();
 
-  const username = $("authUsername").value.trim();
-  const email = $("authEmail").value.trim();
-  const password = $("authPassword").value;
+  const username = $("#authUsername").value.trim();
+  const email = $("#authEmail").value.trim();
+  const password = $("#authPassword").value;
 
-  if (authMode === "register") {
-    const error = registerAccount(username, email, password);
+  if (username.length < 3) {
+    setMessage($("#authMessage"), "Tên tài khoản cần ít nhất 3 ký tự.", true);
+    return;
+  }
 
-    if (error) {
-      setMessage("authMessage", error, true);
+  if (password.length < 4) {
+    setMessage($("#authMessage"), "Mật khẩu cần ít nhất 4 ký tự.", true);
+    return;
+  }
+
+  const users = readUsers();
+
+  if (isRegisterMode) {
+    if (!email || !$("#authEmail").checkValidity()) {
+      setMessage($("#authMessage"), "Vui lòng nhập địa chỉ email hợp lệ.", true);
       return;
     }
 
-    setMessage("authMessage", "Đăng ký thành công! Đang vào game...");
+    if (users.some(user =>
+      user.username.toLowerCase() === username.toLowerCase()
+    )) {
+      setMessage($("#authMessage"), "Tên tài khoản đã tồn tại.", true);
+      return;
+    }
 
-    currentUser = loginAccount(username, password);
-    setSession(currentUser.username);
+    if (users.some(user =>
+      user.email.toLowerCase() === email.toLowerCase()
+    )) {
+      setMessage($("#authMessage"), "Email này đã được đăng ký.", true);
+      return;
+    }
 
-    setTimeout(() => {
-      hideModal("authModal");
-      enterGame();
-      showToast("🎉 Đăng ký và đăng nhập thành công!");
-    }, 500);
+    const newUser = {
+      username,
+      email,
+      password,
+      coins: 17,
+      ownedCards: [],
+      inventoryPacks: [],
+      starterClaimed: false
+    };
 
-    return;
-  }
+    users.push(newUser);
+    saveUsers(users);
 
-  const player = loginAccount(username, password);
-
-  if (!player) {
-    setMessage("authMessage", "Sai tên tài khoản hoặc mật khẩu.", true);
-    return;
-  }
-
-  currentUser = player;
-  setSession(player.username);
-
-  setMessage("authMessage", "Đăng nhập thành công! Đang vào game...");
-
-  setTimeout(() => {
+    currentUser = ensureUserData(newUser);
+    setSession(username);
     hideModal("authModal");
     enterGame();
-    showToast("🎉 Vào game thành công!");
-  }, 450);
-});
 
-/* ---------- ADMIN ---------- */
-
-$("adminAccessBtn").addEventListener("click", () => {
-  $("adminCode").value = "";
-  setMessage("adminMessage", "");
-  showModal("adminModal");
-});
-
-$("adminForm").addEventListener("submit", event => {
-  event.preventDefault();
-
-  if ($("adminCode").value !== ADMIN_CODE) {
-    setMessage("adminMessage", "Mã quản trị không chính xác.", true);
+    showToast("Đăng ký thành công! Chào mừng bạn đến CARD ARENA.");
     return;
   }
 
-  currentUser = normalizePlayer({
-    username: "ADMIN",
-    email: "",
-    coins: Infinity,
-    ownedCards: CARD_DATA.map(card => card.id),
-    inventoryPacks: [],
-    claimedStarter: true,
-    isAdmin: true
-  });
-
-  setSession("ADMIN", true);
-  hideModal("adminModal");
-  enterGame();
-  showToast("♛ Đã vào chế độ Admin!");
-});
-
-/* ---------- ENTER GAME / NAVIGATION ---------- */
-
-function enterGame() {
-  $("welcomeScreen").classList.add("hidden");
-  $("gameScreen").classList.remove("hidden");
-
-  currentUser = normalizePlayer(currentUser);
-
-  $("adminBadge").classList.toggle("hidden", !currentUser.isAdmin);
-  $("starterPanel").classList.toggle(
-    "hidden",
-    currentUser.isAdmin || currentUser.claimedStarter
+  const matchedUser = users.find(user =>
+    user.username.toLowerCase() === username.toLowerCase() &&
+    user.password === password
   );
 
-  $("starterMessage").textContent = currentUser.claimedStarter
-    ? "Bạn đã nhận quà khởi đầu."
-    : "";
+  if (!matchedUser) {
+    setMessage($("#authMessage"), "Tên tài khoản hoặc mật khẩu không đúng.", true);
+    return;
+  }
+
+  currentUser = ensureUserData(matchedUser);
+  saveCurrentUser();
+  setSession(currentUser.username);
+
+  hideModal("authModal");
+  enterGame();
+  showToast("Đăng nhập thành công!");
+}
+
+/* =========================
+   ADMIN
+   ========================= */
+
+function loginAdmin(event) {
+  event.preventDefault();
+
+  const code = $("#adminCode").value.trim();
+
+  if (code !== ADMIN_CODE) {
+    setMessage($("#adminMessage"), "Mã quản trị không chính xác.", true);
+    return;
+  }
+
+  isAdminMode = true;
+  currentUser = {
+    username: "ADMIN",
+    isAdmin: true,
+    coins: 9999,
+    ownedCards: CARD_DATA.filter(card => !card.placeholder).map(card => card.id),
+    inventoryPacks: [],
+    starterClaimed: true
+  };
+
+  hideModal("adminModal");
+  enterGame();
+  showToast("Đã vào chế độ quản trị.");
+}
+
+/* =========================
+   GAME NAVIGATION
+   ========================= */
+
+function enterGame() {
+  $("#welcomeScreen").classList.add("hidden");
+  $("#gameScreen").classList.remove("hidden");
+  $("#adminBadge").classList.toggle("hidden", !currentUser?.isAdmin);
 
   updateCoins();
   renderAlbum();
   renderBag();
-  showPage("home");
+  updateStarterPanel();
+  navigateTo("home");
 }
 
-function showPage(pageName) {
+function navigateTo(pageName) {
   const validPages = ["home", "album", "shop", "bag"];
-  if (!validPages.includes(pageName)) return;
+  if (!validPages.includes(pageName)) pageName = "home";
 
-  document.querySelectorAll(".page").forEach(page => {
-    page.classList.remove("active");
-  });
+  $$(".page").forEach(page => page.classList.remove("active"));
+  $(`#${pageName}Page`).classList.add("active");
 
-  const page = $(pageName + "Page");
-  if (page) page.classList.add("active");
-
-  document.querySelectorAll(".nav-btn[data-page]").forEach(button => {
-    button.classList.toggle(
-      "active",
-      button.dataset.page === pageName
-    );
+  $$(".nav-btn").forEach(button => {
+    button.classList.toggle("active", button.dataset.page === pageName);
   });
 
   if (pageName === "album") renderAlbum();
   if (pageName === "bag") renderBag();
-  if (pageName === "home") updateStarterPanel();
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-document.querySelectorAll("[data-page]").forEach(button => {
-  button.addEventListener("click", () => {
-    showPage(button.dataset.page);
-  });
-});
-
-$("goShopBtn").addEventListener("click", () => showPage("shop"));
-
-$("logoutBtn").addEventListener("click", () => {
-  currentUser = null;
+function logout() {
+  saveCurrentUser();
   clearSession();
 
-  $("gameScreen").classList.add("hidden");
-  $("welcomeScreen").classList.remove("hidden");
+  currentUser = null;
+  isAdminMode = false;
+  selectedPackId = null;
 
-  document.querySelectorAll(".modal").forEach(modal => {
-    modal.classList.remove("show");
-  });
+  $("#gameScreen").classList.add("hidden");
+  $("#welcomeScreen").classList.remove("hidden");
 
-  showToast("Đã đăng xuất.");
-});
-
-/* ---------- COINS ---------- */
-
-function updateCoins() {
-  if (!currentUser) return;
-
-  $("coinAmount").textContent = currentUser.isAdmin
-    ? "∞"
-    : String(currentUser.coins);
+  $$(".modal").forEach(modal => modal.classList.remove("show"));
+  showToast("Bạn đã đăng xuất.");
 }
 
-/* ---------- ALBUM ---------- */
+/* =========================
+   COINS
+   ========================= */
 
-function renderAlbum() {
-  if (!currentUser) return;
+function updateCoins() {
+  $("#coinAmount").textContent = String(currentUser?.coins ?? 0);
+}
 
-  const grid = $("albumGrid");
-  grid.innerHTML = "";
+/* =========================
+   ALBUM
+   ========================= */
 
-  const ownedCards = getOwnedCards();
-  const filteredCards = ownedCards.filter(card =>
-    albumFilter === "ALL" || card.category === albumFilter
+function getOwnedCards() {
+  if (!currentUser) return [];
+
+  return CARD_DATA.filter(card =>
+    !card.placeholder && currentUser.ownedCards.includes(card.id)
   );
+}
 
-  $("collectionCount").textContent = `${ownedCards.length} thẻ`;
-  $("emptyAlbum").classList.toggle("hidden", filteredCards.length > 0);
-
-  filteredCards.forEach(card => {
-    grid.appendChild(makeCardElement(card));
-  });
+function getCategoryCards(category) {
+  return CARD_DATA.filter(card => card.category === category);
 }
 
 function makeCardElement(card) {
@@ -453,373 +398,485 @@ function makeCardElement(card) {
     ? "legendary-tag"
     : "rare-tag";
 
-  const rarityText = card.rarity === "LEGENDARY"
+  const rarityLabel = card.rarity === "LEGENDARY"
     ? "LEGENDARY"
     : "RARE";
 
   button.innerHTML = `
-    <img src="${card.image}" alt="${escapeHTML(card.name)}"
-         onerror="this.style.display='none'">
-    <span class="rarity-tag ${rarityClass}">${rarityText}</span>
+    <img src="${escapeHTML(card.image)}" alt="${escapeHTML(card.name)}">
+    <span class="rarity-tag ${rarityClass}">${rarityLabel}</span>
     <span class="card-name">${escapeHTML(card.name)}</span>
-    <span class="card-category">${categoryName(card.category)}</span>
+    <span class="card-category">${escapeHTML(CATEGORY_LABELS[card.category])}</span>
   `;
+
+  const image = button.querySelector("img");
+  image.addEventListener("error", () => {
+    image.alt = "Không tìm thấy ảnh thẻ";
+    image.style.display = "none";
+
+    const fallback = document.createElement("div");
+    fallback.className = "card-image-fallback";
+    fallback.textContent = "🃏";
+    image.insertAdjacentElement("afterend", fallback);
+  }, { once: true });
 
   button.addEventListener("click", () => openCardDetail(card));
   return button;
 }
 
-function categoryName(category) {
-  const names = {
-    CHARACTER: "Nhân vật",
-    SKILL: "Skill",
-    SITUATION: "Tình huống"
-  };
+function makeEmptySlot(category, index) {
+  const slot = document.createElement("div");
+  slot.className = "empty-card-slot";
 
-  return names[category] || category;
+  slot.innerHTML = `
+    <div class="empty-card-symbol">?</div>
+    <span class="empty-card-number">${String(index + 1).padStart(2, "0")}</span>
+    <strong>${escapeHTML(CATEGORY_LABELS[category])}</strong>
+    <small>CHƯA SỞ HỮU</small>
+  `;
+
+  return slot;
 }
 
-$("albumFilters").addEventListener("click", event => {
-  const button = event.target.closest("[data-filter]");
-  if (!button) return;
+function renderAlbum() {
+  if (!currentUser) return;
 
-  albumFilter = button.dataset.filter;
+  const grid = $("#albumGrid");
+  const emptyMessage = $("#emptyAlbum");
+  const countLabel = $("#collectionCount");
 
-  document.querySelectorAll(".filter-btn").forEach(filterButton => {
-    filterButton.classList.toggle("active", filterButton === button);
+  if (!grid || !countLabel) return;
+
+  grid.innerHTML = "";
+  emptyMessage.classList.add("hidden");
+
+  let categories;
+
+  if (activeFilter === "ALL") {
+    categories = ["CHARACTER", "SKILL", "SITUATION"];
+  } else {
+    categories = [activeFilter];
+  }
+
+  let totalOwned = 0;
+  let totalSlots = 0;
+
+  categories.forEach(category => {
+    const categoryCards = getCategoryCards(category);
+    const ownedCards = categoryCards.filter(card =>
+      !card.placeholder && currentUser.ownedCards.includes(card.id)
+    );
+
+    totalOwned += ownedCards.length;
+    totalSlots += CATEGORY_LIMITS[category];
+
+    categoryCards.forEach((card, index) => {
+      if (card.placeholder) {
+        grid.appendChild(makeEmptySlot(category, index));
+      } else if (currentUser.ownedCards.includes(card.id)) {
+        grid.appendChild(makeCardElement(card));
+      } else {
+        grid.appendChild(makeEmptySlot(category, index));
+      }
+    });
   });
 
-  renderAlbum();
-});
+  countLabel.textContent = `${totalOwned}/${totalSlots} thẻ`;
+
+  if (totalOwned === 0) {
+    emptyMessage.textContent = "Bạn chưa sở hữu thẻ nào trong mục này. Hãy mở pack để sưu tầm nhé!";
+    emptyMessage.classList.remove("hidden");
+  }
+}
 
 function openCardDetail(card) {
-  const rarityText = card.rarity === "LEGENDARY" ? "LEGENDARY" : "RARE";
+  if (!card || card.placeholder) return;
 
-  $("cardDetailContent").innerHTML = `
-    <img src="${card.image}" alt="${escapeHTML(card.name)}"
-         onerror="this.style.display='none'">
+  const content = $("#cardDetailContent");
+  const rarityClass = card.rarity === "LEGENDARY"
+    ? "legendary-tag"
+    : "rare-tag";
+
+  const rarityLabel = card.rarity === "LEGENDARY"
+    ? "LEGENDARY"
+    : "RARE";
+
+  content.innerHTML = `
+    <p class="eyebrow">CARD DETAILS</p>
+    <img src="${escapeHTML(card.image)}" alt="${escapeHTML(card.name)}">
     <h2>${escapeHTML(card.name)}</h2>
-    <p><span class="rarity-tag ${card.rarity === "LEGENDARY" ? "legendary-tag" : "rare-tag"}">${rarityText}</span></p>
-    <p>Loại thẻ: ${categoryName(card.category)}</p>
+    <span class="rarity-tag ${rarityClass}">${rarityLabel}</span>
+    <p><strong>Loại thẻ:</strong> ${escapeHTML(CATEGORY_LABELS[card.category])}</p>
     <p>${escapeHTML(card.description)}</p>
   `;
 
   showModal("cardDetailModal");
 }
 
-/* ---------- SHOP -> BAG ---------- */
+/* =========================
+   FILTERS
+   ========================= */
 
-document.querySelectorAll("[data-buy]").forEach(button => {
-  button.addEventListener("click", () => buyItem(button.dataset.buy));
-});
+function setupAlbumFilters() {
+  $$("#albumFilters .filter-btn").forEach(button => {
+    button.addEventListener("click", () => {
+      activeFilter = button.dataset.filter;
 
-function buyItem(itemType) {
+      $$("#albumFilters .filter-btn").forEach(item => {
+        item.classList.toggle("active", item === button);
+      });
+
+      renderAlbum();
+    });
+  });
+}
+
+/* =========================
+   SHOP
+   ========================= */
+
+function buyPack(packType) {
   if (!currentUser) return;
 
-  const pack = PACK_DATA[itemType];
-  if (!pack) return;
-
-  const price = itemType === "premium" ? 20 : 10;
-
-  if (!currentUser.isAdmin && currentUser.coins < price) {
-    setMessage("shopMessage", "Bạn không đủ COIN để mua pack.", true);
-    showToast("❌ Không đủ COIN!");
+  if (currentUser.isAdmin) {
+    showToast("Chế độ ADMIN không cần mua pack.");
     return;
   }
 
-  if (!currentUser.isAdmin) {
-    currentUser.coins -= price;
+  const packInfo = PACK_DATA[packType];
+  if (!packInfo) return;
+
+  if (currentUser.coins < packInfo.price) {
+    setMessage($("#shopMessage"), "Bạn không đủ COIN để mua pack này.", true);
+    return;
   }
 
-  currentUser.inventoryPacks.push({
-    id: createId(),
-    type: itemType,
-    purchasedAt: Date.now()
-  });
+  currentUser.coins -= packInfo.price;
 
-  savePlayer();
+  const pack = {
+    id: `pack-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    type: packType,
+    purchasedAt: Date.now()
+  };
+
+  currentUser.inventoryPacks.push(pack);
+  saveCurrentUser();
+
   updateCoins();
   renderBag();
+  setMessage($("#shopMessage"), `Mua ${packInfo.name} thành công! Pack đã được chuyển vào Balo.`);
 
-  setMessage("shopMessage", "");
-  showPage("bag");
-  showToast(`🎒 Đã mua ${pack.name}! Pack đã được chuyển vào Balo.`);
+  navigateTo("bag");
+  showToast(`${packInfo.name} đã được thêm vào Balo.`);
 }
 
-/* ---------- BAG ---------- */
+/* =========================
+   BAG
+   ========================= */
 
-function getBagPacks() {
-  if (!currentUser) return [];
-  if (!Array.isArray(currentUser.inventoryPacks)) {
-    currentUser.inventoryPacks = [];
-  }
+function makePackArt(packType, isDetail = false) {
+  const isPremium = packType === "premium";
+  const name = isPremium ? "PREMIUM" : "BASIC";
+  const subtitle = isPremium ? "LEGEND PACK" : "CARD PACK";
+  const symbol = isPremium ? "✧" : "✦";
+  const artClass = isPremium ? "premium-art" : "basic-art";
 
-  return currentUser.inventoryPacks;
+  return `
+    <div class="pack-art ${artClass} ${isDetail ? "detail-pack-art" : ""}">
+      <div class="pack-shine"></div>
+      <span class="pack-top-label">CARD ARENA</span>
+      <div class="pack-symbol">${symbol}</div>
+      <strong>${name}</strong>
+      <small>${subtitle}</small>
+    </div>
+  `;
 }
 
 function renderBag() {
-  const grid = $("bagGrid");
-  if (!grid || !currentUser) return;
+  if (!currentUser) return;
+
+  const grid = $("#bagGrid");
+  const empty = $("#emptyBag");
+  const packs = currentUser.inventoryPacks || [];
 
   grid.innerHTML = "";
-
-  const packs = getBagPacks();
-
-  $("bagCount").textContent = `${packs.length} pack`;
-  $("emptyBag").classList.toggle("hidden", packs.length > 0);
+  $("#bagCount").textContent = `${packs.length} pack`;
+  empty.classList.toggle("hidden", packs.length > 0);
 
   packs.forEach(pack => {
-    const packInfo = PACK_DATA[pack.type];
-    if (!packInfo) return;
+    const info = PACK_DATA[pack.type];
+    if (!info) return;
 
-    const isPremium = pack.type === "premium";
-    const packElement = document.createElement("button");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "bag-pack";
 
-    packElement.type = "button";
-    packElement.className = "bag-pack";
-
-    packElement.innerHTML = `
-      <div class="pack-art ${isPremium ? "premium-art" : "basic-art"}">
-        <div class="pack-shine"></div>
-        <span class="pack-top-label">CARD ARENA</span>
-        <div class="pack-symbol">${isPremium ? "✧" : "✦"}</div>
-        <strong>${isPremium ? "PREMIUM" : "BASIC"}</strong>
-        <small>CARD PACK</small>
-      </div>
-      <span class="bag-pack-name">${packInfo.name}</span>
-      <span class="bag-pack-hint">Bấm để xem / mở</span>
+    button.innerHTML = `
+      ${makePackArt(pack.type)}
+      <span class="bag-pack-name">${escapeHTML(info.name)}</span>
+      <span class="bag-pack-hint">NHẤN ĐỂ MỞ ✨</span>
     `;
 
-    packElement.addEventListener("click", () => openBagPack(pack.id));
-    grid.appendChild(packElement);
+    button.addEventListener("click", () => openPackDetails(pack.id));
+    grid.appendChild(button);
   });
 }
 
-function openBag() {
-  showPage("bag");
-  renderBag();
-}
-
-function openBagPack(packId) {
-  const pack = getBagPacks().find(item => item.id === packId);
+function openPackDetails(packId) {
+  const pack = currentUser.inventoryPacks.find(item => item.id === packId);
   if (!pack) {
-    showToast("Không tìm thấy pack này trong Balo.");
-    renderBag();
+    showToast("Không tìm thấy pack này.");
     return;
   }
 
   selectedPackId = packId;
 
-  const isPremium = pack.type === "premium";
-  const packInfo = PACK_DATA[pack.type];
+  const info = PACK_DATA[pack.type];
+  $("#detailPackTitle").textContent = info.name.toUpperCase();
+  $("#detailPackDescription").textContent = info.description;
 
-  $("detailPackTitle").textContent = packInfo.name.toUpperCase();
-  $("detailPackDescription").textContent = packInfo.description;
-
-  const detailArt = $("detailPackArt");
-  detailArt.className = `pack-art detail-pack-art ${isPremium ? "premium-art" : "basic-art"}`;
-
-  detailArt.innerHTML = `
-    <div class="pack-shine"></div>
-    <span class="pack-top-label">CARD ARENA</span>
-    <div class="pack-symbol">${isPremium ? "✧" : "✦"}</div>
-    <strong>${isPremium ? "PREMIUM" : "BASIC"}</strong>
-    <small>CARD PACK</small>
+  $("#detailPackArt").outerHTML = `
+    <div id="detailPackArt">
+      ${makePackArt(pack.type, true)}
+    </div>
   `;
 
-  $("openSelectedPackBtn").disabled = false;
-  $("openSelectedPackBtn").textContent = "XÉ PACK ✨";
   showModal("packDetailModal");
 }
 
-/* ---------- OPEN PACK ---------- */
+function chooseCardFromPack(packType) {
+  const info = PACK_DATA[packType];
+  const roll = Math.random();
+  const targetRarity = roll < info.rareChance ? "RARE" : "LEGENDARY";
 
-$("openSelectedPackBtn").addEventListener("click", () => {
-  if (!selectedPackId) return;
+  let pool = CARD_DATA.filter(card =>
+    !card.placeholder && card.rarity === targetRarity
+  );
 
-  const packIndex = getBagPacks().findIndex(pack =>
-    pack.id === selectedPackId
+  if (pool.length === 0) {
+    pool = CARD_DATA.filter(card => !card.placeholder);
+  }
+
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function openSelectedPack() {
+  if (!currentUser || !selectedPackId) return;
+
+  const packIndex = currentUser.inventoryPacks.findIndex(
+    pack => pack.id === selectedPackId
   );
 
   if (packIndex === -1) {
-    hideModal("packDetailModal");
     showToast("Pack không còn trong Balo.");
-    renderBag();
+    hideModal("packDetailModal");
     return;
   }
 
   const pack = currentUser.inventoryPacks[packIndex];
-  const packInfo = PACK_DATA[pack.type];
+  const card = chooseCardFromPack(pack.type);
 
-  if (!packInfo) return;
+  if (!card) {
+    showToast("Chưa có thẻ thật phù hợp để mở pack.");
+    return;
+  }
 
-  // Xóa pack khỏi Balo khi bắt đầu mở.
+  // Chỉ tiêu thụ pack khi người chơi bấm mở.
   currentUser.inventoryPacks.splice(packIndex, 1);
 
-  const roll = Math.random() * 100;
-  const targetRarity = roll < packInfo.legendaryRate
-    ? "LEGENDARY"
-    : "RARE";
+  const isNewCard = !currentUser.ownedCards.includes(card.id);
 
-  let possibleCards = CARD_DATA.filter(card =>
-    card.rarity === targetRarity
-  );
-
-  // Nếu sau này chưa có thẻ đúng độ hiếm, dùng các thẻ hiện có.
-  if (possibleCards.length === 0) {
-    possibleCards = CARD_DATA;
+  if (isNewCard) {
+    currentUser.ownedCards.push(card.id);
   }
 
-  const receivedCard =
-    possibleCards[Math.floor(Math.random() * possibleCards.length)];
-
-  if (!currentUser.ownedCards.includes(receivedCard.id)) {
-    currentUser.ownedCards.push(receivedCard.id);
-  }
-
-  selectedPackId = null;
-  savePlayer();
-  updateCoins();
-  renderAlbum();
+  saveCurrentUser();
   renderBag();
+  renderAlbum();
 
   hideModal("packDetailModal");
-
-  $("revealTitle").textContent = `BẠN NHẬN ĐƯỢC ${receivedCard.name.toUpperCase()}!`;
-  $("revealedCard").innerHTML = "";
-  $("tearEffect").classList.remove("tear-animate");
-  $("tearEffect").textContent = "✦ PACK OPENING ✦";
-
-  showModal("revealModal");
-
-  // Hiệu ứng xé pack trước khi lật ra lá bài.
-  $("openSelectedPackBtn").disabled = true;
-
-  setTimeout(() => {
-    $("tearEffect").classList.add("tear-animate");
-    $("tearEffect").textContent = "✂️ ĐANG XÉ PACK...";
-  }, 100);
-
-  setTimeout(() => {
-    $("tearEffect").textContent = "✨ THẺ BÀI XUẤT HIỆN ✨";
-    $("revealedCard").appendChild(makeCardElement(receivedCard));
-    showToast(`🎉 Bạn nhận được thẻ ${receivedCard.name}!`);
-  }, 750);
-});
-
-$("revealDoneBtn").addEventListener("click", () => {
-  hideModal("revealModal");
-  showPage("album");
-});
-
-/* ---------- STARTER CHEST ---------- */
-
-function updateStarterPanel() {
-  if (!currentUser) return;
-
-  $("starterPanel").classList.toggle(
-    "hidden",
-    currentUser.isAdmin || currentUser.claimedStarter
-  );
-
-  $("starterMessage").textContent = currentUser.claimedStarter
-    ? "Bạn đã nhận quà khởi đầu."
-    : "";
+  showReveal(card, isNewCard);
+  selectedPackId = null;
 }
 
-$("openChestBtn").addEventListener("click", () => {
-  if (!currentUser || currentUser.claimedStarter || currentUser.isAdmin) {
+function showReveal(card, isNewCard) {
+  const revealTitle = $("#revealTitle");
+  const revealCard = $("#revealedCard");
+  const tearEffect = $("#tearEffect");
+
+  revealTitle.textContent = isNewCard
+    ? "BẠN NHẬN ĐƯỢC THẺ MỚI!"
+    : "BẠN NHẬN ĐƯỢC THẺ!";
+
+  revealCard.innerHTML = "";
+  revealCard.appendChild(makeCardElement(card));
+
+  tearEffect.classList.remove("tear-animate");
+  void tearEffect.offsetWidth;
+  tearEffect.classList.add("tear-animate");
+
+  showModal("revealModal");
+}
+
+/* =========================
+   STARTER CHEST
+   ========================= */
+
+function updateStarterPanel() {
+  const button = $("#openChestBtn");
+  const message = $("#starterMessage");
+
+  if (!currentUser) return;
+
+  if (currentUser.starterClaimed) {
+    button.disabled = true;
+    button.textContent = "ĐÃ NHẬN RƯƠNG";
+    button.style.opacity = "0.6";
+    message.textContent = "Bạn đã nhận phần quà khởi đầu.";
+  } else {
+    button.disabled = false;
+    button.textContent = "MỞ RƯƠNG ✨";
+    button.style.opacity = "1";
+    message.textContent = "";
+  }
+}
+
+function openStarterChest() {
+  if (!currentUser) return;
+
+  if (currentUser.starterClaimed) {
+    showToast("Bạn đã nhận rương khởi đầu rồi.");
     return;
   }
 
   showModal("chestModal");
-});
+}
 
-$("claimStarterBtn").addEventListener("click", () => {
-  if (!currentUser || currentUser.claimedStarter || currentUser.isAdmin) {
+function claimStarterPack() {
+  if (!currentUser || currentUser.starterClaimed) {
     hideModal("chestModal");
     return;
   }
 
-  currentUser.claimedStarter = true;
+  currentUser.starterClaimed = true;
 
-  // Quà khởi đầu cũng chuyển vào Balo để người chơi tự mở.
-  currentUser.inventoryPacks.push({
-    id: createId(),
+  const pack = {
+    id: `pack-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
     type: "basic",
     purchasedAt: Date.now(),
-    starterGift: true
-  });
+    starter: true
+  };
 
-  savePlayer();
+  currentUser.inventoryPacks.push(pack);
+  saveCurrentUser();
+
   updateStarterPanel();
   renderBag();
 
   hideModal("chestModal");
-  showPage("bag");
-  showToast("🎁 Bạn nhận được 1 Basic Pack miễn phí trong Balo!");
-});
+  navigateTo("bag");
+  openPackDetails(pack.id);
 
-/* ---------- MODAL CLOSE BUTTONS ---------- */
+  showToast("Bạn nhận được một Basic Pack miễn phí!");
+}
 
-document.querySelectorAll("[data-close]").forEach(button => {
-  button.addEventListener("click", () => {
-    hideModal(button.dataset.close);
+/* =========================
+   EVENT LISTENERS
+   ========================= */
+
+function setupEventListeners() {
+  $("#showLoginBtn").addEventListener("click", () => openAuth(false));
+  $("#showRegisterBtn").addEventListener("click", () => openAuth(true));
+  $("#tapStartBtn").addEventListener("click", () => openAuth(false));
+
+  $("#switchAuthBtn").addEventListener("click", () => {
+    isRegisterMode = !isRegisterMode;
+    updateAuthForm();
+    setMessage($("#authMessage"), "");
   });
-});
 
-document.querySelectorAll(".modal").forEach(modal => {
-  modal.addEventListener("click", event => {
-    if (event.target === modal) {
-      modal.classList.remove("show");
+  $("#authForm").addEventListener("submit", handleAuthSubmit);
+  $("#adminAccessBtn").addEventListener("click", () => {
+    $("#adminCode").value = "";
+    setMessage($("#adminMessage"), "");
+    showModal("adminModal");
+  });
+
+  $("#adminForm").addEventListener("submit", loginAdmin);
+  $("#logoutBtn").addEventListener("click", logout);
+  $("#goShopBtn").addEventListener("click", () => navigateTo("shop"));
+
+  $("#openChestBtn").addEventListener("click", openStarterChest);
+  $("#claimStarterBtn").addEventListener("click", claimStarterPack);
+  $("#openSelectedPackBtn").addEventListener("click", openSelectedPack);
+
+  $("#revealDoneBtn").addEventListener("click", () => {
+    hideModal("revealModal");
+    navigateTo("album");
+  });
+
+  $$("[data-page]").forEach(button => {
+    button.addEventListener("click", () => {
+      navigateTo(button.dataset.page);
+    });
+  });
+
+  $$("[data-buy]").forEach(button => {
+    button.addEventListener("click", () => {
+      buyPack(button.dataset.buy);
+    });
+  });
+
+  $$("[data-close]").forEach(button => {
+    button.addEventListener("click", () => {
+      hideModal(button.dataset.close);
+    });
+  });
+
+  $$(".modal").forEach(modal => {
+    modal.addEventListener("click", event => {
+      if (event.target === modal) {
+        modal.classList.remove("show");
+      }
+    });
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      $$(".modal.show").forEach(modal => modal.classList.remove("show"));
     }
   });
-});
 
-document.addEventListener("keydown", event => {
-  if (event.key === "Escape") {
-    document.querySelectorAll(".modal.show").forEach(modal => {
-      modal.classList.remove("show");
-    });
-  }
-});
+  setupAlbumFilters();
+}
 
-/* ---------- RESTORE SESSION ---------- */
+/* =========================
+   RESTORE SESSION
+   ========================= */
 
 function restoreSession() {
-  let session;
+  const username = localStorage.getItem(SESSION_KEY);
+  if (!username) return;
 
-  try {
-    session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
-  } catch {
-    session = null;
-  }
+  const user = readUsers().find(item =>
+    item.username.toLowerCase() === username.toLowerCase()
+  );
 
-  if (!session) return;
-
-  if (session.isAdmin) {
-    currentUser = normalizePlayer({
-      username: "ADMIN",
-      coins: Infinity,
-      ownedCards: CARD_DATA.map(card => card.id),
-      inventoryPacks: [],
-      claimedStarter: true,
-      isAdmin: true
-    });
-
-    enterGame();
+  if (!user) {
+    clearSession();
     return;
   }
 
-  const users = readUsers();
-  const player = users.find(user => user.username === session.username);
-
-  if (player) {
-    currentUser = normalizePlayer(player);
-    enterGame();
-  } else {
-    clearSession();
-  }
+  currentUser = ensureUserData(user);
+  saveCurrentUser();
+  enterGame();
 }
 
-restoreSession();
+/* =========================
+   START
+   ========================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+  setupEventListeners();
+  restoreSession();
+});
