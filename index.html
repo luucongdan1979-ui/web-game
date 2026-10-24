@@ -4,127 +4,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MEME CARD - Huyền Thoại</title>
+  <title>MEMEVERSE - Anime Meme Cards</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="stars"></div>
+  <header>
+    <h1>✨ MEMEVERSE ✨</h1>
+    <p>ANIME MEME CARD ARENA</p>
+  </header>
 
-  <!-- MÀN HÌNH ĐĂNG NHẬP -->
-  <section id="loginScreen" class="screen login-screen">
-    <div class="logo">MEME<span>CARD</span></div>
-    <p class="subtitle">THẾ GIỚI THẺ BÀI HUYỀN THOẠI</p>
-
-    <div class="auth-box">
-      <h2 id="authTitle">ĐĂNG NHẬP</h2>
-      <form id="authForm">
-        <input id="username" placeholder="Tên tài khoản" required>
-        <input id="email" type="email" placeholder="Gmail của bạn"
-               class="hidden">
-        <input id="password" type="password" placeholder="Mật khẩu"
-               minlength="4" required>
-        <button class="main-btn" type="submit" id="authSubmit">
-          ĐĂNG NHẬP
-        </button>
-      </form>
-
-      <p id="authMessage"></p>
-      <button class="text-btn" id="switchAuth">
-        Chưa có tài khoản? Đăng ký
-      </button>
+  <section id="loginScreen" class="panel">
+    <h2>🌌 Cổng dịch chuyển</h2>
+    <input id="username" placeholder="Tên tài khoản">
+    <input id="email" type="email" placeholder="Gmail (khi đăng ký)" hidden>
+    <input id="password" type="password" placeholder="Mật khẩu">
+    <div class="buttons">
+      <button onclick="register()">Đăng ký</button>
+      <button onclick="login()">Đăng nhập</button>
     </div>
-
-    <button id="startBtn" class="tap-btn">✦ TAP TO START ✦</button>
-    <p class="hint">Đăng nhập hoặc đăng ký để bắt đầu</p>
+    <button class="start" onclick="login()">✦ TAP TO START ✦</button>
+    <p id="message"></p>
   </section>
 
-  <!-- MÀN HÌNH CHÍNH -->
-  <section id="homeScreen" class="screen hidden">
-    <header class="topbar">
-      <div class="small-logo">MEME<span>CARD</span></div>
-      <div class="player">♟ <span id="playerName">Người chơi</span></div>
-      <button id="logoutBtn" class="logout-btn">Thoát</button>
-    </header>
+  <main id="gameScreen" hidden>
+    <h2>Chào chiến binh <span id="player"></span>!</h2>
+    <p>Mở rương, xé gói và thu thập meme huyền thoại.</p>
 
-    <main class="home-content">
-      <p class="eyebrow">SỰ KIỆN ĐẶC BIỆT</p>
-      <h1>KHO BÁU HUYỀN THOẠI</h1>
-      <p class="description">Chạm vào rương để khám phá bí mật!</p>
+    <div class="game-grid">
+      <article class="card-box">
+        <div class="emoji">🎁</div>
+        <h3>RƯƠNG BÁU</h3>
+        <p>Mở rương nhận gói thẻ bí ẩn.</p>
+        <button onclick="openChest()">MỞ RƯƠNG ✨</button>
+      </article>
 
-      <button id="chestBtn" class="chest-btn" aria-label="Mở rương">
-        <span class="chest-glow"></span>
-<span class="chest-art" aria-label="Rương kho báu">
-  <span class="chest-aura"></span>
-  <span class="chest-lid"></span>
-  <span class="chest-body"></span>
-  <span class="chest-lock">✦</span>
-  <span class="chest-spark spark1">✦</span>
-  <span class="chest-spark spark2">✧</span>
-  <span class="chest-spark spark3">✦</span>
-</span>
-        <span class="chest-label">MỞ RƯƠNG</span>
-      </button>
+      <article class="card-box">
+        <div class="emoji">🃏</div>
+        <h3>GÓI THẺ MEME</h3>
+        <p>Xé gói để triệu hồi nhân vật.</p>
+        <button onclick="openPack()">XÉ GÓI THẺ 💥</button>
+      </article>
+    </div>
 
-      <div class="inventory">
-        <span>🎁 KHO BÀI CỦA BẠN</span>
-        <div id="collection">Chưa có lá bài nào</div>
-      </div>
-    </main>
-  </section>
+    <section class="panel">
+      <h2>📚 Bộ sưu tập của bạn</h2>
+      <p>Thẻ đã sở hữu: <strong id="count">0</strong></p>
+      <div id="collection" class="collection"></div>
+    </section>
 
-  <!-- HIỆU ỨNG MỞ RƯƠNG -->
-  <div id="chestModal" class="modal hidden">
-    <div class="modal-panel">
-      <button class="close-btn" data-close="chestModal">✕</button>
-      <p class="eyebrow">BẠN ĐÃ TÌM THẤY</p>
-      <h2>RƯƠNG BÍ ẨN</h2>
-      <div id="openedChest" class="opened-chest">🎁</div>
-      <p id="chestMessage">Một gói bài đang chờ bạn!</p>
-      <button id="getPackBtn" class="main-btn">NHẬN GÓI BÀI</button>
+    <button onclick="logout()">Đăng xuất</button>
+  </main>
+
+  <div id="modal" class="modal" hidden>
+    <div class="modal-content">
+      <button class="close" onclick="closeModal()">✕</button>
+      <h2 id="modalTitle">✨ Kho báu</h2>
+      <div id="modalBody"></div>
+      <div id="modalButtons"></div>
     </div>
   </div>
 
-  <!-- XÉ PACK -->
-  <div id="packModal" class="modal hidden">
-    <div class="modal-panel pack-panel">
-      <button class="close-btn" data-close="packModal">✕</button>
-      <p class="eyebrow">MYSTERY PACK</p>
-      <h2>GÓI BÀI BÍ ẨN</h2>
-      <button id="packBtn" class="pack-btn" aria-label="Xé gói bài">
-        <span>✦</span>
-        <strong>MEME<br>LEGENDS</strong>
-        <small>✂ NHẤN ĐỂ XÉ ✂</small>
-      </button>
-      <p id="packMessage">Nhấn vào gói bài để mở!</p>
-    </div>
-  </div>
-
-  <!-- LÁ BÀI -->
-  <div id="cardModal" class="modal hidden">
-    <div class="modal-panel card-panel">
-      <button class="close-btn" data-close="cardModal">✕</button>
-      <p class="eyebrow">✦ BẠN ĐÃ NHẬN ĐƯỢC ✦</p>
-      <h2>THẺ NHÂN VẬT HUYỀN THOẠI</h2>
-
-      <div id="cardReveal" class="card-reveal">
-        <div class="legendary">✦ LEGENDARY ✦</div>
-        <img id="khaBanhCard"
-             src="https://raw.githubusercontent.com/luucongdan1979-ui/web-game/main/kh%C3%A1%20b%E1%BA%A3nh%20nv.png"
-             alt="Lá bài Khá Bảnh"
-             onerror="this.style.display='none';document.getElementById('imageError').classList.remove('hidden')">
-        <div id="imageError" class="hidden image-error">
-          ⚠️ Chưa tải được ảnh lá bài.<br>
-          Kiểm tra tên file trên GitHub.
-        </div>
-        <h3>KHÁ BẢNH</h3>
-        <p class="card-type">NHÂN VẬT • MEME LEGENDS</p>
-      </div>
-
-      <button id="backHomeBtn" class="main-btn">TRỞ VỀ MÀN HÌNH CHÍNH</button>
-    </div>
-  </div>
-
-  <div id="toast" class="toast hidden" role="status"></div>
   <script src="script.js"></script>
 </body>
 </html>
