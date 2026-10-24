@@ -1,59 +1,107 @@
+HTML
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Game Thẻ Bài Meme</title>
+  <title>Shadow Card - Game Thẻ Bài</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Font chữ mềm mại nghệ thuật -->
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Montserrat:wght@500;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <!-- Màn hình chính -->
-  <div class="main-screen">
-    <h1 class="game-title">ĐẠI CHIẾN MEME VN</h1>
-    
-    <!-- Nút Tap To Start -->
-    <div class="start-container">
-      <button id="btn-start" class="tap-to-start-btn">TAP TO START</button>
+  <!-- Nền game -->
+  <div class="game-background"></div>
+
+  <!-- Nút tiện ích góc trên bên phải -->
+  <div class="top-controls">
+    <button class="icon-btn" id="btn-sound">🔊</button>
+    <button class="icon-btn" id="btn-settings">⚙️</button>
+  </div>
+
+  <!-- MÀN HÌNH CHÍNH (SẢNH CHỜ) -->
+  <div id="main-screen" class="screen">
+    <!-- Logo & Slogan bên trái -->
+    <div class="logo-container">
+      <h1 class="game-logo">Shadow Card</h1>
+      <p class="game-subtitle">Bắt đầu hành trình của bạn</p>
+    </div>
+
+    <!-- Nút Đăng nhập / Đăng ký góc dưới bên trái -->
+    <div class="left-action-buttons">
+      <button id="btn-open-login" class="pill-btn">
+        <span class="icon">👤</span> Đăng nhập
+      </button>
+      <button id="btn-open-register" class="pill-btn">
+        <span class="icon">👤<sup>+</sup></span> Đăng ký
+      </button>
+    </div>
+
+    <!-- Nút TAP TO START co giãn nằm bên phải -->
+    <div class="tap-start-container">
+      <button id="btn-tap-start" class="tap-start-btn">
+        <span class="sparkle-left">✦</span> Tap to Start <span class="sparkle-right">✦</span>
+      </button>
     </div>
   </div>
 
-  <!-- Popup Modal chứa Form -->
-  <div id="auth-modal" class="modal hidden">
-    <div class="modal-content">
-      <span id="btn-close" class="close-btn">&times;</span>
+  <!-- POPUP CONTAINER CÁC FORM -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    
+    <!-- 1. FORM ĐĂNG KÝ -->
+    <div id="card-register" class="auth-card hidden">
+      <button class="back-btn" id="btn-back-reg">←</button>
+      <div class="card-inner">
+        <h2 class="card-title">Đăng Ký</h2>
+        <p class="card-sub">Tạo tài khoản để bắt đầu hành trình</p>
 
-      <!-- 1. Màn hình chọn Đăng nhập / Đăng ký -->
-      <div id="auth-choice" class="auth-box">
-        <h2>CHÀO MỪNG BẠN!</h2>
-        <button id="btn-show-login" class="menu-btn primary">ĐĂNG NHẬP</button>
-        <button id="btn-show-register" class="menu-btn secondary">ĐĂNG KÝ</button>
-      </div>
+        <form class="auth-form" onsubmit="return false;">
+          <div class="input-field">
+            <span class="field-icon">👤</span>
+            <input type="text" placeholder="Tên tài khoản (gmail)" required>
+            <span class="field-end-icon">✉️</span>
+          </div>
 
-      <!-- 2. Form Đăng Nhập -->
-      <div id="form-login" class="auth-box hidden">
-        <h2>ĐĂNG NHẬP</h2>
-        <form onsubmit="return false;">
-          <input type="text" placeholder="Tên tài khoản" required>
-          <input type="password" placeholder="Mật khẩu" required>
-          <button type="submit" class="menu-btn primary">VÀO GAME</button>
+          <div class="input-field">
+            <span class="field-icon">🔒</span>
+            <input type="password" placeholder="Mật khẩu" required>
+            <span class="field-end-icon">👁️</span>
+          </div>
+
+          <button type="submit" class="submit-btn reg-btn">Đăng ký</button>
         </form>
-        <p class="switch-text">Chưa có tài khoản? <a href="#" id="link-to-reg">Đăng ký ngay</a></p>
-      </div>
 
-      <!-- 3. Form Đăng Ký -->
-      <div id="form-register" class="auth-box hidden">
-        <h2>ĐĂNG KÝ TÀI KHOẢN</h2>
-        <form onsubmit="return false;">
-          <input type="text" placeholder="Tên tài khoản" required>
-          <input type="email" placeholder="Gmail" required>
-          <input type="password" placeholder="Mật khẩu" required>
-          <button type="submit" class="menu-btn secondary">TẠO TÀI KHOẢN</button>
-        </form>
-        <p class="switch-text">Đã có tài khoản? <a href="#" id="link-to-login">Đăng nhập</a></p>
+        <p class="switch-link">Đã có tài khoản? <a href="#" id="go-to-login">Đăng nhập ngay</a></p>
       </div>
-
     </div>
+
+    <!-- 2. FORM ĐĂNG NHẬP -->
+    <div id="card-login" class="auth-card hidden">
+      <button class="back-btn" id="btn-back-login">←</button>
+      <div class="card-inner">
+        <h2 class="card-title">Đăng Nhập</h2>
+        <p class="card-sub">Chào mừng bạn trở lại!</p>
+
+        <form class="auth-form" onsubmit="return false;">
+          <div class="input-field">
+            <span class="field-icon">👤</span>
+            <input type="text" placeholder="Tên tài khoản (gmail hoặc tên đăng nhập)" required>
+          </div>
+
+          <div class="input-field">
+            <span class="field-icon">🔒</span>
+            <input type="password" placeholder="Mật khẩu" required>
+            <span class="field-end-icon">👁️</span>
+          </div>
+
+          <button type="submit" class="submit-btn login-btn">Đăng nhập</button>
+        </form>
+
+        <p class="switch-text">Chưa có tài khoản? <a href="#" id="go-to-reg">Đăng ký ngay</a></p>
+      </div>
+    </div>
+
   </div>
 
   <script src="script.js"></script>
