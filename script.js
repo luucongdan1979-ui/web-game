@@ -209,7 +209,8 @@ function logout() {
 
 function renderCollection() {
   cardCount.textContent = String(cards.length);
-
+updateBagCount();
+  
   if (!cards.length) {
     collection.innerHTML = `
       <div class="empty-state">
@@ -356,3 +357,74 @@ document.addEventListener("keydown", (event) => {
 
 updateHeader();
 showWelcome();
+
+const openBagBtn = document.querySelector("#openBagBtn");
+const bagCount = document.querySelector("#bagCount");
+
+function updateBagCount() {
+  if (bagCount) {
+    bagCount.textContent = String(cards.length);
+  }
+}
+
+function openCardBag() {
+  if (!currentUser) {
+    openAuth("login");
+    return;
+  }
+
+  const cardItems = cards.length
+    ? `<div class="bag-grid" id="bagGrid"></div>`
+    : `<div class="bag-empty">
+         <span>🎒</span>
+         Túi của bạn đang trống.<br>
+         Hãy mở rương để nhận thẻ bài nhé!
+       </div>`;
+
+  openModal(`
+    <div class="hero-tag">YOUR COLLECTION</div>
+    <h2>🎒 TÚI THẺ BÀI</h2>
+    <p style="text-align:center;color:#aaa9c5">
+      Bạn đang có ${cards.length} lá bài.
+    </p>
+    ${cardItems}
+    <button id="bagCloseBtn" class="main-btn form-submit">
+      QUAY LẠI GAME
+    </button>
+  `);
+
+  const grid = document.querySelector("#bagGrid");
+
+  if (grid) {
+    cards.forEach((card) => {
+      const tile = document.createElement("div");
+      tile.className = "card-tile";
+
+      const img = document.createElement("img");
+      img.src = card.image;
+      img.alt = card.name;
+      img.onerror = () => {
+        img.style.display = "none";
+      };
+
+      const name = document.createElement("div");
+      name.className = "tile-name";
+      name.textContent = card.name;
+
+      const rarity = document.createElement("div");
+      rarity.className = "tile-rarity";
+      rarity.textContent = card.rarity;
+
+      tile.append(img, name, rarity);
+      grid.appendChild(tile);
+    });
+  }
+
+  document.querySelector("#bagCloseBtn").addEventListener("click", () => {
+    closeModal();
+  });
+}
+
+if (openBagBtn) {
+  openBagBtn.addEventListener("click", openCardBag);
+}
