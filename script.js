@@ -326,7 +326,15 @@ function enterGame() {
   $("#gameScreen").classList.remove("hidden");
   $("#adminBadge").classList.toggle("hidden", !currentUser?.isAdmin);
 
-  updateCoins();
+ function updateCoins() {
+  const coinDisplay = $("#coinAmount");
+
+  if (currentUser?.isAdmin) {
+    coinDisplay.textContent = "∞";
+  } else {
+    coinDisplay.textContent = String(currentUser?.coins ?? 0);
+  }
+}
   renderAlbum();
   renderBag();
   updateStarterPanel();
