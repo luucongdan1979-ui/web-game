@@ -4,14 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anime Card Arena</title>
-  <link rel="stylesheet" href="./style.css">
-  <script src="./script.js" defer></script>
+  <title>Card Arena</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
 </head>
 <body>
   <div class="bg-glow"></div>
 
-  <!-- MÀN HÌNH ĐĂNG NHẬP -->
+  <!-- MÀN HÌNH CHÀO -->
   <main id="welcomeScreen" class="welcome-screen">
     <div class="logo">CARD <span>ARENA</span></div>
     <p class="subtitle">COLLECT YOUR LEGEND</p>
@@ -30,42 +30,43 @@
     <div class="game-logo">CARD <span>ARENA</span></div>
     <p class="game-subtitle">ĐẤU TRƯỜNG THẺ BÀI</p>
 
+    <div class="money-display">
+      <span>🪙</span>
+      <span id="moneyAmount">1.000</span>
+      <span>COIN</span>
+    </div>
+
     <div id="sceneOverlay" class="scene-overlay">
-      <!-- RƯƠNG -->
       <section id="chestScene" class="reward-scene hidden">
         <h2>RƯƠNG TÂN THỦ</h2>
-        <p class="scene-description">Mở rương để nhận một pack bí ẩn!</p>
-
-        <button id="chestBtn" class="chest-button" aria-label="Mở rương">
+        <p class="scene-description">Mở rương để nhận pack bí ẩn!</p>
+        <button id="chestBtn" class="chest-button">
           <span class="chest-icon">🧰</span>
           <span class="chest-label">MỞ RƯƠNG</span>
         </button>
       </section>
 
-      <!-- PACK -->
       <section id="packScene" class="reward-scene hidden">
         <h2>PACK BÍ ẨN</h2>
         <p class="scene-description">40% RARE · 60% LEGENDARY</p>
-
-        <button id="packBtn" class="pack-button" aria-label="Xé pack">
+        <button id="packBtn" class="pack-button">
           <span class="pack-shine"></span>
           <span class="pack-star">✦</span>
           <span class="pack-name">MYSTERY<br>PACK</span>
           <span class="pack-small">RANDOM CARD</span>
         </button>
-
         <p class="hint">Nhấn vào pack để xé</p>
       </section>
     </div>
 
-    <!-- THẺ BÀI VỪA NHẬN -->
+    <!-- THẺ VỪA NHẬN -->
     <section id="revealScene" class="reveal-scene hidden">
       <h2>🎉 BẠN ĐÃ NHẬN ĐƯỢC THẺ!</h2>
       <p id="revealMessage">Thẻ mới đã được thêm vào album.</p>
 
       <div id="revealedCard" class="trading-card rarity-rare">
         <div id="revealedRarity" class="card-rarity rare-rarity">◆ RARE ◆</div>
-        <img id="revealedImage" src="" alt="Lá bài vừa nhận">
+        <img id="revealedImage" src="" alt="Thẻ vừa nhận">
         <div id="imageFallback" class="image-fallback hidden">🃏</div>
         <div id="revealedName" class="card-name">Khá Bảnh</div>
         <div class="card-bottom">CARD ARENA</div>
@@ -76,43 +77,30 @@
   </main>
 
   <!-- THANH ICON -->
-  <nav id="gameTaskbar" class="game-taskbar hidden" aria-label="Thanh công cụ">
+  <nav id="gameTaskbar" class="game-taskbar hidden">
     <button id="homeTab" class="task-icon active" title="Trang chủ" aria-label="Trang chủ">
-      <svg viewBox="0 0 24 24">
-        <path d="M3 10.5 12 3l9 7.5"></path>
-        <path d="M5.5 9.5V21h13V9.5M9 21v-7h6v7"></path>
-      </svg>
+      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5M5.5 9.5V21h13V9.5M9 21v-7h6v7"/></svg>
     </button>
 
-    <button id="collectionTab" class="task-icon" title="Bộ sưu tập" aria-label="Bộ sưu tập">
-      <svg viewBox="0 0 24 24">
-        <rect x="6" y="3" width="14" height="17" rx="2"></rect>
-        <path d="M3 7v14h13M9 8h8M9 12h8M9 16h5"></path>
-      </svg>
+    <button id="collectionTab" class="task-icon" title="Album" aria-label="Album">
+      <svg viewBox="0 0 24 24"><rect x="6" y="3" width="14" height="17" rx="2"/><path d="M3 7v14h13M9 8h8M9 12h8M9 16h5"/></svg>
       <span id="bagCount" class="bag-count">0</span>
     </button>
 
     <button id="shopTab" class="task-icon" title="Cửa hàng" aria-label="Cửa hàng">
-      <svg viewBox="0 0 24 24">
-        <path d="M4 8h16l-1.5 12h-13z"></path>
-        <path d="M8 8V6a4 4 0 0 1 8 0v2M9 13h6"></path>
-      </svg>
+      <svg viewBox="0 0 24 24"><path d="M4 8h16l-1.5 12h-13zM8 8V6a4 4 0 0 1 8 0v2"/></svg>
     </button>
 
     <button id="logoutBtn" class="task-icon logout-icon" title="Đăng xuất" aria-label="Đăng xuất">
-      <svg viewBox="0 0 24 24">
-        <path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5"></path>
-        <path d="M14 8l4 4-4 4M18 12H8"></path>
-      </svg>
+      <svg viewBox="0 0 24 24"><path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5M14 8l4 4-4 4M18 12H8"/></svg>
     </button>
   </nav>
 
-  <!-- FORM ĐĂNG NHẬP / ĐĂNG KÝ -->
+  <!-- ĐĂNG NHẬP / ĐĂNG KÝ -->
   <div id="authModal" class="modal hidden">
     <div class="modal-box">
       <button id="authClose" class="close-btn" aria-label="Đóng">×</button>
       <h2 id="authTitle">ĐĂNG NHẬP</h2>
-
       <form id="authForm">
         <label for="username">Tên tài khoản</label>
         <input id="username" type="text" minlength="3" required placeholder="Nhập tên tài khoản">
@@ -131,14 +119,12 @@
     </div>
   </div>
 
-  <!-- ALBUM BỘ SƯU TẬP -->
+  <!-- ALBUM -->
   <div id="bagModal" class="modal hidden">
     <div class="modal-box inventory-box album-box">
       <button id="bagClose" class="close-btn" aria-label="Đóng">×</button>
       <h2>✦ ALBUM THẺ BÀI ✦</h2>
-      <p class="scene-description album-subtitle">
-        Sưu tầm thẻ bài và hoàn thành album của bạn
-      </p>
+      <p class="scene-description album-subtitle">Sưu tầm và xem chi tiết thẻ bài</p>
 
       <div class="album-tabs">
         <button class="album-tab active" data-category="character">
@@ -146,13 +132,11 @@
           <span>NHÂN VẬT</span>
           <small id="characterProgress">0/3</small>
         </button>
-
         <button class="album-tab" data-category="skill">
           <span class="album-tab-icon">⚡</span>
           <span>SKILL</span>
           <small id="skillProgress">0/3</small>
         </button>
-
         <button class="album-tab" data-category="situation">
           <span class="album-tab-icon">✧</span>
           <span>TÌNH HUỐNG</span>
@@ -169,17 +153,34 @@
     </div>
   </div>
 
+  <!-- XEM CHI TIẾT THẺ -->
+  <div id="cardDetailModal" class="modal hidden">
+    <div class="modal-box card-detail-box">
+      <button id="cardDetailClose" class="close-btn" aria-label="Đóng">×</button>
+      <h2>✦ CHI TIẾT THẺ BÀI ✦</h2>
+
+      <div id="detailCardFrame" class="trading-card rarity-rare">
+        <div id="detailRarity" class="card-rarity rare-rarity">RARE</div>
+        <img id="detailImage" src="" alt="Thẻ bài">
+        <div id="detailFallback" class="image-fallback hidden">🃏</div>
+        <div id="detailName" class="card-name">Tên thẻ</div>
+        <div class="card-bottom">CARD ARENA</div>
+      </div>
+
+      <p id="detailDescription" class="detail-description"></p>
+    </div>
+  </div>
+
   <!-- CỬA HÀNG -->
   <div id="shopModal" class="modal hidden">
     <div class="modal-box">
       <button id="shopClose" class="close-btn" aria-label="Đóng">×</button>
       <h2>✧ CỬA HÀNG ✧</h2>
-
       <div class="shop-item">
         <div class="shop-pack">🎴</div>
         <h3>Pack bí ẩn</h3>
-        <p>Rương tân thủ giúp bạn nhận ngẫu nhiên một lá bài.</p>
-        <p class="shop-note">Cửa hàng đang được phát triển.</p>
+        <p>Nhận thẻ bài ngẫu nhiên trong tương lai.</p>
+        <p class="shop-note">Tính năng mua pack đang được phát triển.</p>
       </div>
     </div>
   </div>
