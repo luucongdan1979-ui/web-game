@@ -1,803 +1,775 @@
 
-:root {
-  --bg: #090713;
-  --panel: rgba(23, 18, 43, .92);
-  --panel-light: rgba(38, 28, 66, .86);
-  --purple: #a855f7;
-  --pink: #f472e8;
-  --cyan: #67e8f9;
-  --text: #f7f3ff;
-  --muted: #aaa2c4;
-  --border: rgba(192, 132, 252, .24);
+"use strict";
+
+/* =========================
+   CARD ARENA - GAME DATA
+========================= */
+
+const ADMIN_CODE = "171113";
+const USERS_KEY = "cardArenaInteractiveUsersV1";
+const SESSION_KEY = "cardArenaInteractiveSessionV1";
+
+const CARD_DATA = {
+  kha: {
+    id: "kha",
+    name: "Khá Bảnh",
+    rarity: "RARE",
+    description: "Một lá bài trong bộ sưu tập CARD ARENA.",
+    image: "./kh%C3%A1%20b%E1%BA%A3nh%20nv.png"
+  },
+  jack: {
+    id: "jack",
+    name: "Jack",
+    rarity: "LEGENDARY",
+    description: "Một lá bài đặc biệt trong bộ sưu tập CARD ARENA.",
+    image: "./jack%20nv.png"
+  }
+};
+
+const PACK_DATA = {
+  basic: {
+    id: "basic",
+    name: "Basic Pack",
+    price: 10,
+    icon: "✦"
+  },
+  premium: {
+    id: "premium",
+    name: "Premium Pack",
+    price: 20,
+    icon: "✧"
+  }
+};
+
+let currentUser = null;
+let isAdmin = false;
+let authMode = "login";
+let selectedPackId = null;
+let toastTimeout = null;
+
+/* =========================
+   STORAGE
+========================= */
+
+function loadUsers() {
+  try {
+    const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+    return Array.isArray(users) ? users : [];
+  } catch {
+    return [];
+  }
 }
 
-* { box-sizing: border-box; }
-
-html { scroll-behavior: smooth; }
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  background:
-    radial-gradient(ellipse at 50% -15%, rgba(120, 55, 210, .24), transparent 45%),
-    var(--bg);
-  color: var(--text);
-  font-family: "Be Vietnam Pro", sans-serif;
-  overflow-x: hidden;
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
-button, input { font: inherit; }
-button { cursor: pointer; }
-button:focus-visible, input:focus-visible {
-  outline: 2px solid var(--cyan);
-  outline-offset: 3px;
+function saveCurrentUser() {
+  if (!currentUser || isAdmin) return;
+
+  const users = loadUsers();
+  const index = users.findIndex(
+    user => user.username.toLowerCase() === currentUser.username.toLowerCase()
+  );
+
+  if (index !== -1) {
+    users[index] = { ...currentUser };
+    saveUsers(users);
+  }
 }
 
-.hidden { display: none !important; }
+function saveSession() {
+  if (isAdmin) {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      type: "admin"
+    }));
+    return;
+  }
 
-.bg-glow {
-  position: fixed;
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: .12;
-  pointer-events: none;
-  z-index: -1;
-}
-.glow-one { background: #a855f7; top: 15%; left: -150px; }
-.glow-two { background: #ec4899; right: -170px; bottom: 0; }
-
-.topbar {
-  min-height: 76px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 12px clamp(16px, 4vw, 54px);
-  border-bottom: 1px solid rgba(192, 132, 252, .15);
-  background: rgba(9, 7, 19, .8);
-  backdrop-filter: blur(18px);
-  position: sticky;
-  top: 0;
-  z-index: 30;
+  if (currentUser) {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      type: "user",
+      username: currentUser.username
+    }));
+  }
 }
 
-.logo {
-  font: 900 21px "Orbitron", sans-serif;
-  letter-spacing: 1px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.logo span { color: var(--pink); margin-left: 5px; }
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-left: auto;
+function makeNewUser(username, email, password) {
+  return {
+    username,
+    email,
+    password,
+    coins: 17,
+    cards: [],
+    packs: [],
+    chestClaimed: false
+  };
 }
 
-.coin {
-  border: 1px solid rgba(250, 204, 21, .28);
-  background: rgba(250, 204, 21, .08);
-  color: #fde68a;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 12px;
-  white-space: nowrap;
-}
-.coin b { font-size: 15px; margin: 0 3px; }
+/* =========================
+   GENERAL HELPERS
+========================= */
 
-.admin-top-btn {
-  position: relative;
-  padding: 11px 17px;
-  border: 1px solid rgba(244, 114, 232, .55);
-  border-radius: 11px;
-  color: #fff;
-  font: 800 11px "Orbitron", sans-serif;
-  letter-spacing: .8px;
-  background: linear-gradient(135deg, #7c3aed, #c026d3);
-  box-shadow: 0 0 22px rgba(192, 38, 211, .2);
-  transition: .2s;
-}
-.admin-top-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 25px rgba(244, 114, 232, .42);
+function $(id) {
+  return document.getElementById(id);
 }
 
-/* LOGIN SCREEN */
-.welcome-screen {
-  min-height: calc(100vh - 76px);
-  display: grid;
-  place-items: center;
-  position: relative;
-  overflow: hidden;
-  padding: 48px 22px 70px;
+function showModal(id) {
+  const modal = $(id);
+  if (modal) modal.classList.remove("hidden");
 }
 
-.login-layout {
-  width: min(1120px, 100%);
-  display: grid;
-  grid-template-columns: 1.05fr .85fr;
-  align-items: center;
-  gap: clamp(28px, 6vw, 76px);
-  position: relative;
-  z-index: 1;
+function closeModal(id) {
+  const modal = $(id);
+  if (modal) modal.classList.add("hidden");
 }
 
-.login-art { padding: 20px 0; }
+function toast(message) {
+  const element = $("toast");
+  if (!element) return;
 
-.art-badge, .eyebrow, .modal-eyebrow {
-  color: var(--cyan);
-  font: 700 10px "Orbitron", sans-serif;
-  letter-spacing: 2px;
-}
+  element.textContent = message;
+  element.classList.add("show");
 
-.art-badge {
-  display: inline-flex;
-  padding: 10px 13px;
-  border: 1px solid rgba(103, 232, 249, .3);
-  background: rgba(103, 232, 249, .055);
-  border-radius: 7px;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    element.classList.remove("show");
+  }, 2600);
 }
 
-.art-title {
-  margin-top: 24px;
-  font: 900 clamp(30px, 4.5vw, 54px)/1.25 "Orbitron", sans-serif;
-  letter-spacing: -1.8px;
-}
-.art-title span {
-  color: var(--pink);
-  text-shadow: 0 0 30px rgba(244, 114, 232, .3);
-}
-.login-art > p {
-  max-width: 430px;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.9;
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[character]);
 }
 
-.floating-cards {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  max-width: 420px;
-  height: 225px;
-  margin-top: 22px;
-  perspective: 800px;
+function imageHTML(card, className = "") {
+  return `
+    <img
+      class="${className}"
+      src="${card.image}"
+      alt="${escapeHTML(card.name)}"
+      onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')"
+    >
+    <span class="card-image-fallback hidden">✦</span>
+  `;
 }
 
-.float-card {
-  width: 125px;
-  height: 174px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 12px;
-  overflow: hidden;
-  border-radius: 13px;
-  border: 1px solid rgba(255, 255, 255, .35);
-  background: linear-gradient(145deg, #31205e, #130d2a 65%, #5b216d);
-  box-shadow: 0 12px 38px rgba(0, 0, 0, .35), inset 0 0 22px rgba(192, 132, 252, .12);
-}
-.float-card > span {
-  font: 700 8px "Orbitron", sans-serif;
-  color: var(--cyan);
-}
-.float-card small {
-  text-align: center;
-  font: 700 7px "Orbitron", sans-serif;
-  letter-spacing: 1px;
-}
-.mini-card-symbol {
-  text-align: center;
-  font-size: 54px;
-  color: var(--pink);
-  text-shadow: 0 0 25px var(--purple);
-}
-.float-left { transform: rotate(-14deg) translateX(17px) translateY(10px); }
-.float-middle {
-  z-index: 2;
-  transform: translateY(-8px);
-  border-color: rgba(244, 114, 232, .8);
-  background: linear-gradient(145deg, #522079, #21113d 65%, #9d174d);
-  animation: floatCard 3s ease-in-out infinite;
-}
-.float-middle > span { color: #f9a8d4; }
-.float-right { transform: rotate(14deg) translateX(-17px) translateY(10px); }
-.mini-card-shine {
-  position: absolute;
-  inset: -100% -40%;
-  transform: rotate(28deg);
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
-  animation: shine 5s linear infinite;
+/* =========================
+   AUTHENTICATION UI
+========================= */
+
+function openAuth(mode) {
+  authMode = mode === "register" ? "register" : "login";
+
+  const isRegister = authMode === "register";
+
+  $("authTitle").textContent = isRegister ? "ĐĂNG KÝ" : "ĐĂNG NHẬP";
+  $("authHeading").innerHTML = isRegister
+    ? "TẠO TÀI KHOẢN<br><span>MỚI</span>"
+    : "BẮT ĐẦU<br><span>CUỘC CHƠI</span>";
+
+  $("authSubtitle").textContent = isRegister
+    ? "Tạo tài khoản để bắt đầu bộ sưu tập."
+    : "Đăng nhập để bước vào thế giới thẻ bài.";
+
+  $("authSubmit").textContent = isRegister
+    ? "TẠO TÀI KHOẢN ↗"
+    : "ĐĂNG NHẬP ↗";
+
+  $("emailField").classList.toggle("hidden", !isRegister);
+  $("authEmail").required = isRegister;
+  $("authEmail").value = "";
+  $("authUsername").value = "";
+  $("authPassword").value = "";
+
+  $("switchAuthText").innerHTML = isRegister
+    ? 'Đã có tài khoản? <button type="button" onclick="openAuth(\'login\')">Đăng nhập</button>'
+    : 'Chưa có tài khoản? <button type="button" onclick="openAuth(\'register\')">Đăng ký</button>';
+
+  showModal("authModal");
 }
 
-@keyframes floatCard {
-  0%, 100% { translate: 0 0; }
-  50% { translate: 0 -10px; }
-}
-@keyframes shine {
-  0% { translate: -100% 0; }
-  100% { translate: 100% 0; }
-}
-
-.login-panel {
-  width: 100%;
-  max-width: 440px;
-  justify-self: end;
-  position: relative;
-  overflow: hidden;
-  padding: clamp(24px, 4vw, 38px);
-  border: 1px solid rgba(192, 132, 252, .32);
-  border-radius: 24px;
-  background: linear-gradient(150deg, rgba(30, 21, 54, .97), rgba(13, 10, 27, .97));
-  box-shadow: 0 25px 80px rgba(0, 0, 0, .38), 0 0 45px rgba(168, 85, 247, .08);
-}
-.panel-topline {
-  height: 3px;
-  position: absolute;
-  top: 0;
-  left: 15%;
-  right: 15%;
-  background: linear-gradient(90deg, transparent, var(--pink), var(--cyan), transparent);
-}
-.login-icon {
-  width: 45px;
-  height: 45px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(244, 114, 232, .45);
-  border-radius: 13px;
-  color: var(--pink);
-  background: rgba(168, 85, 247, .12);
-  font-size: 24px;
-  margin-bottom: 20px;
-}
-.login-panel h1 {
-  font: 900 clamp(25px, 3vw, 34px)/1.35 "Orbitron", sans-serif;
-  margin: 12px 0;
-}
-.login-panel h1 span { color: var(--pink); }
-.login-subtitle { color: var(--muted); font-size: 12px; line-height: 1.8; }
-
-.auth-buttons { display: grid; gap: 11px; margin-top: 25px; }
-
-.primary-btn, .secondary-btn, .tap-btn {
-  min-height: 46px;
-  border-radius: 10px;
-  padding: 12px 16px;
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: .3px;
-  transition: transform .2s, box-shadow .2s, border-color .2s;
-}
-.primary-btn {
-  border: 1px solid rgba(244, 114, 232, .5);
-  color: white;
-  background: linear-gradient(115deg, #7c3aed, #c026d3);
-  box-shadow: 0 7px 22px rgba(124, 58, 237, .17);
-}
-.primary-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 9px 28px rgba(192, 38, 211, .28);
-}
-.primary-btn span { float: right; font-size: 17px; line-height: 12px; }
-.secondary-btn {
-  border: 1px solid var(--border);
-  color: #e9ddff;
-  background: rgba(255, 255, 255, .035);
-}
-.secondary-btn:hover {
-  border-color: var(--pink);
-  transform: translateY(-2px);
-}
-.secondary-btn span { float: right; font-size: 17px; }
-.full-btn { width: 100%; margin-top: 12px; }
-.login-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 20px 0;
-  color: #817797;
-  font: 700 9px "Orbitron", sans-serif;
-}
-.login-divider::before, .login-divider::after {
-  content: "";
-  height: 1px;
-  flex: 1;
-  background: rgba(192, 132, 252, .17);
-}
-.tap-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 11px;
-  color: var(--cyan);
-  border: 1px solid rgba(103, 232, 249, .38);
-  background: rgba(103, 232, 249, .045);
-  font: 800 12px "Orbitron", sans-serif;
-  letter-spacing: 1.4px;
-  animation: tapGlow 2.3s ease-in-out infinite;
-}
-.tap-btn:hover { background: rgba(103, 232, 249, .12); }
-.tap-arrow { font-size: 18px; }
-.tap-pulse {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--cyan);
-  box-shadow: 0 0 12px var(--cyan);
-}
-@keyframes tapGlow {
-  0%, 100% { box-shadow: 0 0 0 rgba(103,232,249,0); }
-  50% { box-shadow: 0 0 20px rgba(103,232,249,.12); }
-}
-.login-footnote {
-  margin-top: 24px;
-  text-align: center;
-  color: #726986;
-  font: 700 8px "Orbitron", sans-serif;
-  letter-spacing: 1.3px;
-}
-.login-footnote span { color: var(--pink); padding: 0 5px; }
-
-.login-orb {
-  position: absolute;
-  width: 250px;
-  height: 250px;
-  border-radius: 50%;
-  filter: blur(90px);
-  opacity: .12;
-  pointer-events: none;
-}
-.orb-one { background: #a855f7; left: 5%; top: 10%; }
-.orb-two { background: #ec4899; right: 5%; bottom: 5%; }
-
-/* GAME PAGES */
-.game-screen {
-  width: min(1180px, 100%);
-  min-height: calc(100vh - 155px);
-  margin: auto;
-  padding: 35px 24px 115px;
-}
-.page { animation: pageIn .28s ease; }
-@keyframes pageIn {
-  from { opacity: 0; transform: translateY(7px); }
-  to { opacity: 1; transform: translateY(0); }
+function tapToStart() {
+  if (currentUser || isAdmin) {
+    enterGame();
+  } else {
+    openAuth("login");
+  }
 }
 
-.page-hero {
-  min-height: 310px;
-  padding: clamp(25px, 5vw, 50px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 25px;
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at 80% 50%, rgba(168,85,247,.22), transparent 35%),
-    linear-gradient(135deg, #20163a, #100c20);
-}
-.page-hero h1 {
-  font: 900 clamp(25px, 4vw, 42px)/1.4 "Orbitron", sans-serif;
-  margin: 13px 0;
-}
-.page-hero h1 span { color: var(--pink); }
-.page-hero p, .page-heading p { color: var(--muted); font-size: 13px; line-height: 1.8; }
-.hero-btn { margin-top: 13px; }
-.hero-emblem {
-  width: 200px;
-  height: 200px;
-  flex: 0 0 200px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(244,114,232,.5);
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(168,85,247,.2), rgba(10,8,22,.2) 70%);
-  color: var(--pink);
-  font-size: 38px;
-  box-shadow: 0 0 55px rgba(168,85,247,.14), inset 0 0 35px rgba(168,85,247,.12);
-}
-.hero-emblem span {
-  position: absolute;
-  font: 900 35px "Orbitron", sans-serif;
-  color: white;
+$("authForm").addEventListener("submit", event => {
+  event.preventDefault();
+
+  const username = $("authUsername").value.trim();
+  const email = $("authEmail").value.trim();
+  const password = $("authPassword").value;
+
+  if (!username || !password) {
+    toast("Vui lòng nhập tên tài khoản và mật khẩu.");
+    return;
+  }
+
+  const users = loadUsers();
+
+  if (authMode === "register") {
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+      toast("Tên tài khoản cần từ 3–20 ký tự, chỉ dùng chữ, số và _.");
+      return;
+    }
+
+    if (!/^[^\s@]+@gmail\.com$/i.test(email)) {
+      toast("Vui lòng nhập địa chỉ Gmail hợp lệ.");
+      return;
+    }
+
+    if (password.length < 4) {
+      toast("Mật khẩu cần ít nhất 4 ký tự.");
+      return;
+    }
+
+    if (users.some(user =>
+      user.username.toLowerCase() === username.toLowerCase()
+    )) {
+      toast("Tên tài khoản này đã được sử dụng.");
+      return;
+    }
+
+    if (users.some(user =>
+      user.email.toLowerCase() === email.toLowerCase()
+    )) {
+      toast("Gmail này đã được đăng ký.");
+      return;
+    }
+
+    currentUser = makeNewUser(username, email, password);
+    users.push({ ...currentUser });
+    saveUsers(users);
+    isAdmin = false;
+    saveSession();
+
+    closeModal("authModal");
+    toast("Đăng ký thành công! Chào mừng đến CARD ARENA.");
+    enterGame();
+    return;
+  }
+
+  const matchedUser = users.find(user =>
+    user.username.toLowerCase() === username.toLowerCase() &&
+    user.password === password
+  );
+
+  if (!matchedUser) {
+    toast("Tên tài khoản hoặc mật khẩu không đúng.");
+    return;
+  }
+
+  currentUser = matchedUser;
+  isAdmin = false;
+  saveSession();
+
+  closeModal("authModal");
+  toast("Đăng nhập thành công!");
+  enterGame();
+});
+
+/* =========================
+   GAME SCREEN & NAVIGATION
+========================= */
+
+function enterGame() {
+  $("welcomeScreen").classList.add("hidden");
+  $("gameScreen").classList.remove("hidden");
+  $("taskbar").classList.remove("hidden");
+
+  updateCoins();
+  updateAlbum();
+  updateBag();
+  updateAdminUI();
+  goPage("home");
 }
 
-.section-heading, .page-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  margin: 38px 0 22px;
-}
-.section-heading h2, .page-heading h1 {
-  font: 800 clamp(20px, 3vw, 29px) "Orbitron", sans-serif;
-  margin: 8px 0;
-}
-.page-heading { margin-top: 8px; margin-bottom: 28px; }
-.page-heading h1 span { color: var(--pink); }
-.count-pill {
-  padding: 12px 15px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--panel);
-  font-size: 10px;
-  white-space: nowrap;
-}
-.count-pill b { color: var(--cyan); margin-left: 7px; }
+function logout() {
+  saveCurrentUser();
 
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 15px;
-}
-.feature-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 23px 19px;
-  min-height: 155px;
-  text-align: left;
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 15px;
-  background: var(--panel);
-  transition: .2s;
-}
-.feature-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(244,114,232,.6);
-  background: var(--panel-light);
-}
-.feature-icon { color: var(--pink); font-size: 25px; }
-.feature-card b { font: 800 12px "Orbitron", sans-serif; }
-.feature-card small { color: var(--muted); font-size: 10px; }
-.feature-arrow { position: absolute; right: 17px; top: 17px; color: var(--cyan); }
+  currentUser = null;
+  isAdmin = false;
+  selectedPackId = null;
 
-/* ALBUM CARDS */
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
-  gap: 19px;
-}
-.collection-card {
-  min-width: 0;
-  padding: 11px;
-  border: 1px solid var(--border);
-  border-radius: 15px;
-  background: linear-gradient(145deg, rgba(39,27,68,.96), rgba(15,11,28,.96));
-  text-align: left;
-  color: var(--text);
-  transition: transform .2s, border-color .2s, box-shadow .2s;
-}
-.collection-card:hover {
-  transform: translateY(-5px);
-  border-color: var(--pink);
-  box-shadow: 0 10px 28px rgba(168,85,247,.15);
-}
-.card-image-wrap {
-  position: relative;
-  display: grid;
-  place-items: center;
-  height: 220px;
-  overflow: hidden;
-  border: 1px solid rgba(192,132,252,.22);
-  border-radius: 10px;
-  background: radial-gradient(circle, #30204f, #100b1d 75%);
-}
-.card-image-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 7px;
-}
-.card-image-fallback { color: var(--pink); font-size: 65px; }
-.card-rarity {
-  display: inline-block;
-  margin: 12px 0 7px;
-  color: var(--cyan);
-  font: 700 9px "Orbitron", sans-serif;
-  letter-spacing: 1px;
-}
-.card-rarity.legendary { color: #f9a8d4; }
-.card-name { display: block; font-weight: 800; font-size: 14px; }
-.card-description {
-  display: block;
-  margin-top: 7px;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.7;
+  localStorage.removeItem(SESSION_KEY);
+
+  $("gameScreen").classList.add("hidden");
+  $("taskbar").classList.add("hidden");
+  $("welcomeScreen").classList.remove("hidden");
+
+  closeModal("authModal");
+  closeModal("adminModal");
+  closeModal("packModal");
+  closeModal("revealModal");
+  closeModal("cardDetailModal");
+  closeModal("chestModal");
+
+  $("coinAmount").textContent = "17";
+  toast("Bạn đã đăng xuất.");
 }
 
-.empty-state {
-  padding: 55px 20px;
-  text-align: center;
-  border: 1px dashed var(--border);
-  border-radius: 18px;
-  background: rgba(255,255,255,.015);
-}
-.empty-state > span { color: var(--pink); font-size: 40px; }
-.empty-state h3 { font: 800 15px "Orbitron", sans-serif; }
-.empty-state p { color: var(--muted); font-size: 12px; margin-bottom: 22px; }
+function goPage(pageName) {
+  const pages = ["home", "album", "shop", "bag", "admin"];
 
-/* SHOP */
-.shop-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
-}
-.shop-card {
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: var(--panel);
-}
-.pack-art {
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  background: radial-gradient(circle, rgba(168,85,247,.28), transparent 65%), #130d25;
-  border-bottom: 1px solid var(--border);
-}
-.pack-art > span { color: var(--pink); font-size: 68px; text-shadow: 0 0 35px rgba(244,114,232,.5); }
-.pack-art small { color: var(--cyan); font: 700 10px "Orbitron", sans-serif; letter-spacing: 2px; }
-.premium-art { background: radial-gradient(circle, rgba(236,72,153,.28), transparent 65%), #1c0b23; }
-.premium-art > span { color: #f9a8d4; }
-.shop-card-content { padding: 22px; }
-.rarity-label { color: var(--cyan); font: 700 9px "Orbitron", sans-serif; letter-spacing: 1.3px; }
-.legendary-label { color: #f9a8d4; }
-.shop-card h2 { font: 800 20px "Orbitron", sans-serif; margin: 12px 0; }
-.shop-card p { min-height: 38px; color: var(--muted); font-size: 12px; line-height: 1.8; }
-.price { margin: 20px 0 5px; color: #fde68a; font-weight: 800; font-size: 14px; }
+  if (!pages.includes(pageName)) return;
 
-/* BAG */
-.bag-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 18px; }
-.bag-item {
-  padding: 20px;
-  border: 1px solid var(--border);
-  border-radius: 15px;
-  background: var(--panel);
-  text-align: center;
-}
-.bag-item .bag-pack-icon { font-size: 48px; color: var(--pink); }
-.bag-item h3 { font: 800 13px "Orbitron", sans-serif; }
-.bag-item p { color: var(--muted); font-size: 11px; }
+  if (pageName === "admin" && !isAdmin) {
+    toast("Bạn cần đăng nhập Admin để mở trang này.");
+    return;
+  }
 
-/* ADMIN */
-.admin-dashboard { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
-.admin-stat, .admin-action-panel {
-  padding: 25px;
-  border: 1px solid var(--border);
-  border-radius: 15px;
-  background: var(--panel);
-}
-.admin-stat small { color: var(--muted); font-size: 10px; }
-.admin-stat h2 { color: var(--cyan); font: 800 30px "Orbitron", sans-serif; }
-.admin-action-panel { margin-top: 18px; }
-.admin-action-panel h3 { font: 800 14px "Orbitron", sans-serif; }
-.admin-action-panel p { color: var(--muted); font-size: 12px; }
-.admin-action-panel button { margin: 8px 8px 0 0; }
+  pages.forEach(name => {
+    const page = $(name + "Page");
+    if (page) page.classList.toggle("hidden", name !== pageName);
+  });
 
-/* NAVIGATION */
-.taskbar {
-  position: fixed;
-  left: 50%;
-  bottom: 18px;
-  z-index: 25;
-  transform: translateX(-50%);
-  width: min(780px, calc(100% - 28px));
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  gap: 4px;
-  padding: 8px;
-  border: 1px solid rgba(192,132,252,.28);
-  border-radius: 17px;
-  background: rgba(15,10,29,.93);
-  box-shadow: 0 10px 45px rgba(0,0,0,.4);
-  backdrop-filter: blur(20px);
-}
-.nav-item {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 9px 3px;
-  color: var(--muted);
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  font-size: 9px;
-  transition: .2s;
-}
-.nav-item span { font-size: 19px; }
-.nav-item:hover, .nav-item.active { color: white; background: rgba(168,85,247,.18); }
-.nav-item.active span { color: var(--pink); }
-.logout-nav:hover { color: #fca5a5; }
+  document.querySelectorAll(".nav-item[data-page]").forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.dataset.page === pageName
+    );
+  });
 
-/* MODALS */
-.modal {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: grid;
-  place-items: center;
-  padding: 18px;
-  background: rgba(5,3,12,.82);
-  backdrop-filter: blur(10px);
-  overflow-y: auto;
-}
-.modal-box {
-  position: relative;
-  width: min(430px, 100%);
-  max-height: calc(100vh - 36px);
-  overflow-y: auto;
-  padding: 30px;
-  border: 1px solid rgba(192,132,252,.35);
-  border-radius: 19px;
-  background: linear-gradient(145deg, #211638, #100b20);
-  box-shadow: 0 25px 90px rgba(0,0,0,.55), 0 0 40px rgba(168,85,247,.1);
-  animation: modalIn .2s ease;
-}
-@keyframes modalIn {
-  from { opacity: 0; transform: translateY(10px) scale(.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-.close-btn {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: rgba(255,255,255,.04);
-  color: white;
-  font-size: 22px;
-}
-.close-btn:hover { color: var(--pink); border-color: var(--pink); }
-.modal-box h2 { margin: 12px 0; font: 800 22px "Orbitron", sans-serif; }
-.muted { color: var(--muted); font-size: 12px; line-height: 1.8; }
-.modal-box label { display: block; margin: 16px 0 7px; font-size: 11px; color: #d8ccee; }
-.modal-box input {
-  width: 100%;
-  padding: 13px 14px;
-  color: white;
-  border: 1px solid rgba(192,132,252,.25);
-  border-radius: 10px;
-  background: rgba(7,5,16,.7);
-  outline: none;
-}
-.modal-box input:focus { border-color: var(--pink); box-shadow: 0 0 0 3px rgba(244,114,232,.08); }
-.switch-auth { margin: 20px 0 0; color: var(--muted); font-size: 11px; text-align: center; }
-.switch-auth button { border: 0; background: transparent; color: var(--cyan); font-weight: 800; }
-.admin-box { text-align: center; }
-.admin-emblem { margin-bottom: 10px; font-size: 48px; color: var(--pink); }
-.admin-box form { text-align: left; }
+  if (pageName === "album") updateAlbum();
+  if (pageName === "bag") updateBag();
+  if (pageName === "admin") updateAdminUI();
 
-.pack-modal-box, .reveal-modal-box, .chest-modal-box { text-align: center; }
-.opening-pack-art {
-  width: 165px;
-  height: 220px;
-  margin: 22px auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 17px;
-  border: 1px solid rgba(244,114,232,.7);
-  border-radius: 14px;
-  background: radial-gradient(circle, #49246c, #160d2b 72%);
-  box-shadow: 0 0 35px rgba(168,85,247,.15);
-}
-.opening-pack-art span { color: var(--pink); font-size: 65px; }
-.opening-pack-art small { font: 700 9px "Orbitron", sans-serif; letter-spacing: 1.5px; }
-.opening-pack-art.opening { animation: packShake .4s ease-in-out infinite; }
-@keyframes packShake {
-  0%,100% { transform: rotate(0); }
-  25% { transform: rotate(-4deg) scale(1.02); }
-  75% { transform: rotate(4deg) scale(1.02); }
-}
-.revealed-card-view { margin: 20px auto; max-width: 230px; }
-.revealed-card-view .card-image-wrap { height: 270px; }
-.revealed-card-view h3 { margin: 12px 0 6px; }
-.revealed-card-view p { color: var(--muted); font-size: 11px; line-height: 1.7; }
-
-.card-detail-box { text-align: center; }
-.detail-image {
-  width: min(230px, 100%);
-  height: 260px;
-  margin: 18px auto;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 13px;
-  background: radial-gradient(circle, #30204f, #100b1d 75%);
-}
-.detail-image img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
-.detail-image .card-image-fallback { font-size: 65px; }
-.detail-rarity { margin: 0 0 10px; color: var(--cyan); font: 700 10px "Orbitron", sans-serif; letter-spacing: 1px; }
-.detail-rarity.legendary { color: #f9a8d4; }
-.detail-description { color: var(--muted); font-size: 12px; line-height: 1.8; }
-
-.chest-icon { margin: 15px 0; color: #f9a8d4; font-size: 70px; text-shadow: 0 0 30px rgba(244,114,232,.3); }
-
-.toast {
-  position: fixed;
-  z-index: 200;
-  left: 50%;
-  bottom: 105px;
-  transform: translate(-50%, 15px);
-  max-width: calc(100% - 30px);
-  padding: 13px 18px;
-  border: 1px solid rgba(103,232,249,.35);
-  border-radius: 11px;
-  background: #19122c;
-  color: white;
-  box-shadow: 0 8px 30px rgba(0,0,0,.35);
-  font-size: 12px;
-  text-align: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: .22s;
-}
-.toast.show { opacity: 1; transform: translate(-50%, 0); }
-
-@media (max-width: 800px) {
-  .login-layout { grid-template-columns: 1fr; max-width: 520px; gap: 10px; }
-  .login-art { text-align: center; padding: 10px 0 0; }
-  .login-art > p { margin-left: auto; margin-right: auto; }
-  .art-title { font-size: clamp(27px, 7vw, 42px); }
-  .floating-cards { height: 175px; margin: 4px auto 0; transform: scale(.82); }
-  .login-panel { justify-self: center; max-width: 480px; }
-  .feature-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-  .hero-emblem { width: 130px; height: 130px; flex-basis: 130px; }
-  .hero-emblem span { font-size: 25px; }
-  .page-hero { min-height: 270px; }
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-@media (max-width: 520px) {
-  .topbar { min-height: 64px; padding: 10px 12px; gap: 8px; }
-  .logo { font-size: 15px; letter-spacing: 0; }
-  .header-actions { gap: 6px; }
-  .coin { padding: 9px 8px; font-size: 9px; }
-  .coin b { font-size: 12px; }
-  .admin-top-btn { padding: 10px 9px; font-size: 9px; letter-spacing: 0; }
-  .welcome-screen { min-height: calc(100vh - 64px); padding: 24px 14px 42px; }
-  .login-panel { padding: 25px 20px; }
-  .login-art { padding-top: 5px; }
-  .art-title { margin-top: 16px; }
-  .login-art > p { font-size: 12px; }
-  .floating-cards { height: 130px; transform: scale(.68); margin-top: -2px; margin-bottom: -8px; }
-  .game-screen { padding: 24px 14px 110px; }
-  .page-hero { padding: 23px 18px; min-height: 250px; }
-  .hero-emblem { display: none; }
-  .feature-grid { gap: 10px; }
-  .feature-card { min-height: 135px; padding: 17px 13px; }
-  .shop-grid { grid-template-columns: 1fr; }
-  .card-grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 11px; }
-  .card-image-wrap { height: 175px; }
-  .collection-card { padding: 8px; }
-  .page-heading { align-items: flex-start; flex-direction: column; }
-  .count-pill { align-self: flex-start; }
-  .modal-box { padding: 27px 20px; }
-  .taskbar { bottom: 8px; width: calc(100% - 12px); padding: 5px 3px; }
-  .nav-item { font-size: 8px; }
-  .nav-item span { font-size: 17px; }
-  .admin-dashboard { grid-template-columns: 1fr; }
+function updateCoins() {
+  $("coinAmount").textContent = isAdmin
+    ? "∞"
+    : currentUser
+      ? String(currentUser.coins)
+      : "17";
 }
+
+function updateAdminUI() {
+  $("adminNavItem").classList.toggle("hidden", !isAdmin);
+
+  if ($("adminUserCount")) {
+    $("adminUserCount").textContent = String(loadUsers().length);
+  }
+
+  if ($("adminCoinCount")) {
+    $("adminCoinCount").textContent = isAdmin
+      ? "∞"
+      : String(currentUser?.coins ?? 0);
+  }
+}
+
+/* =========================
+   SHOP & PACKS
+========================= */
+
+function buyPack(packId) {
+  if (!currentUser && !isAdmin) {
+    toast("Vui lòng đăng nhập trước.");
+    openAuth("login");
+    return;
+  }
+
+  const pack = PACK_DATA[packId];
+  if (!pack) return;
+
+  if (!isAdmin && currentUser.coins < pack.price) {
+    toast("Bạn không đủ COIN để mua gói này.");
+    return;
+  }
+
+  if (!isAdmin) {
+    currentUser.coins -= pack.price;
+    saveCurrentUser();
+  }
+
+  currentUser.packs.push({
+    id: `${packId}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    type: packId
+  });
+
+  saveCurrentUser();
+  updateCoins();
+  updateBag();
+
+  toast(`Đã mua ${pack.name}! Pack đã được thêm vào Balo.`);
+}
+
+function updateBag() {
+  const grid = $("bagGrid");
+  const empty = $("bagEmpty");
+
+  if (!grid || !empty) return;
+
+  const packs = currentUser?.packs || [];
+
+  grid.innerHTML = "";
+  empty.classList.toggle("hidden", packs.length > 0);
+
+  packs.forEach((ownedPack, index) => {
+    const packInfo = PACK_DATA[ownedPack.type];
+    if (!packInfo) return;
+
+    const item = document.createElement("article");
+    item.className = "bag-item";
+
+    item.innerHTML = `
+      <div class="bag-pack-icon">${packInfo.icon}</div>
+      <h3>${escapeHTML(packInfo.name)}</h3>
+      <p>Gói bài số ${index + 1}</p>
+      <button class="primary-btn full-btn" type="button">MỞ PACK ↗</button>
+    `;
+
+    item.querySelector("button").addEventListener("click", () => {
+      openBagPack(ownedPack.id);
+    });
+
+    grid.appendChild(item);
+  });
+}
+
+function openBagPack(packInstanceId) {
+  const ownedPack = currentUser?.packs.find(pack => pack.id === packInstanceId);
+
+  if (!ownedPack) {
+    toast("Không tìm thấy pack này.");
+    updateBag();
+    return;
+  }
+
+  selectedPackId = ownedPack.id;
+
+  const packInfo = PACK_DATA[ownedPack.type];
+
+  $("selectedPackName").textContent = packInfo.name.toUpperCase();
+  $("openingPackArt").classList.remove("opening");
+  $("openingPackArt").innerHTML = `
+    <span>${packInfo.icon}</span>
+    <small>CARD ARENA</small>
+  `;
+
+  $("openPackButton").disabled = false;
+  $("openPackButton").textContent = "✦ XÉ PACK ✦";
+
+  showModal("packModal");
+}
+
+function randomCard(packType) {
+  const number = Math.random();
+
+  if (packType === "premium") {
+    return number < 0.6 ? CARD_DATA.jack : CARD_DATA.kha;
+  }
+
+  return number < 0.3 ? CARD_DATA.jack : CARD_DATA.kha;
+}
+
+function openSelectedPack() {
+  if (!currentUser || !selectedPackId) {
+    toast("Không tìm thấy pack cần mở.");
+    closeModal("packModal");
+    return;
+  }
+
+  const packIndex = currentUser.packs.findIndex(
+    pack => pack.id === selectedPackId
+  );
+
+  if (packIndex === -1) {
+    toast("Pack này không còn trong Balo.");
+    closeModal("packModal");
+    updateBag();
+    return;
+  }
+
+  const ownedPack = currentUser.packs[packIndex];
+  const packElement = $("openingPackArt");
+  const openButton = $("openPackButton");
+
+  openButton.disabled = true;
+  openButton.textContent = "ĐANG MỞ PACK...";
+  packElement.classList.add("opening");
+
+  setTimeout(() => {
+    const card = randomCard(ownedPack.type);
+
+    currentUser.packs.splice(packIndex, 1);
+    currentUser.cards.push(card.id);
+
+    saveCurrentUser();
+    updateBag();
+    updateAlbum();
+
+    packElement.classList.remove("opening");
+    closeModal("packModal");
+
+    $("revealedCard").innerHTML = `
+      <div class="revealed-card-view">
+        <div class="card-image-wrap">
+          ${imageHTML(card)}
+        </div>
+        <div class="card-rarity ${card.rarity === "LEGENDARY" ? "legendary" : ""}">
+          ${escapeHTML(card.rarity)}
+        </div>
+        <h3>${escapeHTML(card.name)}</h3>
+        <p>${escapeHTML(card.description)}</p>
+      </div>
+    `;
+
+    showModal("revealModal");
+    toast(`Bạn đã nhận được thẻ ${card.name}!`);
+    selectedPackId = null;
+  }, 1100);
+}
+
+/* =========================
+   ALBUM
+   Chỉ hiển thị tên, độ hiếm,
+   ảnh và mô tả cơ bản.
+   Không có sức mạnh hay chỉ số.
+========================= */
+
+function getCollectedCards() {
+  if (isAdmin) return Object.values(CARD_DATA);
+
+  const collectedIds = currentUser?.cards || [];
+  return collectedIds.map(id => CARD_DATA[id]).filter(Boolean);
+}
+
+function updateAlbum() {
+  const grid = $("albumGrid");
+  const empty = $("albumEmpty");
+
+  if (!grid || !empty) return;
+
+  const cards = getCollectedCards();
+
+  $("albumCount").textContent = String(cards.length);
+  grid.innerHTML = "";
+  empty.classList.toggle("hidden", cards.length > 0);
+
+  cards.forEach(card => {
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = "collection-card";
+
+    tile.innerHTML = `
+      <div class="card-image-wrap">${imageHTML(card)}</div>
+      <span class="card-rarity ${card.rarity === "LEGENDARY" ? "legendary" : ""}">
+        ${escapeHTML(card.rarity)}
+      </span>
+      <span class="card-name">${escapeHTML(card.name)}</span>
+      <span class="card-description">${escapeHTML(card.description)}</span>
+    `;
+
+    tile.addEventListener("click", () => showCardDetail(card.id));
+    grid.appendChild(tile);
+  });
+}
+
+function showCardDetail(cardId) {
+  const card = CARD_DATA[cardId];
+
+  if (!card) {
+    toast("Không tìm thấy thẻ bài.");
+    return;
+  }
+
+  // Chỉ hiển thị thông tin cơ bản của thẻ.
+  // Không có phần "nhân vật trong meme", sức mạnh hoặc chỉ số.
+  $("cardDetailContent").innerHTML = `
+    <div class="detail-image">${imageHTML(card)}</div>
+    <h2>${escapeHTML(card.name)}</h2>
+    <div class="detail-rarity ${card.rarity === "LEGENDARY" ? "legendary" : ""}">
+      ${escapeHTML(card.rarity)}
+    </div>
+    <p class="detail-description">${escapeHTML(card.description)}</p>
+  `;
+
+  showModal("cardDetailModal");
+}
+
+/* =========================
+   CHEST REWARD
+========================= */
+
+function openChest() {
+  if (!currentUser && !isAdmin) {
+    toast("Vui lòng đăng nhập trước.");
+    openAuth("login");
+    return;
+  }
+
+  if (isAdmin) {
+    $("chestDescription").textContent =
+      "Tài khoản Admin có thể nhận phần thưởng kiểm tra.";
+    $("claimChestButton").disabled = false;
+    $("claimChestButton").textContent = "NHẬN BASIC PACK";
+  } else if (currentUser.chestClaimed) {
+    $("chestDescription").textContent =
+      "Bạn đã nhận rương phần thưởng này rồi.";
+    $("claimChestButton").disabled = true;
+    $("claimChestButton").textContent = "ĐÃ NHẬN";
+  } else {
+    $("chestDescription").textContent =
+      "Nhận một Basic Pack miễn phí cho bộ sưu tập của bạn.";
+    $("claimChestButton").disabled = false;
+    $("claimChestButton").textContent = "MỞ RƯƠNG";
+  }
+
+  showModal("chestModal");
+}
+
+function claimChest() {
+  if (!currentUser && !isAdmin) {
+    closeModal("chestModal");
+    openAuth("login");
+    return;
+  }
+
+  if (!isAdmin && currentUser.chestClaimed) {
+    toast("Bạn đã nhận phần thưởng này rồi.");
+    return;
+  }
+
+  if (!isAdmin) currentUser.chestClaimed = true;
+
+  currentUser.packs.push({
+    id: `basic_chest_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    type: "basic"
+  });
+
+  saveCurrentUser();
+  updateBag();
+  closeModal("chestModal");
+
+  toast("Nhận thành công 1 Basic Pack!");
+}
+
+/* =========================
+   ADMIN
+========================= */
+
+function openAdmin() {
+  $("adminCode").value = "";
+  showModal("adminModal");
+  setTimeout(() => $("adminCode").focus(), 50);
+}
+
+$("adminForm").addEventListener("submit", event => {
+  event.preventDefault();
+  loginAdmin();
+});
+
+function loginAdmin() {
+  const enteredCode = $("adminCode").value;
+
+  if (enteredCode !== ADMIN_CODE) {
+    toast("Mã Admin không chính xác.");
+    return;
+  }
+
+  isAdmin = true;
+  currentUser = {
+    username: "ADMIN",
+    coins: Infinity,
+    cards: [],
+    packs: [],
+    chestClaimed: false
+  };
+
+  saveSession();
+  closeModal("adminModal");
+
+  toast("Đăng nhập Admin thành công!");
+  enterGame();
+  goPage("admin");
+}
+
+function addAdminCoins(amount) {
+  if (!isAdmin) {
+    toast("Chỉ Admin mới có thể dùng chức năng này.");
+    return;
+  }
+
+  // Admin sử dụng COIN không giới hạn trong bản demo.
+  updateCoins();
+  updateAdminUI();
+  toast(`Đã kích hoạt quyền Admin: +${amount} COIN demo.`);
+}
+
+/* =========================
+   RESTORE SESSION
+========================= */
+
+function restoreSession() {
+  let session;
+
+  try {
+    session = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+  } catch {
+    session = null;
+  }
+
+  if (!session) return;
+
+  if (session.type === "admin") {
+    isAdmin = true;
+    currentUser = {
+      username: "ADMIN",
+      coins: Infinity,
+      cards: [],
+      packs: [],
+      chestClaimed: false
+    };
+    enterGame();
+    return;
+  }
+
+  if (session.type === "user") {
+    const user = loadUsers().find(
+      item => item.username === session.username
+    );
+
+    if (user) {
+      currentUser = user;
+      isAdmin = false;
+      enterGame();
+    } else {
+      localStorage.removeItem(SESSION_KEY);
+    }
+  }
+}
+
+/* =========================
+   MODAL INTERACTIONS
+========================= */
+
+document.querySelectorAll(".modal").forEach(modal => {
+  modal.addEventListener("click", event => {
+    if (event.target === modal) {
+      modal.classList.add("hidden");
+    }
+  });
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") {
+    document.querySelectorAll(".modal").forEach(modal => {
+      modal.classList.add("hidden");
+    });
+  }
+});
+
+/* START */
+restoreSession();
+updateCoins();
