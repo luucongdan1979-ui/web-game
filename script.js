@@ -434,13 +434,12 @@ function makeCardElement(card) {
 
 function makeEmptySlot(category, index) {
   const slot = document.createElement("div");
+
   slot.className = "empty-card-slot";
+  slot.setAttribute("aria-label", "Thẻ chưa mở khóa");
 
   slot.innerHTML = `
     <div class="empty-card-symbol">?</div>
-    <span class="empty-card-number">${String(index + 1).padStart(2, "0")}</span>
-    <strong>${escapeHTML(CATEGORY_LABELS[category])}</strong>
-    <small>CHƯA SỞ HỮU</small>
   `;
 
   return slot;
