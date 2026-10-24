@@ -212,6 +212,11 @@ function closeModal() {
   modal.setAttribute("aria-hidden", "true");
   modalContent.innerHTML = "";
   document.body.style.overflow = "";
+  busy = false;
+
+  document.querySelectorAll(".loot-btn").forEach(button => {
+    button.disabled = false;
+  });
 }
 
 modalClose.addEventListener("click", closeModal);
