@@ -380,3 +380,98 @@ footer { padding: 22px; text-align: center; color: #777792; font-size: 10px; let
   .panel { padding: 18px; }
   .modal-box { padding: 25px 20px; }
 }
+
+/* Túi đựng thẻ bài */
+.bag-entry {
+  margin: 0 0 24px;
+}
+
+.bag-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  text-align: left;
+  color: #fff;
+  border: 1px solid #9b6cff88;
+  border-radius: 16px;
+  background: linear-gradient(100deg, #251644, #11152f);
+  box-shadow: 0 0 24px #9b6cff18;
+  transition: transform .2s, border-color .2s;
+}
+
+.bag-button:hover {
+  transform: translateY(-3px);
+  border-color: #46d9ff;
+}
+
+.bag-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: #9b6cff25;
+  font-size: 34px;
+}
+
+.bag-info {
+  display: grid;
+  gap: 7px;
+  flex: 1;
+}
+
+.bag-info strong {
+  font-family: Orbitron, sans-serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.bag-info small {
+  color: #aaa9c5;
+  font-size: 12px;
+}
+
+.bag-count {
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 20px;
+  background: #ff3fa4;
+  font-weight: bold;
+}
+
+.bag-arrow {
+  color: #46d9ff;
+  font-size: 18px;
+}
+
+.bag-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.bag-empty {
+  padding: 30px 10px;
+  text-align: center;
+  color: #aaa9c5;
+  line-height: 2;
+}
+
+.bag-empty span {
+  display: block;
+  font-size: 48px;
+}
+
+@media (max-width: 380px) {
+  .bag-button { gap: 9px; padding: 12px; }
+  .bag-icon { width: 45px; height: 45px; font-size: 27px; }
+  .bag-info strong { font-size: 10px; }
+  .bag-info small { font-size: 10px; }
+}
