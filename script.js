@@ -1,55 +1,33 @@
-// Khai báo phần tử HTML
-const modalOverlay = document.getElementById('modal-overlay');
-const cardLogin = document.getElementById('card-login');
-const cardRegister = document.getElementById('card-register');
+const screenMain = document.getElementById('screen-main');
+const screenRegister = document.getElementById('screen-register');
+const screenLogin = document.getElementById('screen-login');
 
-const btnOpenLogin = document.getElementById('btn-open-login');
-const btnOpenRegister = document.getElementById('btn-open-register');
+const btnToLogin = document.getElementById('btn-to-login');
+const btnToRegister = document.getElementById('btn-to-register');
 const btnTapStart = document.getElementById('btn-tap-start');
 
-const btnBackLogin = document.getElementById('btn-back-login');
-const btnBackReg = document.getElementById('btn-back-reg');
+const btnBackFromReg = document.getElementById('btn-back-from-reg');
+const btnBackFromLogin = document.getElementById('btn-back-from-login');
 
-const goToLogin = document.getElementById('go-to-login');
-const goToReg = document.getElementById('go-to-reg');
+const linkRegToLogin = document.getElementById('link-reg-to-login');
+const linkLoginToReg = document.getElementById('link-login-to-reg');
 
-// Mở Đăng Nhập
-function showLogin() {
-  modalOverlay.classList.remove('hidden');
-  cardLogin.classList.remove('hidden');
-  cardRegister.classList.add('hidden');
+// Hàm chuyển đổi màn hình
+function showScreen(screenToShow) {
+  screenMain.classList.add('hidden');
+  screenRegister.classList.add('hidden');
+  screenLogin.classList.add('hidden');
+  
+  screenToShow.classList.remove('hidden');
 }
 
-// Mở Đăng Ký
-function showRegister() {
-  modalOverlay.classList.remove('hidden');
-  cardRegister.classList.remove('hidden');
-  cardLogin.classList.add('hidden');
-}
+// Gán sự kiện bấm nút
+btnToLogin.addEventListener('click', () => showScreen(screenLogin));
+btnTapStart.addEventListener('click', () => showScreen(screenLogin));
+btnToRegister.addEventListener('click', () => showScreen(screenRegister));
 
-// Tắt Popup Modal
-function closeModal() {
-  modalOverlay.classList.add('hidden');
-  cardLogin.classList.add('hidden');
-  cardRegister.classList.add('hidden');
-}
+btnBackFromReg.addEventListener('click', () => showScreen(screenMain));
+btnBackFromLogin.addEventListener('click', () => showScreen(screenMain));
 
-// Bấm nút Đăng Nhập / Đăng Ký
-btnOpenLogin.addEventListener('click', showLogin);
-btnOpenRegister.addEventListener('click', showRegister);
-btnTapStart.addEventListener('click', showLogin); // Bấm Tap to start mở Đăng nhập
-
-// Nút mũi tên quay lại
-btnBackLogin.addEventListener('click', closeModal);
-btnBackReg.addEventListener('click', closeModal);
-
-// Chuyển đổi giữa Đăng Nhập & Đăng Ký trong Form
-goToLogin.addEventListener('click', (e) => {
-  e.preventDefault();
-  showLogin();
-});
-
-goToReg.addEventListener('click', (e) => {
-  e.preventDefault();
-  showRegister();
-});
+linkRegToLogin.addEventListener('click', () => showScreen(screenLogin));
+linkLoginToReg.addEventListener('click', () => showScreen(screenRegister));
