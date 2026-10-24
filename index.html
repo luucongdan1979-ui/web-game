@@ -13,6 +13,7 @@
 
   <header class="topbar">
     <div class="logo">✦ ANIME <span>CARDS</span></div>
+
     <div class="user-area">
       <span id="playerName">Khách</span>
       <button id="loginOpen" class="small-btn">Đăng nhập</button>
@@ -25,14 +26,17 @@
       <div class="hero">
         <div class="hero-tag">★ COLLECT • OPEN • BATTLE ★</div>
         <h1>THẾ GIỚI<br><span>THẺ BÀI</span></h1>
-        <p>Mở pack bí ẩn, sưu tập những lá bài độc đáo!</p>
+        <p>Mở rương bí ẩn và sưu tập những lá bài độc đáo!</p>
+
         <div class="hero-actions">
           <button id="startBtn" class="main-btn pulse">TAP TO START</button>
           <button id="registerOpen" class="outline-btn">ĐĂNG KÝ</button>
         </div>
-        <p class="hint">Đăng ký hoặc đăng nhập để lưu bộ sưu tập trên trình duyệt này.</p>
+
+        <p class="hint">Đăng nhập để vào game và xem túi thẻ của bạn.</p>
       </div>
-      <div class="hero-card" aria-label="Thẻ bài minh họa">
+
+      <div class="hero-card">
         <div class="card-glow"></div>
         <div class="mini-card">
           <div class="mini-top">LEGENDARY ★★★★★</div>
@@ -47,46 +51,45 @@
       <div class="welcome-title">
         <div class="hero-tag">WELCOME BACK, PLAYER!</div>
         <h1>TRUNG TÂM <span>THẺ BÀI</span></h1>
-        <p>Mở rương để nhận pack và khám phá lá bài mới.</p>
+        <p>Mở rương khởi đầu hoặc xem những thẻ bài bạn sở hữu.</p>
       </div>
-<div class="bag-entry">
-  <button id="openBagBtn" class="bag-button">
-    <span class="bag-icon">🎒</span>
-    <span class="bag-info">
-      <strong>TÚI THẺ BÀI</strong>
-      <small>Xem các lá bài của bạn</small>
-    </span>
-    <span id="bagCount" class="bag-count">0</span>
-    <span class="bag-arrow">❯</span>
-  </button>
-</div>
-      
-      <div class="game-grid">
-        <div class="panel chest-panel">
-          <div class="section-label">01 / TREASURE</div>
-          <h2>Rương bí ẩn</h2>
-          <button id="chestBtn" class="chest-button" aria-label="Mở rương">
-            <span id="chestEmoji">🎁</span>
-            <span class="chest-caption">NHẤN ĐỂ MỞ</span>
-          </button>
-          <p class="muted">Một chiếc rương chứa pack thẻ bài.</p>
-        </div>
 
-        </div>
-          <div class="section-label">02 / COLLECTION</div>
-          <h2>Bộ sưu tập <span id="cardCount" class="count">0</span></h2>
-          <div id="collection" class="collection">
-            <div class="empty-state">Chưa có lá bài nào.<br>Mở rương để bắt đầu!</div>
-          </div>
-        </div>
+      <!-- NÚT TÚI THẺ BÀI -->
+      <div class="bag-entry">
+        <button id="openBagBtn" class="bag-button">
+          <span class="bag-icon">🎒</span>
+          <span class="bag-info">
+            <strong>TÚI THẺ CỦA TÔI</strong>
+            <small>Nhấn để xem toàn bộ thẻ bài sở hữu</small>
+          </span>
+          <span id="bagCount" class="bag-count">0</span>
+          <span class="bag-arrow">❯</span>
+        </button>
+      </div>
+
+      <!-- RƯƠNG KHỞI ĐẦU -->
+      <div class="panel chest-panel" id="starterChestPanel">
+        <div class="section-label">01 / STARTER CHEST</div>
+        <h2>🎁 Rương khởi đầu</h2>
+
+        <button id="chestBtn" class="chest-button">
+          <span id="chestEmoji">🎁</span>
+          <span class="chest-caption">NHẤN ĐỂ NHẬN THƯỞNG</span>
+        </button>
+
+        <p class="muted" id="chestDescription">
+          Mỗi tài khoản chỉ nhận rương khởi đầu một lần.
+        </p>
       </div>
     </section>
   </main>
 
   <footer>ANIME CARDS © 2026 • CARD COLLECTION DEMO</footer>
 
+  <!-- CỬA SỔ ĐĂNG NHẬP, PACK VÀ TÚI THẺ -->
   <div id="modal" class="modal hidden" aria-hidden="true">
     <div class="modal-backdrop" data-close="true"></div>
+
     <div class="modal-box" role="dialog" aria-modal="true">
       <button id="modalClose" class="close-btn" aria-label="Đóng">×</button>
       <div id="modalContent"></div>
