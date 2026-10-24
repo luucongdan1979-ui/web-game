@@ -142,7 +142,32 @@ function hideChestScene() {
   $("revealScene").classList.add("hidden");
 }
 
+
 function openChest() {
+  if (!currentUser || busy || currentUser.chestOpened) return;
+
+  busy = true;
+  currentUser.chestOpened = true;
+  currentUser.pendingPack = true;
+  saveCurrentUser();
+
+  // Rương biến mất sau hiệu ứng mở
+  $("chestBtn").classList.add("opening");
+  $("sceneHint").textContent = "Rương đang mở...";
+
+  setTimeout(() => {
+    $("chestBtn").classList.add("hidden");
+    $("chestScene").querySelector(".scene-heading").classList.add("hidden");
+    $("sceneHint").classList.add("hidden");
+
+    // Chỉ để lại gói thẻ
+    $("packBtn").classList.remove("hidden");
+    $("packBtn").classList.remove("tearing");
+
+    busy = false;
+  }, 720);
+}
+
   if (!currentUser || busy || currentUser.chestOpened) return;
 
   busy = true;
