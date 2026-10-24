@@ -4,129 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shadow Card - Game Thẻ Bài</title>
-  <link rel="stylesheet" href="style.css?v=7">
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <div class="stars-bg"></div>
-
-  <!-- MÀN HÌNH 1: SẢNH CHỜ CHÍNH -->
-  <div id="screen-main" class="game-screen">
-    <div class="top-controls">
-      <button class="icon-btn">🔊</button>
-      <button class="icon-btn">⚙️</button>
-    </div>
-
-    <div class="logo-box">
-      <h1 class="game-logo">Shadow Card</h1>
-      <p class="game-subtitle">Bắt đầu hành trình của bạn</p>
-    </div>
-
-    <div class="left-menu-group">
-      <button id="btn-main-login" class="menu-pill-btn"><span>👤</span> Đăng nhập</button>
-      <button id="btn-main-reg" class="menu-pill-btn"><span>✨</span> Đăng ký</button>
-    </div>
-
-    <div class="center-start-box">
-      <button id="btn-tap-start" class="tap-to-start-glow">✦ Tap to Start ✦</button>
-    </div>
+  <!-- MÀN HÌNH CHÍNH -->
+  <div id="screen-main" class="game-box">
+    <h1>Shadow Card</h1>
+    <button id="to-reg-btn" class="main-btn">Đăng Ký Tài Khoản</button>
   </div>
 
-  <!-- MÀN HÌNH 2: ĐĂNG KÝ -->
-  <div id="screen-register" class="game-screen hidden">
-    <button class="back-pill-btn" id="btn-back-from-reg">←</button>
+  <!-- MÀN HÌNH ĐĂNG KÝ -->
+  <div id="screen-register" class="game-box hidden">
+    <h2>Đăng Ký</h2>
+    <input type="text" id="username" placeholder="Nhập tên tài khoản của bạn...">
+    <button id="submit-reg-btn" class="main-btn">Xác Nhận Đăng Ký</button>
+  </div>
+
+  <!-- MÀN HÌNH SẢNH GAME & RƯƠNG BÁU -->
+  <div id="screen-lobby" class="game-box hidden">
+    <h2>Xin chào, <span id="name-output">Tân Thủ</span>!</h2>
+    <p>🎉 Đăng ký thành công! Bạn nhận được 1 Rương Báu!</p>
     
-    <div class="auth-card glass-panel">
-      <h2 class="auth-title">Đăng Ký</h2>
-      <p class="auth-sub">Tạo tài khoản để bắt đầu hành trình</p>
-
-      <div class="auth-form-box">
-        <div class="input-box"><span>👤</span><input type="text" id="reg-username" placeholder="Tên tài khoản"></div>
-        <div class="input-box"><span>🔒</span><input type="password" placeholder="Mật khẩu"></div>
-        <!-- Dùng thẻ button bình thường, bấm vào là kích hoạt code JS ngay -->
-        <button type="button" id="btn-submit-reg" class="submit-action-btn">Đăng ký ngay</button>
-      </div>
-
-      <p class="switch-prompt">Đã có tài khoản? <a href="#" id="link-reg-to-login">Đăng nhập ngay</a></p>
-    </div>
-  </div>
-
-  <!-- MÀN HÌNH 3: ĐĂNG NHẬP -->
-  <div id="screen-login" class="game-screen hidden">
-    <button class="back-pill-btn" id="btn-back-from-login">←</button>
+    <!-- RƯƠNG BÁU -->
+    <div id="chest-box" class="interactive-item">🧰 Bấm vào đây để mở Rương</div>
     
-    <div class="auth-card glass-panel">
-      <h2 class="auth-title">Đăng Nhập</h2>
-      <p class="auth-sub">Chào mừng bạn trở lại!</p>
-
-      <div class="auth-form-box">
-        <div class="input-box"><span>👤</span><input type="text" id="login-username" placeholder="Tên tài khoản"></div>
-        <div class="input-box"><span>🔒</span><input type="password" placeholder="Mật khẩu"></div>
-        <button type="button" id="btn-submit-login" class="submit-action-btn">Vào Game</button>
-      </div>
-
-      <p class="switch-prompt">Chưa có tài khoản? <a href="#" id="link-login-to-reg">Đăng ký ngay</a></p>
-    </div>
-  </div>
-
-  <!-- MÀN HÌNH 4: GIAO DIỆN CHÍNH (LOBBY) -->
-  <div id="screen-game-lobby" class="game-screen hidden">
-    <div class="player-top-bar">
-      <div class="player-avatar">🧙‍♂️</div>
-      <div class="player-info">
-        <span id="player-name-display" class="player-name">Player123</span>
-        <span class="player-level">Lv. 1</span>
-      </div>
-      <div class="resources-group">
-        <div class="res-item">🪙 <span>1,000</span></div>
-        <div class="res-item">💎 <span>50</span></div>
-      </div>
-      <button id="btn-logout" class="logout-btn">🚪</button>
-    </div>
-
-    <div class="battle-section">
-      <button id="btn-open-gacha" class="play-battle-btn">⚔️ BẮT ĐẦU CHIẾN ĐẤU ⚔️</button>
-    </div>
-
-    <div class="bottom-nav-bar">
-      <button class="nav-btn active">🏠 Sảnh</button>
-      <button class="nav-btn">🃏 Bộ Thẻ</button>
-      <button class="nav-btn">🛒 Cửa Hàng</button>
-      <button class="nav-btn">🎒 Túi Đồ</button>
-      <button class="nav-btn">🏆 Bảng Xếp Hạng</button>
-    </div>
-  </div>
-
-  <!-- THÔNG BÁO RƯƠNG BÁU -->
-  <div id="gacha-modal" class="modal-overlay hidden">
-    <button id="btn-close-modal" class="close-modal-btn">✖</button>
-
-    <div id="success-banner" class="success-banner-box hidden">
-      <h2>🎉 ĐĂNG KÝ THÀNH CÔNG! 🎉</h2>
-      <p>Nhận ngay 1 Rương Báu Tân Thủ khởi đầu hành trình!</p>
-    </div>
-
-    <!-- BƯỚC 1: RƯƠNG BÁU -->
-    <div id="step-chest" class="gacha-step">
-      <div class="gacha-item chest-icon">🧰</div>
-      <p class="gacha-hint">Chạm vào Rương Báu để mở!</p>
-    </div>
-
-    <!-- BƯỚC 2: GÓI THẺ BÀI -->
-    <div id="step-pack" class="gacha-step hidden">
-      <div class="gacha-item pack-icon">📦</div>
-      <p class="gacha-hint glow-text">Chạm vào Gói Thẻ để xé gói!</p>
-    </div>
-
-    <!-- BƯỚC 3: LÁ BÀI KHÁ BẢNH -->
-    <div id="step-card" class="gacha-step hidden">
-      <div class="card-reveal-box">
-        <div class="aura-glow"></div>
-        <img src="khá bảnh nv.png" alt="Khá Bảnh" class="banh-card-img">
-      </div>
-      <h2 class="card-title">LÁ BÀI HUYỀN THOẠI: KHÁ BẢNH</h2>
-      <button id="btn-collect-card" class="submit-action-btn collect-btn" type="button">Thu Nhận Lá Bài</button>
+    <!-- GÓI THẺ -->
+    <div id="pack-box" class="interactive-item hidden">📦 Bấm vào đây để xé Gói Thẻ</div>
+    
+    <!-- LÁ BÀI KHÁ BẢNH -->
+    <div id="card-box" class="hidden">
+      <img src="khá bảnh nv.png" alt="Khá Bảnh" class="card-img">
+      <h3>✨ LÁ BÀI HUYỀN THOẠI: KHÁ BẢNH ✨</h3>
     </div>
   </div>
 
