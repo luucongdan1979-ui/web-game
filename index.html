@@ -4,63 +4,125 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MEMEVERSE - Anime Meme Cards</title>
+  <title>MEMEVERSE — Anime Card Game</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>✨ MEMEVERSE ✨</h1>
-    <p>ANIME MEME CARD ARENA</p>
+  <div class="stars" id="stars"></div>
+
+  <header class="topbar">
+    <div class="logo">✦ MEME<span>VERSE</span></div>
+    <div class="player-info" id="playerInfo">CHƯA ĐĂNG NHẬP</div>
+    <button class="small-btn" id="logoutBtn" hidden>Đăng xuất</button>
   </header>
 
-  <section id="loginScreen" class="panel">
-    <h2>🌌 Cổng dịch chuyển</h2>
-    <input id="username" placeholder="Tên tài khoản">
-    <input id="email" type="email" placeholder="Gmail (khi đăng ký)" hidden>
-    <input id="password" type="password" placeholder="Mật khẩu">
-    <div class="buttons">
-      <button onclick="register()">Đăng ký</button>
-      <button onclick="login()">Đăng nhập</button>
-    </div>
-    <button class="start" onclick="login()">✦ TAP TO START ✦</button>
-    <p id="message"></p>
-  </section>
+  <main>
+    <section class="screen login-screen" id="loginScreen">
+      <div class="portal"></div>
+      <div class="login-panel">
+        <div class="eyebrow">✧ DIMENSION CARD SYSTEM ✧</div>
+        <h1>MEME<span>VERSE</span></h1>
+        <p class="subtitle">Bước vào vũ trụ thẻ bài ảo ảnh</p>
 
-  <main id="gameScreen" hidden>
-    <h2>Chào chiến binh <span id="player"></span>!</h2>
-    <p>Mở rương, xé gói và thu thập meme huyền thoại.</p>
+        <div class="form-tabs">
+          <button class="tab active" id="loginTab">ĐĂNG NHẬP</button>
+          <button class="tab" id="registerTab">ĐĂNG KÝ</button>
+        </div>
 
-    <div class="game-grid">
-      <article class="card-box">
-        <div class="emoji">🎁</div>
-        <h3>RƯƠNG BÁU</h3>
-        <p>Mở rương nhận gói thẻ bí ẩn.</p>
-        <button onclick="openChest()">MỞ RƯƠNG ✨</button>
-      </article>
+        <form id="authForm">
+          <label for="username">TÊN TÀI KHOẢN</label>
+          <input id="username" autocomplete="username" placeholder="Nhập tên tài khoản" required>
 
-      <article class="card-box">
-        <div class="emoji">🃏</div>
-        <h3>GÓI THẺ MEME</h3>
-        <p>Xé gói để triệu hồi nhân vật.</p>
-        <button onclick="openPack()">XÉ GÓI THẺ 💥</button>
-      </article>
-    </div>
+          <div id="emailGroup" hidden>
+            <label for="email">GMAIL</label>
+            <input id="email" type="email" placeholder="Nhập Gmail">
+          </div>
 
-    <section class="panel">
-      <h2>📚 Bộ sưu tập của bạn</h2>
-      <p>Thẻ đã sở hữu: <strong id="count">0</strong></p>
-      <div id="collection" class="collection"></div>
+          <label for="password">MẬT KHẨU</label>
+          <input id="password" type="password" autocomplete="current-password"
+                 placeholder="Nhập mật khẩu" minlength="4" required>
+
+          <button class="primary-btn" type="submit" id="authSubmit">ĐĂNG NHẬP ↗</button>
+        </form>
+        <p class="notice" id="authNotice">Đăng nhập để bước vào thế giới ảo ảnh.</p>
+      </div>
+
+      <div class="floating-rune rune-one">✦</div>
+      <div class="floating-rune rune-two">◇</div>
+      <div class="floating-rune rune-three">✧</div>
     </section>
 
-    <button onclick="logout()">Đăng xuất</button>
+    <section class="screen game-screen" id="gameScreen" hidden>
+      <div class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">WELCOME TO ANOTHER DIMENSION</div>
+          <h1>THỨC TỈNH<br><span>HUYỀN THOẠI</span></h1>
+          <p>Mở rương, xé pack, triệu hồi những lá bài meme cực chất.</p>
+          <button class="start-btn" id="startBtn">✦ TAP TO START ✦</button>
+        </div>
+        <div class="hero-orb">
+          <div class="orb-ring ring-a"></div>
+          <div class="orb-ring ring-b"></div>
+          <div class="orb-core">幻</div>
+          <div class="orb-caption">MYSTIC ENERGY</div>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <div><span class="eyebrow">YOUR DESTINY</span><h2>Kho báu ảo ảnh</h2></div>
+        <div class="inventory">THẺ ĐÃ SỞ HỮU <b id="cardCount">0</b></div>
+      </div>
+
+      <div class="loot-grid">
+        <article class="loot-card chest-card">
+          <div class="loot-label">01 / TREASURE</div>
+          <div class="loot-art chest-art" id="chestArt">
+            <div class="magic-circle"></div>
+            <div class="chest-glow"></div>
+            <div class="chest-lid"></div>
+            <div class="chest-body"><span>✦</span></div>
+            <div class="chest-lock">◇</div>
+            <div class="chest-rays"></div>
+          </div>
+          <h3>RƯƠNG BÁU HUYỀN BÍ</h3>
+          <p>Đánh thức kho báu và tìm vật phẩm bí mật.</p>
+          <button class="loot-btn" id="chestBtn">✧ MỞ RƯƠNG ✧</button>
+        </article>
+
+        <article class="loot-card pack-card">
+          <div class="loot-label">02 / SUMMON</div>
+          <div class="loot-art pack-stage" id="packArt">
+            <div class="pack-aura"></div>
+            <div class="pack">
+              <div class="pack-top">MEMEVERSE</div>
+              <div class="pack-symbol">幻</div>
+              <div class="pack-title">MYSTIC<br>MEME PACK</div>
+              <div class="pack-bottom">ULTRA DIMENSION</div>
+              <div class="tear-line"></div>
+            </div>
+          </div>
+          <h3>GÓI THẺ ẢO ẢNH</h3>
+          <p>Xé gói thẻ để triệu hồi nhân vật ngẫu nhiên.</p>
+          <button class="loot-btn pink-btn" id="packBtn">✦ XÉ PACK ✦</button>
+        </article>
+      </div>
+
+      <div class="section-title collection-title">
+        <div><span class="eyebrow">YOUR COLLECTION</span><h2>Bộ sưu tập thẻ</h2></div>
+      </div>
+      <div class="collection" id="collection">
+        <div class="empty-state">✧ Bộ sưu tập đang chờ lá bài đầu tiên ✧</div>
+      </div>
+    </section>
   </main>
 
-  <div id="modal" class="modal" hidden>
-    <div class="modal-content">
-      <button class="close" onclick="closeModal()">✕</button>
-      <h2 id="modalTitle">✨ Kho báu</h2>
-      <div id="modalBody"></div>
-      <div id="modalButtons"></div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-box">
+      <button class="modal-close" id="modalClose" aria-label="Đóng">×</button>
+      <div id="modalContent"></div>
     </div>
   </div>
 
