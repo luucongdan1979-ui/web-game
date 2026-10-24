@@ -8,7 +8,7 @@
   --purple: #8d5cff;
   --blue: #53d9ff;
   --dark: #090817;
-  --panel: rgba(20, 16, 43, 0.95);
+  --panel: rgba(20, 16, 43, 0.97);
   --rare: #54b8ff;
   --legendary: #ffcc55;
 }
@@ -50,6 +50,7 @@ button:focus-visible, input:focus-visible {
   z-index: -1;
 }
 
+/* ĐĂNG NHẬP */
 .welcome-screen {
   min-height: 100vh;
   display: flex;
@@ -137,7 +138,7 @@ button:focus-visible, input:focus-visible {
   to { transform: scale(1.06); box-shadow: 0 0 28px #ff4fd899; }
 }
 
-/* MÀN HÌNH GAME */
+/* GAME */
 .game-screen {
   min-height: 100vh;
   text-align: center;
@@ -293,7 +294,7 @@ button:focus-visible, input:focus-visible {
   100% { transform: scale(0.1) rotate(30deg); opacity: 0; }
 }
 
-/* KHUNG THẺ BÀI */
+/* THẺ BÀI */
 .reveal-scene {
   padding: 20px 0;
   animation: sceneIn 0.5s ease both;
@@ -367,7 +368,7 @@ button:focus-visible, input:focus-visible {
 
 .card-name {
   margin-top: 10px;
-  color: #fff;
+  color: white;
   font-size: 22px;
   font-weight: 1000;
   text-shadow: 0 0 12px var(--pink);
@@ -380,7 +381,7 @@ button:focus-visible, input:focus-visible {
   letter-spacing: 4px;
 }
 
-/* THANH CÔNG CỤ ICON */
+/* THANH ICON NEON */
 .game-taskbar {
   position: fixed;
   z-index: 5;
@@ -522,81 +523,182 @@ button:focus-visible, input:focus-visible {
   text-align: center;
 }
 
+/* ALBUM */
 .inventory-box {
-  width: min(650px, 100%);
+  width: min(760px, 100%);
 }
 
-.rarity-legend {
+.album-box {
+  padding: 28px 20px;
+  border-color: #a96aff;
+  background:
+    radial-gradient(ellipse at top, #39205c 0%, transparent 65%),
+    rgba(13, 10, 31, 0.98);
+}
+
+.album-box h2 {
+  margin-bottom: 8px;
+  text-shadow: 0 0 18px #ff4fd8;
+}
+
+.album-subtitle {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.album-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.album-tab {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 8px 16px;
-  margin: 15px 0;
+  gap: 7px;
+  min-height: 100px;
+  padding: 10px 4px;
+  border: 1px solid #5a437f;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #211735, #100d23);
+  color: #cfc3ed;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  transition: 0.2s;
+}
+
+.album-tab:hover {
+  border-color: var(--pink);
+  transform: translateY(-2px);
+}
+
+.album-tab.active {
+  color: var(--blue);
+  border-color: var(--blue);
+  background: linear-gradient(145deg, #17385a, #201333);
+  box-shadow: 0 0 18px #53d9ff33;
+}
+
+.album-tab-icon {
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.album-tab small {
   font-size: 11px;
+  color: #ffe28a;
+}
+
+.album-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 12px;
+  padding: 12px;
+  border-bottom: 1px solid #574174;
+  color: #e7d9ff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+#albumCurrentProgress {
+  color: var(--blue);
+}
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.album-slot {
+  min-width: 0;
+  min-height: 205px;
+  overflow: hidden;
+  padding: 8px;
+  border: 1px solid #51436f;
+  border-radius: 13px;
+  background: linear-gradient(160deg, #17112b, #0b0919);
+  text-align: center;
+}
+
+.album-slot.owned.rarity-rare {
+  border-color: var(--rare);
+  box-shadow: inset 0 0 18px #54b8ff15, 0 0 10px #54b8ff22;
+}
+
+.album-slot.owned.rarity-legendary {
+  border-color: var(--legendary);
+  box-shadow: inset 0 0 18px #ffcc5518, 0 0 12px #ffcc5533;
+}
+
+.album-slot img {
+  display: block;
+  width: 100%;
+  height: 135px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #090817;
+}
+
+.album-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 135px;
+  border: 1px dashed #51436f;
+  border-radius: 8px;
+  background: #0b0919;
+  color: #655a80;
+}
+
+.album-lock {
+  font-size: 30px;
+  opacity: 0.8;
+}
+
+.album-empty-label {
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.album-card-name {
+  margin-top: 9px;
+  overflow-wrap: anywhere;
+  color: white;
+  font-size: 12px;
   font-weight: 900;
 }
 
-.legend-rare {
+.album-card-rarity {
+  margin-top: 6px;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.album-card-rarity.rare-rarity {
   color: var(--rare);
 }
 
-.legend-legendary {
+.album-card-rarity.legendary-rarity {
   color: var(--legendary);
 }
 
-.card-inventory {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
-  gap: 14px;
-  margin-top: 20px;
-}
-
-.inventory-card {
-  padding: 8px;
-  border: 1px solid #7e5ac1;
-  border-radius: 12px;
-  background: #17112d;
-  text-align: center;
-}
-
-.inventory-card.rarity-rare {
-  border-color: var(--rare);
-  box-shadow: 0 0 12px #54b8ff33;
-}
-
-.inventory-card.rarity-legendary {
-  border-color: var(--legendary);
-  box-shadow: 0 0 14px #ffcc5544;
-}
-
-.inventory-card img {
-  width: 100%;
-  height: 150px;
-  object-fit: contain;
-  border-radius: 8px;
-  background: #0c0920;
-}
-
-.inventory-card strong {
-  display: block;
-  margin-top: 8px;
-  font-size: 13px;
-}
-
-.inventory-rarity {
-  display: block;
+.album-slot-number {
   margin-top: 5px;
-  font-size: 10px;
-  font-weight: 900;
+  color: #9186ac;
+  font-size: 9px;
 }
 
-.empty-inventory {
-  grid-column: 1 / -1;
-  padding: 20px;
-  color: #c9c2e5;
-  text-align: center;
-}
-
+/* CỬA HÀNG */
 .shop-item {
   text-align: center;
 }
@@ -615,6 +717,7 @@ button:focus-visible, input:focus-visible {
   color: var(--blue) !important;
 }
 
+/* THÔNG BÁO */
 .toast {
   position: fixed;
   z-index: 20;
@@ -632,7 +735,7 @@ button:focus-visible, input:focus-visible {
   font-size: 13px;
 }
 
-@media (max-width: 450px) {
+@media (max-width: 480px) {
   .game-taskbar {
     gap: 8px;
     padding: 8px;
@@ -651,5 +754,36 @@ button:focus-visible, input:focus-visible {
   .trading-card img,
   .image-fallback {
     height: 265px;
+  }
+
+  .album-box {
+    padding: 26px 12px 18px;
+  }
+
+  .album-tabs {
+    gap: 6px;
+  }
+
+  .album-tab {
+    min-height: 88px;
+    font-size: 9px;
+  }
+
+  .album-grid {
+    gap: 7px;
+  }
+
+  .album-slot {
+    min-height: 175px;
+    padding: 5px;
+  }
+
+  .album-slot img,
+  .album-empty {
+    height: 105px;
+  }
+
+  .album-card-name {
+    font-size: 10px;
   }
 }
