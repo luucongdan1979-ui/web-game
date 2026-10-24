@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Thẻ Bài Meme</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Màn hình chính -->
+  <div class="main-screen">
+    <h1 class="game-title">ĐẠI CHIẾN MEME VN</h1>
+    
+    <!-- Nút Tap To Start -->
+    <div class="start-container">
+      <button id="btn-start" class="tap-to-start-btn">TAP TO START</button>
+    </div>
+  </div>
+
+  <!-- Popup Modal chứa Form -->
+  <div id="auth-modal" class="modal hidden">
+    <div class="modal-content">
+      <span id="btn-close" class="close-btn">&times;</span>
+
+      <!-- 1. Màn hình chọn Đăng nhập / Đăng ký -->
+      <div id="auth-choice" class="auth-box">
+        <h2>CHÀO MỪNG BẠN!</h2>
+        <button id="btn-show-login" class="menu-btn primary">ĐĂNG NHẬP</button>
+        <button id="btn-show-register" class="menu-btn secondary">ĐĂNG KÝ</button>
+      </div>
+
+      <!-- 2. Form Đăng Nhập -->
+      <div id="form-login" class="auth-box hidden">
+        <h2>ĐĂNG NHẬP</h2>
+        <form onsubmit="return false;">
+          <input type="text" placeholder="Tên tài khoản" required>
+          <input type="password" placeholder="Mật khẩu" required>
+          <button type="submit" class="menu-btn primary">VÀO GAME</button>
+        </form>
+        <p class="switch-text">Chưa có tài khoản? <a href="#" id="link-to-reg">Đăng ký ngay</a></p>
+      </div>
+
+      <!-- 3. Form Đăng Ký -->
+      <div id="form-register" class="auth-box hidden">
+        <h2>ĐĂNG KÝ TÀI KHOẢN</h2>
+        <form onsubmit="return false;">
+          <input type="text" placeholder="Tên tài khoản" required>
+          <input type="email" placeholder="Gmail" required>
+          <input type="password" placeholder="Mật khẩu" required>
+          <button type="submit" class="menu-btn secondary">TẠO TÀI KHOẢN</button>
+        </form>
+        <p class="switch-text">Đã có tài khoản? <a href="#" id="link-to-login">Đăng nhập</a></p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
