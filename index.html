@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shadow Card - Game Thẻ Bài</title>
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -41,11 +41,12 @@
       <h2 class="auth-title">Đăng Ký</h2>
       <p class="auth-sub">Tạo tài khoản để bắt đầu hành trình</p>
 
-      <form id="form-register">
-        <div class="input-box"><span>👤</span><input type="text" id="reg-username" placeholder="Tên tài khoản" required></div>
-        <div class="input-box"><span>🔒</span><input type="password" placeholder="Mật khẩu" required></div>
-        <button type="submit" class="submit-action-btn">Đăng ký ngay</button>
-      </form>
+      <div class="auth-form-box">
+        <div class="input-box"><span>👤</span><input type="text" id="reg-username" placeholder="Tên tài khoản"></div>
+        <div class="input-box"><span>🔒</span><input type="password" placeholder="Mật khẩu"></div>
+        <!-- Dùng thẻ button bình thường, bấm vào là kích hoạt code JS ngay -->
+        <button type="button" id="btn-submit-reg" class="submit-action-btn">Đăng ký ngay</button>
+      </div>
 
       <p class="switch-prompt">Đã có tài khoản? <a href="#" id="link-reg-to-login">Đăng nhập ngay</a></p>
     </div>
@@ -59,11 +60,11 @@
       <h2 class="auth-title">Đăng Nhập</h2>
       <p class="auth-sub">Chào mừng bạn trở lại!</p>
 
-      <form id="form-login">
-        <div class="input-box"><span>👤</span><input type="text" id="login-username" placeholder="Tên tài khoản" required></div>
-        <div class="input-box"><span>🔒</span><input type="password" placeholder="Mật khẩu" required></div>
-        <button type="submit" class="submit-action-btn">Vào Game</button>
-      </form>
+      <div class="auth-form-box">
+        <div class="input-box"><span>👤</span><input type="text" id="login-username" placeholder="Tên tài khoản"></div>
+        <div class="input-box"><span>🔒</span><input type="password" placeholder="Mật khẩu"></div>
+        <button type="button" id="btn-submit-login" class="submit-action-btn">Vào Game</button>
+      </div>
 
       <p class="switch-prompt">Chưa có tài khoản? <a href="#" id="link-login-to-reg">Đăng ký ngay</a></p>
     </div>
@@ -97,11 +98,10 @@
     </div>
   </div>
 
-  <!-- THÔNG BÁO ĐĂNG KÝ THÀNH CÔNG & RƯƠNG BÁU -->
+  <!-- THÔNG BÁO RƯƠNG BÁU -->
   <div id="gacha-modal" class="modal-overlay hidden">
     <button id="btn-close-modal" class="close-modal-btn">✖</button>
 
-    <!-- DÒNG CHỮ THÀNH CÔNG -->
     <div id="success-banner" class="success-banner-box hidden">
       <h2>🎉 ĐĂNG KÝ THÀNH CÔNG! 🎉</h2>
       <p>Nhận ngay 1 Rương Báu Tân Thủ khởi đầu hành trình!</p>
@@ -126,7 +126,7 @@
         <img src="khá bảnh nv.png" alt="Khá Bảnh" class="banh-card-img">
       </div>
       <h2 class="card-title">LÁ BÀI HUYỀN THOẠI: KHÁ BẢNH</h2>
-      <button id="btn-collect-card" class="submit-action-btn collect-btn">Thu Nhận Lá Bài</button>
+      <button id="btn-collect-card" class="submit-action-btn collect-btn" type="button">Thu Nhận Lá Bài</button>
     </div>
   </div>
 
