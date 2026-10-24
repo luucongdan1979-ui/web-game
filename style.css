@@ -1,14 +1,11 @@
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 :root {
   --pink: #ff4fd8;
   --purple: #8d5cff;
   --blue: #53d9ff;
   --dark: #090817;
-  --panel: rgba(20, 16, 43, 0.97);
   --rare: #54b8ff;
   --legendary: #ffcc55;
 }
@@ -25,32 +22,23 @@ body {
   overflow-x: hidden;
 }
 
-button, input {
-  font: inherit;
-}
-
-button {
-  cursor: pointer;
-}
-
+button, input { font: inherit; }
+button { cursor: pointer; }
 button:focus-visible, input:focus-visible {
   outline: 2px solid var(--blue);
-  outline-offset: 4px;
+  outline-offset: 3px;
 }
-
-.hidden {
-  display: none !important;
-}
+.hidden { display: none !important; }
 
 .bg-glow {
   position: fixed;
   inset: 0;
-  pointer-events: none;
-  background: radial-gradient(circle at center, transparent 25%, #05040d 100%);
   z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(circle, transparent 25%, #05040d 100%);
 }
 
-/* ĐĂNG NHẬP */
+/* MÀN HÌNH CHÀO */
 .welcome-screen {
   min-height: 100vh;
   display: flex;
@@ -67,10 +55,7 @@ button:focus-visible, input:focus-visible {
   letter-spacing: 4px;
   text-shadow: 0 0 22px var(--purple);
 }
-
-.logo span, .game-logo span {
-  color: var(--pink);
-}
+.logo span, .game-logo span { color: var(--pink); }
 
 .subtitle {
   color: var(--blue);
@@ -81,9 +66,9 @@ button:focus-visible, input:focus-visible {
 
 .welcome-buttons {
   display: flex;
-  gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
+  gap: 12px;
 }
 
 .btn {
@@ -94,26 +79,17 @@ button:focus-visible, input:focus-visible {
   font-weight: 800;
   transition: 0.2s;
 }
-
 .btn:hover, .task-icon:hover {
   transform: translateY(-3px);
   box-shadow: 0 0 20px #ff4fd866;
 }
-
-.secondary {
-  background: #17112b;
-}
-
+.secondary { background: #17112b; }
 .primary {
   background: linear-gradient(110deg, #8d5cff, #f64ed2);
   border: 0;
   box-shadow: 0 0 20px #8d5cff55;
 }
-
-.full-width {
-  width: 100%;
-  margin-top: 18px;
-}
+.full-width { width: 100%; margin-top: 18px; }
 
 .start-btn {
   margin-top: 32px;
@@ -128,10 +104,7 @@ button:focus-visible, input:focus-visible {
   animation: startPulse 1.5s infinite alternate;
 }
 
-.hint {
-  color: #bcb5d7;
-  font-size: 12px;
-}
+.hint { color: #bcb5d7; font-size: 12px; }
 
 @keyframes startPulse {
   from { transform: scale(1); box-shadow: 0 0 8px #53d9ff44; }
@@ -144,43 +117,51 @@ button:focus-visible, input:focus-visible {
   text-align: center;
   padding: 35px 16px 110px;
 }
-
-.game-logo {
-  font-size: 30px;
-  letter-spacing: 2px;
-}
-
+.game-logo { font-size: 30px; letter-spacing: 2px; }
 .game-subtitle {
   color: #bcb5d7;
   font-size: 11px;
   letter-spacing: 2px;
-  margin: 12px 0 25px;
+  margin: 12px 0 14px;
+}
+
+.money-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: fit-content;
+  margin: 0 auto 25px;
+  padding: 10px 20px;
+  border: 1px solid var(--legendary);
+  border-radius: 30px;
+  background: linear-gradient(120deg, #382347, #17112b);
+  color: #ffdc75;
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 0 18px #ffcc5533;
+}
+#moneyAmount {
+  font-size: 19px;
+  text-shadow: 0 0 12px #ffcc55;
 }
 
 .scene-overlay {
-  min-height: 60vh;
+  min-height: 55vh;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
-.reward-scene {
-  animation: sceneIn 0.5s ease both;
-}
-
+.reward-scene { animation: sceneIn 0.5s ease both; }
 .reward-scene h2, .reveal-scene h2 {
   color: var(--blue);
   letter-spacing: 2px;
   font-size: clamp(19px, 4vw, 28px);
 }
-
-.scene-description {
-  color: #c9c2e5;
-  font-size: 13px;
-}
+.scene-description { color: #c9c2e5; font-size: 13px; }
 
 @keyframes sceneIn {
-  from { opacity: 0; transform: translateY(18px) scale(0.94); }
+  from { opacity: 0; transform: translateY(18px) scale(.94); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
@@ -197,33 +178,26 @@ button:focus-visible, input:focus-visible {
   border-radius: 24px;
   background: linear-gradient(145deg, #5831a5, #21123f);
   box-shadow: 0 0 35px #9a65ff55, inset 0 0 20px #ffce6044;
-  transition: transform 0.25s;
+  transition: transform .25s;
 }
-
-.chest-button:hover {
-  transform: scale(1.07);
-}
-
+.chest-button:hover { transform: scale(1.07); }
 .chest-icon {
   display: block;
   font-size: 110px;
   filter: drop-shadow(0 0 18px #ffc85c);
 }
-
 .chest-label {
   font-weight: 900;
   letter-spacing: 3px;
   color: #ffe49a;
 }
-
 .chest-button.opening {
-  animation: chestOpen 0.7s ease forwards;
+  animation: chestOpen .7s ease forwards;
 }
-
 @keyframes chestOpen {
-  0% { transform: scale(1) rotate(0); opacity: 1; }
+  0% { transform: scale(1); opacity: 1; }
   40% { transform: scale(1.18) rotate(-5deg); }
-  100% { transform: scale(0.1) rotate(15deg); opacity: 0; }
+  100% { transform: scale(.1) rotate(15deg); opacity: 0; }
 }
 
 /* PACK */
@@ -243,13 +217,9 @@ button:focus-visible, input:focus-visible {
   border-radius: 16px;
   background: linear-gradient(145deg, #ee42c6, #6730c8 55%, #17123f);
   box-shadow: 0 0 32px #e64bff77, inset 0 0 24px #ffffff22;
-  transition: transform 0.2s;
+  transition: transform .2s;
 }
-
-.pack-button:hover {
-  transform: scale(1.05) rotate(-2deg);
-}
-
+.pack-button:hover { transform: scale(1.05) rotate(-2deg); }
 .pack-shine {
   position: absolute;
   top: -50%;
@@ -260,46 +230,29 @@ button:focus-visible, input:focus-visible {
   background: #ffffff44;
   animation: shine 2.3s infinite;
 }
-
-@keyframes shine {
-  to { left: 150%; }
-}
-
+@keyframes shine { to { left: 150%; } }
 .pack-star {
   font-size: 48px;
   color: #ffe28a;
   text-shadow: 0 0 18px white;
 }
-
 .pack-name {
   font-weight: 1000;
   font-size: 26px;
   line-height: 1.3;
   text-shadow: 0 0 15px white;
 }
-
-.pack-small {
-  font-size: 10px;
-  letter-spacing: 3px;
-}
-
-.pack-button.tearing {
-  animation: packTear 0.65s ease forwards;
-}
-
+.pack-small { font-size: 10px; letter-spacing: 3px; }
+.pack-button.tearing { animation: packTear .65s ease forwards; }
 @keyframes packTear {
-  0% { transform: scale(1) rotate(0); opacity: 1; }
+  0% { transform: scale(1); opacity: 1; }
   35% { transform: scale(1.15) rotate(8deg); filter: brightness(2); }
   65% { transform: scale(1.1) rotate(-10deg); }
-  100% { transform: scale(0.1) rotate(30deg); opacity: 0; }
+  100% { transform: scale(.1) rotate(30deg); opacity: 0; }
 }
 
 /* THẺ BÀI */
-.reveal-scene {
-  padding: 20px 0;
-  animation: sceneIn 0.5s ease both;
-}
-
+.reveal-scene { padding: 20px 0; animation: sceneIn .5s ease both; }
 .trading-card {
   position: relative;
   width: min(270px, 80vw);
@@ -311,26 +264,22 @@ button:focus-visible, input:focus-visible {
   border: 2px solid var(--rare);
   background: linear-gradient(145deg, #173c6c, #111126 55%, #205b8c);
   box-shadow: 0 0 35px #54b8ff88;
-  animation: cardReveal 0.8s ease both;
+  animation: cardReveal .55s ease both;
 }
-
 .trading-card.rarity-rare {
   border-color: var(--rare);
   background: linear-gradient(145deg, #173c6c, #111126 55%, #205b8c);
   box-shadow: 0 0 35px #54b8ff88;
 }
-
 .trading-card.rarity-legendary {
   border-color: var(--legendary);
   background: linear-gradient(145deg, #784515, #21142d 55%, #a92567);
   box-shadow: 0 0 40px #ffcc5588;
 }
-
 @keyframes cardReveal {
-  from { opacity: 0; transform: rotateY(90deg) scale(0.7); }
+  from { opacity: 0; transform: rotateY(90deg) scale(.7); }
   to { opacity: 1; transform: rotateY(0) scale(1); }
 }
-
 .card-rarity {
   position: relative;
   z-index: 1;
@@ -339,17 +288,8 @@ button:focus-visible, input:focus-visible {
   font-weight: 1000;
   letter-spacing: 2px;
 }
-
-.rare-rarity {
-  color: var(--rare);
-  text-shadow: 0 0 12px #54b8ff;
-}
-
-.legendary-rarity {
-  color: var(--legendary);
-  text-shadow: 0 0 14px #ffcc55;
-}
-
+.rare-rarity { color: var(--rare); text-shadow: 0 0 12px #54b8ff; }
+.legendary-rarity { color: var(--legendary); text-shadow: 0 0 14px #ffcc55; }
 .trading-card img {
   display: block;
   width: 100%;
@@ -358,14 +298,12 @@ button:focus-visible, input:focus-visible {
   border-radius: 10px;
   background: #100c20;
 }
-
 .image-fallback {
   height: 285px;
   place-content: center;
   font-size: 90px;
   background: #100c20;
 }
-
 .card-name {
   margin-top: 10px;
   color: white;
@@ -373,7 +311,6 @@ button:focus-visible, input:focus-visible {
   font-weight: 1000;
   text-shadow: 0 0 12px var(--pink);
 }
-
 .card-bottom {
   margin-top: 7px;
   color: var(--blue);
@@ -381,7 +318,7 @@ button:focus-visible, input:focus-visible {
   letter-spacing: 4px;
 }
 
-/* THANH ICON NEON */
+/* THANH ICON */
 .game-taskbar {
   position: fixed;
   z-index: 5;
@@ -393,11 +330,10 @@ button:focus-visible, input:focus-visible {
   padding: 10px 13px;
   border: 1px solid #8d5cff88;
   border-radius: 22px;
-  background: rgba(12, 9, 30, 0.94);
+  background: rgba(12, 9, 30, .94);
   box-shadow: 0 0 28px #8d5cff44;
   backdrop-filter: blur(12px);
 }
-
 .task-icon {
   position: relative;
   display: grid;
@@ -409,9 +345,8 @@ button:focus-visible, input:focus-visible {
   border-radius: 16px;
   color: #d9c9ff;
   background: linear-gradient(145deg, #281b48, #120d26);
-  transition: transform 0.2s, box-shadow 0.2s, color 0.2s;
+  transition: .2s;
 }
-
 .task-icon svg {
   width: 25px;
   height: 25px;
@@ -422,25 +357,18 @@ button:focus-visible, input:focus-visible {
   stroke-linejoin: round;
   filter: drop-shadow(0 0 4px currentColor);
 }
-
 .task-icon:hover {
   transform: translateY(-4px) scale(1.05);
   color: var(--pink);
   border-color: var(--pink);
-  box-shadow: 0 0 20px #ff4fd866;
 }
-
 .task-icon.active {
   color: var(--blue);
   border-color: var(--blue);
   background: linear-gradient(145deg, #153e60, #17102d);
   box-shadow: 0 0 16px #53d9ff66;
 }
-
-.logout-icon {
-  color: #ff8bba;
-}
-
+.logout-icon { color: #ff8bba; }
 .bag-count {
   position: absolute;
   top: -7px;
@@ -456,10 +384,9 @@ button:focus-visible, input:focus-visible {
   color: white;
   font-size: 10px;
   font-weight: 900;
-  box-shadow: 0 0 10px #ff4fd8;
 }
 
-/* MODAL */
+/* CỬA SỔ */
 .modal {
   position: fixed;
   z-index: 10;
@@ -470,29 +397,27 @@ button:focus-visible, input:focus-visible {
   background: #03020bd9;
   backdrop-filter: blur(9px);
 }
-
 .modal-box {
   position: relative;
   width: min(420px, 100%);
-  max-height: 85vh;
+  max-height: 88vh;
   overflow-y: auto;
   padding: 30px 24px;
   border: 1px solid #a96aff;
   border-radius: 20px;
-  background: var(--panel);
+  background: rgba(20, 16, 43, .98);
   box-shadow: 0 0 40px #8d5cff44;
   text-align: left;
 }
-
 .modal-box h2 {
   margin: 0 0 24px;
   text-align: center;
   color: var(--pink);
   letter-spacing: 2px;
 }
-
 .close-btn {
   position: absolute;
+  z-index: 2;
   top: 8px;
   right: 12px;
   border: 0;
@@ -500,14 +425,12 @@ button:focus-visible, input:focus-visible {
   color: white;
   font-size: 30px;
 }
-
 .modal-box label {
   display: block;
   margin: 15px 0 7px;
   color: #d9d1f5;
   font-size: 13px;
 }
-
 .modal-box input {
   width: 100%;
   padding: 12px;
@@ -516,7 +439,6 @@ button:focus-visible, input:focus-visible {
   background: #0c0920;
   color: white;
 }
-
 .form-message {
   color: #ff94d8;
   font-size: 12px;
@@ -524,35 +446,20 @@ button:focus-visible, input:focus-visible {
 }
 
 /* ALBUM */
-.inventory-box {
-  width: min(760px, 100%);
-}
-
+.inventory-box { width: min(760px, 100%); }
 .album-box {
   padding: 28px 20px;
   border-color: #a96aff;
-  background:
-    radial-gradient(ellipse at top, #39205c 0%, transparent 65%),
-    rgba(13, 10, 31, 0.98);
+  background: radial-gradient(ellipse at top, #39205c 0%, transparent 65%), #0d0a1f;
 }
-
-.album-box h2 {
-  margin-bottom: 8px;
-  text-shadow: 0 0 18px #ff4fd8;
-}
-
-.album-subtitle {
-  text-align: center;
-  margin-bottom: 22px;
-}
-
+.album-box h2 { margin-bottom: 8px; text-shadow: 0 0 18px #ff4fd8; }
+.album-subtitle { text-align: center; margin-bottom: 22px; }
 .album-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin: 20px 0;
 }
-
 .album-tab {
   display: flex;
   flex-direction: column;
@@ -567,36 +474,20 @@ button:focus-visible, input:focus-visible {
   color: #cfc3ed;
   font-size: 10px;
   font-weight: 900;
-  letter-spacing: 0.5px;
-  transition: 0.2s;
+  transition: .2s;
 }
-
-.album-tab:hover {
-  border-color: var(--pink);
-  transform: translateY(-2px);
-}
-
+.album-tab:hover { border-color: var(--pink); transform: translateY(-2px); }
 .album-tab.active {
   color: var(--blue);
   border-color: var(--blue);
   background: linear-gradient(145deg, #17385a, #201333);
   box-shadow: 0 0 18px #53d9ff33;
 }
-
-.album-tab-icon {
-  font-size: 28px;
-  line-height: 1.1;
-}
-
-.album-tab small {
-  font-size: 11px;
-  color: #ffe28a;
-}
-
+.album-tab-icon { font-size: 28px; line-height: 1.1; }
+.album-tab small { font-size: 11px; color: #ffe28a; }
 .album-summary {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   gap: 10px;
   margin: 18px 0 12px;
   padding: 12px;
@@ -606,17 +497,12 @@ button:focus-visible, input:focus-visible {
   font-weight: 900;
   letter-spacing: 1px;
 }
-
-#albumCurrentProgress {
-  color: var(--blue);
-}
-
+#albumCurrentProgress { color: var(--blue); }
 .album-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
-
 .album-slot {
   min-width: 0;
   min-height: 205px;
@@ -626,18 +512,21 @@ button:focus-visible, input:focus-visible {
   border-radius: 13px;
   background: linear-gradient(160deg, #17112b, #0b0919);
   text-align: center;
+  transition: transform .2s, box-shadow .2s;
 }
-
+.album-slot.owned { cursor: pointer; }
+.album-slot.owned:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 0 22px #8d5cff55;
+}
 .album-slot.owned.rarity-rare {
   border-color: var(--rare);
-  box-shadow: inset 0 0 18px #54b8ff15, 0 0 10px #54b8ff22;
+  box-shadow: inset 0 0 18px #54b8ff15;
 }
-
 .album-slot.owned.rarity-legendary {
   border-color: var(--legendary);
-  box-shadow: inset 0 0 18px #ffcc5518, 0 0 12px #ffcc5533;
+  box-shadow: inset 0 0 18px #ffcc5518;
 }
-
 .album-slot img {
   display: block;
   width: 100%;
@@ -646,7 +535,6 @@ button:focus-visible, input:focus-visible {
   border-radius: 8px;
   background: #090817;
 }
-
 .album-empty {
   display: flex;
   flex-direction: column;
@@ -659,17 +547,8 @@ button:focus-visible, input:focus-visible {
   background: #0b0919;
   color: #655a80;
 }
-
-.album-lock {
-  font-size: 30px;
-  opacity: 0.8;
-}
-
-.album-empty-label {
-  font-size: 9px;
-  letter-spacing: 1px;
-}
-
+.album-lock { font-size: 30px; }
+.album-empty-label { font-size: 9px; letter-spacing: 1px; }
 .album-card-name {
   margin-top: 9px;
   overflow-wrap: anywhere;
@@ -677,45 +556,30 @@ button:focus-visible, input:focus-visible {
   font-size: 12px;
   font-weight: 900;
 }
+.album-card-rarity { margin-top: 6px; font-size: 9px; font-weight: 900; }
+.album-card-rarity.rare-rarity { color: var(--rare); }
+.album-card-rarity.legendary-rarity { color: var(--legendary); }
+.album-slot-number { margin-top: 5px; color: #9186ac; font-size: 9px; }
 
-.album-card-rarity {
-  margin-top: 6px;
-  font-size: 9px;
-  font-weight: 900;
+/* CỬA SỔ XEM THẺ */
+.card-detail-box {
+  width: min(400px, 100%);
+  text-align: center;
+  border-color: var(--pink);
+  box-shadow: 0 0 45px #ff4fd844;
 }
-
-.album-card-rarity.rare-rarity {
-  color: var(--rare);
-}
-
-.album-card-rarity.legendary-rarity {
-  color: var(--legendary);
-}
-
-.album-slot-number {
-  margin-top: 5px;
-  color: #9186ac;
-  font-size: 9px;
+.card-detail-box .trading-card { margin: 20px auto; }
+.detail-description {
+  color: #c9c2e5;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 /* CỬA HÀNG */
-.shop-item {
-  text-align: center;
-}
-
-.shop-pack {
-  font-size: 70px;
-  filter: drop-shadow(0 0 14px #ff4fd8);
-}
-
-.shop-item p {
-  color: #c9c2e5;
-  font-size: 13px;
-}
-
-.shop-note {
-  color: var(--blue) !important;
-}
+.shop-item { text-align: center; }
+.shop-pack { font-size: 70px; filter: drop-shadow(0 0 14px #ff4fd8); }
+.shop-item p { color: #c9c2e5; font-size: 13px; }
+.shop-note { color: var(--blue) !important; }
 
 /* THÔNG BÁO */
 .toast {
@@ -736,54 +600,15 @@ button:focus-visible, input:focus-visible {
 }
 
 @media (max-width: 480px) {
-  .game-taskbar {
-    gap: 8px;
-    padding: 8px;
-  }
-
-  .task-icon {
-    width: 44px;
-    height: 44px;
-    padding: 9px;
-  }
-
-  .trading-card {
-    height: 370px;
-  }
-
-  .trading-card img,
-  .image-fallback {
-    height: 265px;
-  }
-
-  .album-box {
-    padding: 26px 12px 18px;
-  }
-
-  .album-tabs {
-    gap: 6px;
-  }
-
-  .album-tab {
-    min-height: 88px;
-    font-size: 9px;
-  }
-
-  .album-grid {
-    gap: 7px;
-  }
-
-  .album-slot {
-    min-height: 175px;
-    padding: 5px;
-  }
-
-  .album-slot img,
-  .album-empty {
-    height: 105px;
-  }
-
-  .album-card-name {
-    font-size: 10px;
-  }
+  .game-taskbar { gap: 8px; padding: 8px; }
+  .task-icon { width: 44px; height: 44px; padding: 9px; }
+  .trading-card { height: 370px; }
+  .trading-card img, .image-fallback { height: 265px; }
+  .album-box { padding: 26px 12px 18px; }
+  .album-tabs { gap: 6px; }
+  .album-tab { min-height: 88px; font-size: 9px; }
+  .album-grid { gap: 7px; }
+  .album-slot { min-height: 175px; padding: 5px; }
+  .album-slot img, .album-empty { height: 105px; }
+  .album-card-name { font-size: 10px; }
 }
