@@ -1,3 +1,4 @@
+HTML
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -11,51 +12,168 @@
 
   <!-- MÀN HÌNH 1: SẢNH CHỜ CHÍNH -->
   <div id="screen-main" class="game-screen bg-main">
-    <div class="top-controls">
-      <button class="icon-btn">🔊</button>
-      <button class="icon-btn">⚙️</button>
-    </div>
+    <button class="icon-btn sound-pos" title="Âm thanh"></button>
+    <button class="icon-btn setting-pos" title="Cài đặt"></button>
 
-    <!-- Vùng nút bấm bên trái (Đăng nhập / Đăng ký) -->
-    <div class="left-action-buttons">
-      <button id="btn-to-login" class="invisible-btn login-pos"></button>
-      <button id="btn-to-register" class="invisible-btn reg-pos"></button>
-    </div>
-
-    <!-- Vùng nút Tap to Start -->
-    <div class="tap-start-container">
-      <button id="btn-tap-start" class="invisible-btn start-pos"></button>
-    </div>
+    <!-- Các nút tàng hình bấm đè lên ảnh Sảnh Chờ -->
+    <button id="btn-to-login" class="invisible-btn main-login-btn" title="Đăng nhập"></button>
+    <button id="btn-to-register" class="invisible-btn main-reg-btn" title="Đăng ký"></button>
+    <button id="btn-tap-start" class="invisible-btn tap-start-btn" title="Tap to Start"></button>
   </div>
 
   <!-- MÀN HÌNH 2: ĐĂNG KÝ -->
   <div id="screen-register" class="game-screen bg-register hidden">
-    <button class="back-btn" id="btn-back-from-reg"></button>
+    <button class="back-btn" id="btn-back-from-reg" title="Quay lại"></button>
     
-    <!-- Form nhập thông tin đè lên ảnh Đăng Ký -->
+    <!-- Form nhập thông tin tàng hình đè lên ảnh Đăng Ký -->
     <form class="overlay-form form-reg-pos" onsubmit="return false;">
-      <input type="text" class="input-transparent" placeholder="" required>
-      <input type="password" class="input-transparent" placeholder="" required>
-      <button type="submit" class="btn-submit-overlay"></button>
+      <input type="text" class="input-transparent" required>
+      <input type="password" class="input-transparent" required>
+      <button type="submit" class="btn-submit-overlay" title="Đăng ký"></button>
     </form>
 
-    <button id="link-reg-to-login" class="switch-btn-overlay"></button>
+    <button id="link-reg-to-login" class="switch-btn-overlay" title="Đã có tài khoản? Đăng nhập"></button>
   </div>
 
   <!-- MÀN HÌNH 3: ĐĂNG NHẬP -->
   <div id="screen-login" class="game-screen bg-login hidden">
-    <button class="back-btn" id="btn-back-from-login"></button>
+    <button class="back-btn" id="btn-back-from-login" title="Quay lại"></button>
 
-    <!-- Form nhập thông tin đè lên ảnh Đăng Nhập -->
+    <!-- Form nhập thông tin tàng hình đè lên ảnh Đăng Nhập -->
     <form class="overlay-form form-login-pos" onsubmit="return false;">
-      <input type="text" class="input-transparent" placeholder="" required>
-      <input type="password" class="input-transparent" placeholder="" required>
-      <button type="submit" class="btn-submit-overlay"></button>
+      <input type="text" class="input-transparent" required>
+      <input type="password" class="input-transparent" required>
+      <button type="submit" class="btn-submit-overlay" title="Đăng nhập"></button>
     </form>
 
-    <button id="link-login-to-reg" class="switch-btn-overlay"></button>
+    <button id="link-login-to-reg" class="switch-btn-overlay" title="Chưa có tài khoản? Đăng ký"></button>
   </div>
 
   <script src="script.js"></script>
 </body>
 </html>
+2. Cập nhật file style.css (Tối ưu nút tàng hình dễ bấm)
+CSS
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Montserrat', sans-serif;
+  background-color: #000000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Khung màn hình game tỉ lệ chuẩn 16:9 */
+.game-screen {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  aspect-ratio: 16 / 9;
+  max-height: 100vh;
+  background-size: 100% 100%; /* Ép ảnh phủ trọn khung game */
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.bg-main { background-image: url('bg-main.jpg'); }
+.bg-register { background-image: url('bg-register.jpg'); }
+.bg-login { background-image: url('bg-login.jpg'); }
+
+/* THUỘC TÍNH NÚT TÀNG HÌNH CHUNG */
+.invisible-btn, .back-btn, .btn-submit-overlay, .switch-btn-overlay, .icon-btn {
+  background: rgba(255, 255, 255, 0); /* Trong suốt tàng hình */
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  z-index: 99; /* Luôn nổi lên trên cùng để nhận cú click */
+  outline: none;
+}
+
+/* Thêm hiệu ứng đổi con trỏ chuột và viền nhẹ khi di chuột vào nút tàng hình */
+.invisible-btn:hover, .back-btn:hover, .btn-submit-overlay:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+}
+
+/* 1. NÚT TRÊN MÀN HÌNH CHÍNH (BG-MAIN) */
+.sound-pos { top: 3%; right: 7%; width: 5%; height: 8%; }
+.setting-pos { top: 3%; right: 2%; width: 5%; height: 8%; }
+
+/* Nút Đăng nhập góc dưới bên trái */
+.main-login-btn {
+  bottom: 18%; left: 2.5%;
+  width: 13.5%; height: 9%;
+  border-radius: 20px;
+}
+
+/* Nút Đăng ký góc dưới bên trái */
+.main-reg-btn {
+  bottom: 7.5%; left: 2.5%;
+  width: 13.5%; height: 9%;
+  border-radius: 20px;
+}
+
+/* Nút Tap to Start bên phải */
+.tap-start-btn {
+  bottom: 18%; right: 10%;
+  width: 38%; height: 16%;
+  border-radius: 40px;
+}
+
+/* 2. NÚT VÀ INPUT TRÊN FORM ĐĂNG KÝ & ĐĂNG NHẬP */
+.back-btn {
+  top: 5%; left: 3%;
+  width: 6%; height: 10%;
+  border-radius: 50%;
+}
+
+.overlay-form {
+  position: absolute;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Căn vị trí ô nhập liệu trên Đăng Ký và Đăng Nhập */
+.form-reg-pos, .form-login-pos {
+  top: 36%; left: 21%;
+  width: 58%;
+}
+
+.input-transparent {
+  background: transparent;
+  border: none;
+  outline: none;
+  height: 40px;
+  margin-bottom: 18px;
+  padding: 0 40px;
+  font-size: 15px;
+  color: #1a2556;
+  font-weight: bold;
+}
+
+/* Nút bấm Đăng Nhập / Đăng Ký ở trong Form */
+.btn-submit-overlay {
+  position: relative;
+  height: 48px;
+  width: 100%;
+  margin-top: 5px;
+  border-radius: 25px;
+}
+
+/* Nút chữ nhỏ chuyển hướng dưới cùng */
+.switch-btn-overlay {
+  bottom: 8%; left: 30%;
+  width: 40%; height: 6%;
+}
+
+.hidden { display: none !important; }
