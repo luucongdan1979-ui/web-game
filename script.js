@@ -2,8 +2,8 @@ const screenMain = document.getElementById('screen-main');
 const screenRegister = document.getElementById('screen-register');
 const screenLogin = document.getElementById('screen-login');
 
-const btnToLogin = document.getElementById('btn-to-login');
-const btnToRegister = document.getElementById('btn-to-register');
+const btnMainLogin = document.getElementById('btn-main-login');
+const btnMainReg = document.getElementById('btn-main-reg');
 const btnTapStart = document.getElementById('btn-tap-start');
 
 const btnBackFromReg = document.getElementById('btn-back-from-reg');
@@ -12,22 +12,29 @@ const btnBackFromLogin = document.getElementById('btn-back-from-login');
 const linkRegToLogin = document.getElementById('link-reg-to-login');
 const linkLoginToReg = document.getElementById('link-login-to-reg');
 
-// Hàm chuyển đổi màn hình
-function showScreen(screenToShow) {
+// Hàm chuyển màn hình mượt mà
+function switchScreen(targetScreen) {
   screenMain.classList.add('hidden');
   screenRegister.classList.add('hidden');
   screenLogin.classList.add('hidden');
-  
-  screenToShow.classList.remove('hidden');
+
+  targetScreen.classList.remove('hidden');
 }
 
-// Gán sự kiện bấm nút
-btnToLogin.addEventListener('click', () => showScreen(screenLogin));
-btnTapStart.addEventListener('click', () => showScreen(screenLogin));
-btnToRegister.addEventListener('click', () => showScreen(screenRegister));
+// Gắn sự kiện bấm nút
+btnMainLogin.addEventListener('click', () => switchScreen(screenLogin));
+btnMainReg.addEventListener('click', () => switchScreen(screenRegister));
+btnTapStart.addEventListener('click', () => switchScreen(screenLogin));
 
-btnBackFromReg.addEventListener('click', () => showScreen(screenMain));
-btnBackFromLogin.addEventListener('click', () => showScreen(screenMain));
+btnBackFromReg.addEventListener('click', () => switchScreen(screenMain));
+btnBackFromLogin.addEventListener('click', () => switchScreen(screenMain));
 
-linkRegToLogin.addEventListener('click', () => showScreen(screenLogin));
-linkLoginToReg.addEventListener('click', () => showScreen(screenRegister));
+linkRegToLogin.addEventListener('click', (e) => {
+  e.preventDefault();
+  switchScreen(screenLogin);
+});
+
+linkLoginToReg.addEventListener('click', (e) => {
+  e.preventDefault();
+  switchScreen(screenRegister);
+});
