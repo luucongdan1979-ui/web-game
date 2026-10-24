@@ -17,7 +17,6 @@ const CARD_DATA = [
     rarity: "RARE",
     image: "./kh%C3%A1%20b%E1%BA%A3nh%20nv.png",
     description: "Một nhân vật trong bộ sưu tập meme CARD ARENA.",
-    power: 75
   },
   {
     id: "jack",
@@ -26,7 +25,6 @@ const CARD_DATA = [
     rarity: "LEGENDARY",
     image: "./jack%20nv.png",
     description: "Lá nhân vật huyền thoại trong bộ sưu tập meme CARD ARENA.",
-    power: 95
   }
 ];
 
