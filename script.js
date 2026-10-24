@@ -119,7 +119,23 @@ function enterGame() {
   updateBagCount();
 }
 
+
 function showChestScene(showPack) {
+  $("sceneOverlay").classList.remove("hidden");
+  $("chestScene").classList.remove("hidden");
+  $("revealScene").classList.add("hidden");
+
+  $("chestBtn").classList.toggle("hidden", showPack);
+  $("packBtn").classList.toggle("hidden", !showPack);
+
+  $("chestScene").querySelector(".scene-heading").classList.toggle("hidden", showPack);
+  $("sceneHint").classList.toggle("hidden", showPack);
+
+  $("chestBtn").classList.remove("opening");
+  $("packBtn").classList.remove("tearing");
+  busy = false;
+}
+
   $("sceneOverlay").classList.remove("hidden");
   $("chestScene").classList.remove("hidden");
   $("revealScene").classList.add("hidden");
