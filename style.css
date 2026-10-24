@@ -1,90 +1,104 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
+const screenMain = document.getElementById('screen-main');
+const screenRegister = document.getElementById('screen-register');
+const screenLogin = document.getElementById('screen-login');
+const screenLobby = document.getElementById('screen-game-lobby');
 
-body, html {
-  width: 100%; height: 100%; overflow: hidden;
-  font-family: 'Montserrat', sans-serif; background: #060814;
-  display: flex; justify-content: center; align-items: center;
+const btnMainLogin = document.getElementById('btn-main-login');
+const btnMainReg = document.getElementById('btn-main-reg');
+const btnTapStart = document.getElementById('btn-tap-start');
+
+const btnBackFromReg = document.getElementById('btn-back-from-reg');
+const btnBackFromLogin = document.getElementById('btn-back-from-login');
+
+const linkRegToLogin = document.getElementById('link-reg-to-login');
+const linkLoginToReg = document.getElementById('link-login-to-reg');
+
+const formRegister = document.getElementById('form-register');
+const formLogin = document.getElementById('form-login');
+const playerNameDisplay = document.getElementById('player-name-display');
+const btnLogout = document.getElementById('btn-logout');
+
+// GACHA & POPUP THÀNH CÔNG
+const btnOpenGacha = document.getElementById('btn-open-gacha');
+const gachaModal = document.getElementById('gacha-modal');
+const btnCloseModal = document.getElementById('btn-close-modal');
+const successBanner = document.getElementById('success-banner');
+
+const stepChest = document.getElementById('step-chest');
+const stepPack = document.getElementById('step-pack');
+const stepCard = document.getElementById('step-card');
+const btnCollectCard = document.getElementById('btn-collect-card');
+
+function switchScreen(targetScreen) {
+  screenMain.classList.add('hidden');
+  screenRegister.classList.add('hidden');
+  screenLogin.classList.add('hidden');
+  screenLobby.classList.add('hidden');
+  targetScreen.classList.remove('hidden');
 }
 
-.game-screen {
-  position: relative; width: 100%; max-width: 1200px; aspect-ratio: 16 / 9; max-height: 100vh;
-  background: linear-gradient(135deg, #0d1233 0%, #171136 50%, #090b1c 100%);
-  box-shadow: 0 0 50px rgba(70, 100, 255, 0.3); border-radius: 12px; overflow: hidden;
-  display: flex; justify-content: center; align-items: center;
-}
+btnMainLogin.addEventListener('click', () => switchScreen(screenLogin));
+btnMainReg.addEventListener('click', () => switchScreen(screenRegister));
+btnTapStart.addEventListener('click', () => switchScreen(screenLogin));
 
-.top-controls { position: absolute; top: 25px; right: 30px; display: flex; gap: 12px; z-index: 10; }
-.icon-btn { background: rgba(40, 50, 100, 0.6); border: 1px solid rgba(150, 180, 255, 0.4); color: #fff; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; }
+btnBackFromReg.addEventListener('click', () => switchScreen(screenMain));
+btnBackFromLogin.addEventListener('click', () => switchScreen(screenMain));
 
-.logo-box { position: absolute; top: 40px; left: 50px; z-index: 10; }
-.game-logo { font-family: 'Caveat', cursive; font-size: 70px; color: #fff; text-shadow: 0 0 20px #6d7cff, 0 0 40px #313fff; line-height: 0.8; }
-.game-subtitle { color: #c0d0ff; font-size: 14px; margin-top: 8px; font-weight: 500; }
+linkRegToLogin.addEventListener('click', (e) => { e.preventDefault(); switchScreen(screenLogin); });
+linkLoginToReg.addEventListener('click', (e) => { e.preventDefault(); switchScreen(screenRegister); });
 
-.left-menu-group { position: absolute; bottom: 50px; left: 50px; display: flex; flex-direction: column; gap: 15px; z-index: 10; }
-.menu-pill-btn { background: rgba(30, 40, 90, 0.7); border: 1.5px solid rgba(130, 160, 255, 0.6); color: #fff; padding: 12px 35px; border-radius: 30px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+// --- XỬ LÝ ĐĂNG KÝ (HIỆN THÀNH CÔNG -> RƯƠNG BÁU) ---
+formRegister.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const username = document.getElementById('reg-username').value;
+  playerNameDisplay.textContent = username || "Tân Thủ";
+  
+  // 1. Vào giao diện sảnh chính trước
+  switchScreen(screenLobby);
 
-.center-start-box { position: absolute; right: 15%; z-index: 10; }
-.tap-to-start-glow { background: linear-gradient(90deg, #3855d0, #7848df); border: none; color: #fff; font-size: 30px; font-weight: 900; font-style: italic; padding: 18px 50px; border-radius: 50px; cursor: pointer; box-shadow: 0 0 30px rgba(100, 130, 255, 0.7); animation: pulseBtn 1.8s infinite ease-in-out; }
-@keyframes pulseBtn { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+  // 2. Tự động bật bảng rương báu và hiện dòng chữ thành công
+  gachaModal.classList.remove('hidden');
+  successBanner.classList.remove('hidden');
+  stepChest.classList.remove('hidden');
+  stepPack.classList.add('hidden');
+  stepCard.classList.add('hidden');
+});
 
-.glass-panel { background: rgba(220, 230, 255, 0.9); border: 3px solid rgba(255, 255, 255, 0.9); border-radius: 25px; width: 450px; padding: 40px 35px 30px 35px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6); z-index: 10; }
-.back-pill-btn { position: absolute; top: 30px; left: 30px; background: rgba(50, 70, 150, 0.8); border: 1px solid #fff; color: #fff; width: 40px; height: 40px; border-radius: 50%; font-weight: bold; cursor: pointer; z-index: 15; }
-.auth-title { text-align: center; color: #16224f; font-size: 28px; font-weight: 900; margin-bottom: 5px; }
-.auth-sub { text-align: center; color: #52608a; font-size: 13px; margin-bottom: 25px; }
+// --- XỬ LÝ ĐĂNG NHẬP (VÀO THẲNG SẢNH KHÔNG HIỆN RƯƠNG) ---
+formLogin.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const username = document.getElementById('login-username').value;
+  playerNameDisplay.textContent = username || "Tân Thủ";
+  switchScreen(screenLobby);
+});
 
-.input-box { background: rgba(255, 255, 255, 0.95); border: 1.5px solid #a6b9ff; border-radius: 14px; padding: 12px 18px; margin-bottom: 18px; display: flex; align-items: center; gap: 12px; }
-.input-box input { border: none; background: transparent; width: 100%; outline: none; font-size: 15px; color: #16224f; font-weight: 600; }
-.submit-action-btn { width: 100%; padding: 14px; border-radius: 30px; border: none; background: linear-gradient(90deg, #3855d0, #7848df); color: #fff; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 10px; }
-.switch-prompt { text-align: center; margin-top: 20px; font-size: 13px; color: #52608a; font-weight: 600; }
-.switch-prompt a { color: #2b52d2; font-weight: 800; text-decoration: none; }
+btnLogout.addEventListener('click', () => switchScreen(screenMain));
 
-/* SẢNH LOBBY */
-.player-top-bar { position: absolute; top: 20px; left: 30px; right: 30px; display: flex; align-items: center; gap: 15px; background: rgba(15, 20, 50, 0.8); border: 1.5px solid rgba(100, 140, 255, 0.5); padding: 10px 20px; border-radius: 40px; backdrop-filter: blur(10px); }
-.player-avatar { font-size: 28px; background: #263366; border-radius: 50%; padding: 5px; }
-.player-info { display: flex; flex-direction: column; }
-.player-name { color: #fff; font-weight: 800; font-size: 16px; }
-.player-level { color: #8faaff; font-size: 12px; font-weight: 700; }
-.resources-group { margin-left: auto; display: flex; gap: 20px; }
-.res-item { background: rgba(0, 0, 0, 0.4); color: #fff; padding: 6px 15px; border-radius: 20px; font-weight: 700; font-size: 14px; }
-.logout-btn { background: rgba(200, 50, 50, 0.6); border: none; color: #fff; padding: 8px 12px; border-radius: 50%; cursor: pointer; margin-left: 10px; }
+// Nút chiến đấu thủ công nếu muốn mở rương lần nữa
+btnOpenGacha.addEventListener('click', () => {
+  gachaModal.classList.remove('hidden');
+  successBanner.classList.add('hidden'); // Ẩn chữ đăng ký thành công khi bấm từ nút chiến đấu
+  stepChest.classList.remove('hidden');
+  stepPack.classList.add('hidden');
+  stepCard.classList.add('hidden');
+});
 
-.battle-section { text-align: center; }
-.play-battle-btn { background: linear-gradient(90deg, #ff416c, #ff4b2b); border: 2px solid #fff; color: #fff; font-size: 24px; font-weight: 900; padding: 18px 45px; border-radius: 50px; cursor: pointer; box-shadow: 0 0 35px rgba(255, 75, 43, 0.8); transition: 0.3s; }
-.play-battle-btn:hover { transform: scale(1.08); }
+// Thao tác bấm rương -> gói thẻ -> thẻ bài Khá Bảnh
+stepChest.addEventListener('click', () => {
+  successBanner.classList.add('hidden'); // Ẩn thông báo đi khi bắt đầu mở rương
+  stepChest.classList.add('hidden');
+  stepPack.classList.remove('hidden');
+});
 
-.bottom-nav-bar { position: absolute; bottom: 20px; display: flex; gap: 15px; background: rgba(15, 20, 50, 0.85); border: 1.5px solid rgba(100, 140, 255, 0.4); padding: 10px 25px; border-radius: 35px; }
-.nav-btn { background: transparent; border: none; color: #8faaff; font-weight: 700; font-size: 14px; padding: 8px 16px; cursor: pointer; border-radius: 20px; }
-.nav-btn.active { background: rgba(70, 100, 220, 0.8); color: #fff; }
+stepPack.addEventListener('click', () => {
+  stepPack.classList.add('hidden');
+  stepCard.classList.remove('hidden');
+});
 
-/* OVERLAY HIỆU ỨNG GACHA */
-.modal-overlay {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(5, 7, 20, 0.92); z-index: 100;
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  backdrop-filter: blur(12px);
-}
-.close-modal-btn { position: absolute; top: 25px; right: 30px; background: transparent; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+btnCollectCard.addEventListener('click', () => {
+  gachaModal.classList.add('hidden');
+});
 
-/* BẢNG THÔNG BÁO ĐĂNG KÝ THÀNH CÔNG */
-.success-banner-box { text-align: center; margin-bottom: 15px; animation: bounceIn 0.5s; }
-.success-banner-box h2 { color: #00ffcc; font-size: 28px; font-weight: 900; text-shadow: 0 0 15px #00ffcc; margin-bottom: 5px; }
-.success-banner-box p { color: #fff; font-size: 15px; font-weight: 600; }
-@keyframes bounceIn { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
-
-.gacha-step { display: flex; flex-direction: column; align-items: center; animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-@keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-.gacha-item { font-size: 120px; cursor: pointer; transition: 0.2s; filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6)); }
-.gacha-item:hover { transform: scale(1.15) rotate(5deg); }
-.gacha-hint { color: #fff; font-size: 20px; font-weight: 800; margin-top: 20px; text-shadow: 0 0 10px #7848df; }
-
-/* LÁ BÀI KHÁ BẢNH */
-.card-reveal-box { position: relative; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
-.aura-glow { position: absolute; width: 220px; height: 320px; background: radial-gradient(circle, rgba(255,215,0,0.8) 0%, rgba(255,0,128,0.5) 50%, transparent 70%); animation: spinGlow 3s linear infinite; }
-@keyframes spinGlow { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
-
-.banh-card-img { position: relative; width: 220px; height: 310px; border-radius: 16px; border: 3px solid #ffe600; box-shadow: 0 0 30px #ffe600; object-fit: cover; z-index: 2; }
-.card-title { color: #ffe600; font-size: 22px; font-weight: 900; text-shadow: 0 0 15px #ff5500; margin-bottom: 15px; }
-.collect-btn { width: 220px; background: linear-gradient(90deg, #ff8c00, #ff0055); }
-
-.hidden { display: none !important; }
+btnCloseModal.addEventListener('click', () => {
+  gachaModal.classList.add('hidden');
+});
