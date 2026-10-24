@@ -1,10 +1,9 @@
 
 "use strict";
 
-/* ==================================
-   ANIME CARD GAME
-   Đăng nhập - Rương - Pack - Túi bài
-================================== */
+/* =========================================
+   ANIME CARD GAME - MAIN SCRIPT
+========================================= */
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -22,32 +21,30 @@ const registerOpen = $("#registerOpen");
 
 const chestBtn = $("#chestBtn");
 const chestEmoji = $("#chestEmoji");
+const chestPanel = $("#starterChestPanel");
+const chestDescription = $("#chestDescription");
 
-const toast = $("#toast");
 const openBagBtn = $("#openBagBtn");
 const bagCount = $("#bagCount");
+const toast = $("#toast");
 
-/* Đường dẫn ảnh lá bài */
 const CARD_IMAGE =
   "https://raw.githubusercontent.com/luucongdan1979-ui/web-game/main/kh%C3%A1%20b%E1%BA%A3nh%20nv.png";
 
-/* Trạng thái game */
 let currentUser = null;
 let cards = [];
 let busy = false;
 let toastTimer = null;
 
-/* ==================================
-   DỮ LIỆU TÀI KHOẢN
-================================== */
+/* =========================================
+   LƯU DỮ LIỆU
+========================================= */
 
 function getUsers() {
   try {
-    return JSON.parse(
-      localStorage.getItem("animeCardUsers") || "{}"
-    );
+    return JSON.parse(localStorage.getItem("animeCardUsers") || "{}");
   } catch (error) {
-    console.error("Không đọc được tài khoản:", error);
+    console.error(error);
     return {};
   }
 }
@@ -55,9 +52,11 @@ function getUsers() {
 function saveUsers(users) {
   try {
     localStorage.setItem("animeCardUsers", JSON.stringify(users));
+    return true;
   } catch (error) {
-    console.error("Không lưu được dữ liệu:", error);
-    showToast("Không thể lưu dữ liệu trên trình duyệt.");
+    console.error(error);
+    showToast("Không lưu được dữ liệu trình duyệt.");
+    return false;
   }
 }
 
@@ -65,17 +64,15 @@ function savePlayer() {
   if (!currentUser) return;
 
   const users = getUsers();
-  const user = users[currentUser];
+  if (!users[currentUser]) return;
 
-  if (!user) return;
-
-  user.cards = cards;
+  users[currentUser].cards = cards;
   saveUsers(users);
 }
 
-/* ==================================
+/* =========================================
    THÔNG BÁO
-================================== */
+========================================= */
 
 function showToast(message) {
   if (!toast) return;
@@ -84,19 +81,16 @@ function showToast(message) {
   toast.classList.add("show");
 
   clearTimeout(toastTimer);
-
   toastTimer = setTimeout(() => {
     toast.classList.remove("show");
   }, 2600);
 }
 
-/* ==================================
-   CỬA SỔ POPUP
-================================== */
+/* =========================================
+   MODAL
+========================================= */
 
 function openModal(html) {
-  if (!modal || !modalContent) return;
-
   modalContent.innerHTML = html;
   modal.classList.remove("hidden");
   modal.setAttribute("aria-hidden", "false");
@@ -104,81 +98,105 @@ function openModal(html) {
 }
 
 function closeModal() {
-  if (!modal || !modalContent) return;
-
   modal.classList.add("hidden");
   modal.setAttribute("aria-hidden", "true");
   modalContent.innerHTML = "";
   document.body.style.overflow = "";
-
   busy = false;
-
-  if (chestBtn) {
-    chestBtn.disabled = false;
-  }
 }
 
-/* ==================================
-   GIAO DIỆN
-================================== */
+/* =========================================
+   GIAO DIỆN CHÍNH
+========================================= */
 
 function updateHeader() {
-  if (playerName) {
-    playerName.textContent = currentUser || "Khách";
-  }
-
-  if (loginOpen) {
-    loginOpen.classList.toggle("hidden", Boolean(currentUser));
-  }
-
-  if (logoutBtn) {
-    logoutBtn.classList.toggle("hidden", !currentUser);
-  }
+  playerName.textContent = currentUser || "Khách";
+  loginOpen.classList.toggle("hidden", Boolean(currentUser));
+  logoutBtn.classList.toggle("hidden", !currentUser);
 }
 
 function showWelcome() {
-  welcomeScreen?.classList.remove("hidden");
-  gameScreen?.classList.add("hidden");
+  welcomeScreen.classList.remove("hidden");
+  gameScreen.classList.add("hidden");
 }
 
 function showGame() {
   if (!currentUser) {
-    showToast("Hãy đăng nhập hoặc đăng ký trước nhé!");
     openAuth("login");
     return;
   }
 
-  welcomeScreen?.classList.add("hidden");
-  gameScreen?.classList.remove("hidden");
+  welcomeScreen.classList.add("hidden");
+  gameScreen.classList.remove("hidden");
 
   updateBagCount();
   updateChestVisibility();
 }
 
 function updateBagCount() {
-  if (bagCount) {
-    bagCount.textContent = String(cards.length);
-  }
+  bagCount.textContent = String(cards.length);
 }
 
-/* Rương ẩn sau khi tài khoản đã mở */
-function updateChestVisibility() {
-  if (!chestBtn) return;
+/*
+  Nếu chưa nhận rương: hiện rương.
+  Nếu đã mở nhưng chưa nhận thẻ: cho tiếp tục pack.
+  Nếu đã nhận thẻ: ẩn hẳn rương khởi đầu.
+*/
 
-  if (!currentUser) {
-    chestBtn.classList.remove("hidden");
+function updateChestVisibility() {
+  if (!currentUser) return;
+
+  const users = getUsers();
+  const user = users[currentUser];
+
+  if (!user) return;
+
+  const opened = user.chestOpened === true;
+  const claimed = user.packClaimed === true;
+
+  let resumeButton = $("#resumePackBtn");
+
+  if (claimed) {
+    chestPanel.classList.add("hidden");
     return;
   }
 
-  const users = getUsers();
-  const opened = users[currentUser]?.chestOpened === true;
+  chestPanel.classList.remove("hidden");
 
-  chestBtn.classList.toggle("hidden", opened);
+  if (!opened) {
+    chestBtn.classList.remove("hidden");
+    chestBtn.disabled = false;
+
+    if (chestDescription) {
+      chestDescription.textContent =
+        "Mỗi tài khoản chỉ nhận rương khởi đầu một lần.";
+    }
+
+    resumeButton?.remove();
+    return;
+  }
+
+  chestBtn.classList.add("hidden");
+
+  if (chestDescription) {
+    chestDescription.textContent =
+      "Bạn còn một pack chưa mở. Hãy tiếp tục để nhận thẻ!";
+  }
+
+  if (!resumeButton) {
+    resumeButton = document.createElement("button");
+    resumeButton.id = "resumePackBtn";
+    resumeButton.className = "main-btn form-submit";
+    resumeButton.textContent = "TIẾP TỤC MỞ PACK";
+    chestPanel.appendChild(resumeButton);
+  }
+
+  resumeButton.onclick = showPack;
 }
 
-/* ==================================
+/* =========================================
    ĐĂNG KÝ / ĐĂNG NHẬP
-================================== */
+========================================= */
 
 function openAuth(mode) {
   const isRegister = mode === "register";
@@ -191,17 +209,16 @@ function openAuth(mode) {
     <h2>${isRegister ? "TẠO TÀI KHOẢN" : "ĐĂNG NHẬP"}</h2>
 
     <form id="authForm">
+      <div class="form-field">
+        <label for="authName">Tên tài khoản</label>
+        <input id="authName" name="username"
+          required minlength="3" maxlength="20"
+          autocomplete="username" placeholder="Tên tài khoản">
+      </div>
+
       ${
         isRegister
           ? `
-            <div class="form-field">
-              <label for="authName">Tên tài khoản</label>
-              <input id="authName" name="username"
-                required minlength="3" maxlength="20"
-                autocomplete="username"
-                placeholder="Nhập tên tài khoản">
-            </div>
-
             <div class="form-field">
               <label for="authEmail">Gmail</label>
               <input id="authEmail" name="email"
@@ -209,14 +226,7 @@ function openAuth(mode) {
                 placeholder="example@gmail.com">
             </div>
           `
-          : `
-            <div class="form-field">
-              <label for="authName">Tên tài khoản</label>
-              <input id="authName" name="username"
-                required autocomplete="username"
-                placeholder="Tên tài khoản">
-            </div>
-          `
+          : ""
       }
 
       <div class="form-field">
@@ -224,11 +234,11 @@ function openAuth(mode) {
         <input id="authPassword" name="password"
           type="password" required minlength="4"
           autocomplete="${isRegister ? "new-password" : "current-password"}"
-          placeholder="Nhập mật khẩu">
+          placeholder="Mật khẩu">
       </div>
 
       <button class="main-btn form-submit" type="submit">
-        ${isRegister ? "ĐĂNG KÝ NGAY" : "ĐĂNG NHẬP"}
+        ${isRegister ? "ĐĂNG KÝ" : "ĐĂNG NHẬP"}
       </button>
     </form>
 
@@ -240,26 +250,24 @@ function openAuth(mode) {
     </div>
 
     <p class="hint">
-      Đây là bản demo. Tài khoản được lưu trên trình duyệt hiện tại.
+      Đây là bản demo lưu dữ liệu trên trình duyệt hiện tại.
     </p>
   `);
 
-  $("#switchAuth")?.addEventListener("click", () => {
+  $("#switchAuth").onclick = () => {
     openAuth(isRegister ? "login" : "register");
-  });
+  };
 
-  $("#authForm")?.addEventListener("submit", (event) => {
+  $("#authForm").addEventListener("submit", (event) => {
     event.preventDefault();
 
-    const formData = new FormData(event.currentTarget);
-    const username = String(formData.get("username") || "").trim();
-    const password = String(formData.get("password") || "");
-    const email = String(formData.get("email") || "")
-      .trim()
-      .toLowerCase();
+    const data = new FormData(event.currentTarget);
+    const username = String(data.get("username") || "").trim();
+    const password = String(data.get("password") || "");
+    const email = String(data.get("email") || "").trim().toLowerCase();
 
     if (!username || !password) {
-      showToast("Vui lòng điền đầy đủ thông tin.");
+      showToast("Vui lòng nhập đầy đủ thông tin.");
       return;
     }
 
@@ -280,12 +288,15 @@ function openAuth(mode) {
         email: email,
         password: password,
         cards: [],
-        chestOpened: false
+        chestOpened: false,
+        packClaimed: false,
+        pendingPack: false
       };
 
-      saveUsers(users);
+      if (!saveUsers(users)) return;
+
       loginUser(username);
-      showToast("Đăng ký thành công! Chào mừng vào game.");
+      showToast("Đăng ký thành công!");
       return;
     }
 
@@ -297,16 +308,17 @@ function openAuth(mode) {
       return;
     }
 
-    /* Bổ sung dữ liệu mặc định cho tài khoản cũ */
-    if (!Array.isArray(users[username].cards)) {
-      users[username].cards = [];
+    const user = users[username];
+
+    if (!Array.isArray(user.cards)) user.cards = [];
+    if (typeof user.chestOpened !== "boolean") user.chestOpened = false;
+    if (typeof user.packClaimed !== "boolean") user.packClaimed = false;
+    if (typeof user.pendingPack !== "boolean") {
+      user.pendingPack = user.chestOpened && !user.packClaimed;
     }
 
-    if (typeof users[username].chestOpened !== "boolean") {
-      users[username].chestOpened = false;
-    }
+    if (!saveUsers(users)) return;
 
-    saveUsers(users);
     loginUser(username);
     showToast("Đăng nhập thành công!");
   });
@@ -318,13 +330,19 @@ function loginUser(username) {
   const users = getUsers();
   const user = users[username];
 
-  cards = Array.isArray(user?.cards) ? user.cards : [];
+  cards = Array.isArray(user.cards) ? user.cards : [];
 
   updateHeader();
   closeModal();
   showGame();
-  updateBagCount();
-  updateChestVisibility();
+
+  /*
+    Nếu người chơi tải lại trang khi pack chưa mở,
+    cho họ tiếp tục thay vì mất phần thưởng.
+  */
+  if (user.pendingPack && !user.packClaimed) {
+    showPack();
+  }
 }
 
 function logout() {
@@ -337,13 +355,11 @@ function logout() {
   updateHeader();
   closeModal();
   showWelcome();
-
-  showToast("Bạn đã đăng xuất.");
 }
 
-/* ==================================
-   TÚI THẺ BÀI
-================================== */
+/* =========================================
+   TÚI THẺ CỦA TÔI
+========================================= */
 
 function openCardBag() {
   if (!currentUser) {
@@ -352,21 +368,21 @@ function openCardBag() {
   }
 
   const cardItems = cards.length
-    ? `<div class="bag-grid" id="bagGrid"></div>`
+    ? '<div class="bag-grid" id="bagGrid"></div>'
     : `
       <div class="bag-empty">
         <span>🎒</span>
-        Túi của bạn đang trống.<br>
-        Hãy mở rương để nhận thẻ bài nhé!
+        Túi thẻ của bạn đang trống.<br>
+        Mở rương khởi đầu để nhận thẻ nhé!
       </div>
     `;
 
   openModal(`
-    <div class="hero-tag">YOUR COLLECTION</div>
-    <h2>🎒 TÚI THẺ BÀI</h2>
+    <div class="hero-tag">MY CARD COLLECTION</div>
+    <h2>🎒 TÚI THẺ CỦA TÔI</h2>
 
     <p style="text-align:center;color:#aaa9c5">
-      Bạn đang có ${cards.length} lá bài.
+      Tổng số thẻ đang sở hữu: ${cards.length}
     </p>
 
     ${cardItems}
@@ -386,7 +402,6 @@ function openCardBag() {
       const img = document.createElement("img");
       img.src = card.image || CARD_IMAGE;
       img.alt = card.name || "Thẻ bài";
-
       img.onerror = () => {
         img.style.display = "none";
       };
@@ -404,12 +419,13 @@ function openCardBag() {
     });
   }
 
-  $("#bagCloseBtn")?.addEventListener("click", closeModal);
+  $("#bagCloseBtn").onclick = closeModal;
 }
 
-/* ==================================
-   MỞ RƯƠNG - CHỈ MỘT LẦN
-================================== */
+/* =========================================
+   RƯƠNG KHỞI ĐẦU
+   Mỗi tài khoản chỉ mở một lần
+========================================= */
 
 function openChest() {
   if (!currentUser) {
@@ -422,116 +438,100 @@ function openChest() {
   const users = getUsers();
   const user = users[currentUser];
 
-  if (!user) {
-    showToast("Không tìm thấy tài khoản.");
-    return;
-  }
+  if (!user) return;
 
-  if (user.chestOpened === true) {
+  if (user.chestOpened || user.packClaimed) {
     updateChestVisibility();
-    showToast("Bạn đã mở rương này rồi!");
-    return;
-  }
-
-  busy = true;
-
-  if (chestBtn) {
-    chestBtn.disabled = true;
-    chestBtn.classList.add("shake");
-  }
-
-  if (chestEmoji) {
-    chestEmoji.textContent = "✨";
-  }
-
-  setTimeout(() => {
-    if (chestBtn) {
-      chestBtn.classList.remove("shake");
-    }
-
-    if (chestEmoji) {
-      chestEmoji.textContent = "📦";
-    }
-
-    /*
-      Đánh dấu đã mở và lưu ngay.
-      Rương sẽ biến mất khi tài khoản này mở xong.
-    */
-    const latestUsers = getUsers();
-
-    if (!latestUsers[currentUser]) {
-      busy = false;
-      return;
-    }
-
-    latestUsers[currentUser].chestOpened = true;
-    saveUsers(latestUsers);
-    updateChestVisibility();
-
-    openModal(`
-      <div class="hero-tag">TREASURE UNLOCKED</div>
-      <h2>BẠN NHẬN ĐƯỢC PACK!</h2>
-
-      <p style="text-align:center;color:#aaa9c5">
-        Nhấn vào gói để khám phá lá bài bí ẩn.
-      </p>
-
-      <div class="pack-wrap">
-        <button id="packBtn" class="pack"
-          aria-label="Xé gói thẻ bài">
-          ✦<br>ANIME<br>CARDS
-        </button>
-      </div>
-
-      <p style="text-align:center;color:#46d9ff;font-size:12px">
-        NHẤN VÀO GÓI ĐỂ XÉ
-      </p>
-    `);
-
-    $("#packBtn")?.addEventListener("click", tearPack);
-    busy = false;
-  }, 650);
-}
-
-/* ==================================
-   XÉ PACK - NHẬN THẺ
-================================== */
-
-function tearPack() {
-  if (busy) return;
-
-  if (!currentUser) {
-    closeModal();
-    openAuth("login");
-    return;
-  }
-
-  const users = getUsers();
-  const user = users[currentUser];
-
-  if (!user || user.chestOpened !== true) {
-    showToast("Bạn cần mở rương trước!");
+    showToast("Bạn đã nhận rương khởi đầu rồi!");
     return;
   }
 
   /*
-    Không cho nhận nhiều lá từ một pack
-    bằng cách nhấn liên tục.
+    Lưu trạng thái ngay trước khi hiện pack.
+    Nhấn liên tục không thể mở thêm rương.
   */
-  if (user.packClaimed === true) {
-    showToast("Bạn đã nhận thẻ từ pack này rồi!");
+  user.chestOpened = true;
+  user.pendingPack = true;
+
+  if (!saveUsers(users)) {
+    user.chestOpened = false;
+    user.pendingPack = false;
     return;
   }
 
   busy = true;
+  chestBtn.disabled = true;
+  chestBtn.classList.add("shake");
+  chestEmoji.textContent = "✨";
 
-  const pack = $("#packBtn");
+  setTimeout(() => {
+    chestBtn.classList.remove("shake");
+    chestEmoji.textContent = "📦";
 
-  if (!pack) {
+    updateChestVisibility();
     busy = false;
+    showPack();
+  }, 650);
+}
+
+/* =========================================
+   HIỆN PACK
+========================================= */
+
+function showPack() {
+  if (!currentUser || busy) return;
+
+  const users = getUsers();
+  const user = users[currentUser];
+
+  if (!user || user.packClaimed || !user.pendingPack) {
+    updateChestVisibility();
     return;
   }
 
+  openModal(`
+    <div class="hero-tag">STARTER PACK</div>
+    <h2>PACK KHỞI ĐẦU</h2>
+
+    <p style="text-align:center;color:#aaa9c5">
+      Nhấn vào gói bài để xé và nhận thẻ!
+    </p>
+
+    <div class="pack-wrap">
+      <button id="packBtn" class="pack" aria-label="Xé pack">
+        ✦<br>ANIME<br>CARDS
+      </button>
+    </div>
+
+    <p style="text-align:center;color:#46d9ff;font-size:12px">
+      Mỗi tài khoản chỉ nhận một pack khởi đầu.
+    </p>
+  `);
+
+  $("#packBtn").onclick = tearPack;
+}
+
+/* =========================================
+   XÉ PACK VÀ NHẬN THẺ
+========================================= */
+
+function tearPack() {
+  if (busy || !currentUser) return;
+
+  const users = getUsers();
+  const user = users[currentUser];
+
+  if (!user || !user.pendingPack || user.packClaimed) {
+    showToast("Pack này đã được nhận hoặc không còn khả dụng.");
+    closeModal();
+    updateChestVisibility();
+    return;
+  }
+
+  const pack = $("#packBtn");
+  if (!pack) return;
+
+  busy = true;
   pack.disabled = true;
   pack.classList.add("tear");
 
@@ -539,9 +539,14 @@ function tearPack() {
     const latestUsers = getUsers();
     const latestUser = latestUsers[currentUser];
 
-    if (!latestUser || latestUser.packClaimed === true) {
+    if (
+      !latestUser ||
+      !latestUser.pendingPack ||
+      latestUser.packClaimed
+    ) {
       busy = false;
       closeModal();
+      updateChestVisibility();
       return;
     }
 
@@ -556,91 +561,102 @@ function tearPack() {
       latestUser.cards = [];
     }
 
-    latestUser.cards.push(newCard);
+    /*
+      Đánh dấu đã nhận trước khi kết thúc thao tác.
+      Không thể nhận thêm lá bài từ cùng pack.
+    */
     latestUser.packClaimed = true;
+    latestUser.pendingPack = false;
+    latestUser.cards.push(newCard);
+
+    if (!saveUsers(latestUsers)) {
+      busy = false;
+      showToast("Lưu thẻ thất bại. Vui lòng thử lại.");
+      return;
+    }
 
     cards = latestUser.cards;
-    saveUsers(latestUsers);
-
     updateBagCount();
+    updateChestVisibility();
 
-    openModal(`
-      <div class="hero-tag">NEW CARD UNLOCKED!</div>
-      <h2>CHÚC MỪNG!</h2>
-
-      <div class="reveal-card">
-        <img id="revealedImage"
-          src="${CARD_IMAGE}"
-          alt="Lá bài Khá Bảnh">
-
-        <h3>KHÁ BẢNH</h3>
-        <p>★ LEGENDARY ★</p>
-      </div>
-
-      <p style="text-align:center;color:#aaa9c5;font-size:12px">
-        Lá bài đã được thêm vào 🎒 Túi thẻ bài!
-      </p>
-
-      <button id="backToGame" class="main-btn form-submit">
-        TIẾP TỤC
-      </button>
-    `);
-
-    $("#revealedImage")?.addEventListener("error", () => {
-      showToast("Không tải được ảnh. Hãy kiểm tra đường dẫn ảnh.");
-    });
-
-    $("#backToGame")?.addEventListener("click", () => {
-      closeModal();
-      busy = false;
-      updateChestVisibility();
-    });
-
-    busy = false;
+    showCardReveal(newCard);
   }, 750);
 }
 
-/* ==================================
-   GẮN SỰ KIỆN NÚT
-================================== */
+/* =========================================
+   HIỆN THẺ VỪA NHẬN
+========================================= */
 
-startBtn?.addEventListener("click", showGame);
+function showCardReveal(card) {
+  openModal(`
+    <div class="hero-tag">NEW CARD UNLOCKED!</div>
+    <h2>CHÚC MỪNG!</h2>
 
-loginOpen?.addEventListener("click", () => {
-  openAuth("login");
+    <div class="reveal-card">
+      <img id="revealedImage"
+        src="${card.image}"
+        alt="${card.name}">
+
+      <h3>${card.name}</h3>
+      <p>${card.rarity}</p>
+    </div>
+
+    <p style="text-align:center;color:#aaa9c5;font-size:12px">
+      Thẻ bài đã được lưu vào túi thẻ của bạn!
+    </p>
+
+    <button id="viewBagBtn" class="main-btn form-submit">
+      🎒 XEM TÚI THẺ CỦA TÔI
+    </button>
+  `);
+
+  $("#revealedImage").onerror = () => {
+    showToast("Không tải được ảnh thẻ. Hãy kiểm tra đường dẫn ảnh.");
+  };
+
+  $("#viewBagBtn").onclick = () => {
+    busy = false;
+    openCardBag();
+  };
+
+  busy = false;
+}
+
+/* =========================================
+   GẮN SỰ KIỆN
+========================================= */
+
+startBtn.addEventListener("click", () => {
+  if (!currentUser) {
+    openAuth("login");
+    return;
+  }
+
+  showGame();
 });
 
-registerOpen?.addEventListener("click", () => {
-  openAuth("register");
-});
+loginOpen.addEventListener("click", () => openAuth("login"));
+registerOpen.addEventListener("click", () => openAuth("register"));
+logoutBtn.addEventListener("click", logout);
+chestBtn.addEventListener("click", openChest);
+openBagBtn.addEventListener("click", openCardBag);
+modalClose.addEventListener("click", closeModal);
 
-logoutBtn?.addEventListener("click", logout);
-
-chestBtn?.addEventListener("click", openChest);
-
-openBagBtn?.addEventListener("click", openCardBag);
-
-modalClose?.addEventListener("click", closeModal);
-
-modal?.addEventListener("click", (event) => {
-  if (event.target?.dataset?.close === "true") {
+modal.addEventListener("click", (event) => {
+  if (event.target.dataset.close === "true") {
     closeModal();
   }
 });
 
 document.addEventListener("keydown", (event) => {
-  if (
-    event.key === "Escape" &&
-    modal &&
-    !modal.classList.contains("hidden")
-  ) {
+  if (event.key === "Escape" && !modal.classList.contains("hidden")) {
     closeModal();
   }
 });
 
-/* ==================================
+/* =========================================
    KHỞI ĐỘNG
-================================== */
+========================================= */
 
 updateHeader();
 showWelcome();
