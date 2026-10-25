@@ -502,3 +502,23 @@ h1 span, .hero h1 span {
   .nav-btn small { font-size: 9px; }
   .modal-box { padding: 27px 20px 22px; }
 }
+/* Đảm bảo toàn bộ các nút bấm và màn hình chào nổi lên trên cùng và nhận tương tác */
+.welcome-screen, .welcome-panel {
+  position: relative;
+  z-index: 999 !important;
+  pointer-events: auto !important;
+}
+
+button, .primary-btn, .secondary-btn, .start-btn, .admin-link {
+  position: relative;
+  z-index: 1000 !important;
+  pointer-events: auto !important;
+}
+
+/* Đảm bảo các modal khi ẩn đi hoàn toàn không chặn click của màn hình chính */
+.modal {
+  pointer-events: none;
+}
+.modal.show {
+  pointer-events: auto;
+}
