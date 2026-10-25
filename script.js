@@ -1,4 +1,3 @@
-
 "use strict";
 
 /* =========================
@@ -504,7 +503,6 @@ function openCardDetail(card) {
     <p><span class="rarity-tag ${card.rarity === "LEGENDARY" ? "legendary-tag" : "rare-tag"}">${rarityText}</span></p>
     <p>Loại thẻ: ${categoryName(card.category)}</p>
     <p>${escapeHTML(card.description)}</p>
-    <p>Sức mạnh: ${card.power}/100</p>
   `;
 
   showModal("cardDetailModal");
@@ -656,7 +654,6 @@ $("openSelectedPackBtn").addEventListener("click", () => {
 
   if (!packInfo) return;
 
-  // Xóa pack khỏi Balo khi bắt đầu mở.
   currentUser.inventoryPacks.splice(packIndex, 1);
 
   const roll = Math.random() * 100;
@@ -668,7 +665,6 @@ $("openSelectedPackBtn").addEventListener("click", () => {
     card.rarity === targetRarity
   );
 
-  // Nếu sau này chưa có thẻ đúng độ hiếm, dùng các thẻ hiện có.
   if (possibleCards.length === 0) {
     possibleCards = CARD_DATA;
   }
@@ -695,7 +691,6 @@ $("openSelectedPackBtn").addEventListener("click", () => {
 
   showModal("revealModal");
 
-  // Hiệu ứng xé pack trước khi lật ra lá bài.
   $("openSelectedPackBtn").disabled = true;
 
   setTimeout(() => {
@@ -746,7 +741,6 @@ $("claimStarterBtn").addEventListener("click", () => {
 
   currentUser.claimedStarter = true;
 
-  // Quà khởi đầu cũng chuyển vào Balo để người chơi tự mở.
   currentUser.inventoryPacks.push({
     id: createId(),
     type: "basic",
