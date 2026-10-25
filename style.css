@@ -1,5 +1,5 @@
 /* =========================================
-   CARD ARENA - CORE & MODAL STYLES
+   CARD ARENA - STYLESHEET (ĐÃ FIX LỖI MODAL)
    ========================================= */
 
 * {
@@ -37,25 +37,28 @@ body {
   display: none !important;
 }
 
-/* MODAL - SỬA LỖI ĐÈ MỜ */
+/* MODAL - ĐÃ FIX ẨN MẶC ĐỊNH BẰNG !IMPORTANT */
 .modal {
   position: fixed;
   inset: 0;
-  z-index: 9999; /* Đảm bảo nổi lên trên khi bật */
-  display: none !important; /* MẶC ĐỊNH ẨN HOÀN TOÀN */
+  z-index: 1000;
+  display: none !important; /* Mặc định ẩn hoàn toàn */
   align-items: center;
   justify-content: center;
   overflow-y: auto;
   padding: 22px;
-  background: rgba(3, 2, 10, 0.85);
+  background: rgba(3, 2, 10, 0.83);
   backdrop-filter: blur(10px);
-  pointer-events: auto;
 }
 
-/* BẬT MODAL KHI CÓ CLASS SHOW */
-.modal.show {
-  display: flex !important;
-  animation: fadeIn 0.2s ease;
+.modal.show { 
+  display: flex !important; /* Chỉ hiện khi có class show */
+  animation: fadeIn 0.2s ease; 
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-box {
@@ -86,9 +89,4 @@ body {
 
 .hidden {
   display: none !important;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
 }
