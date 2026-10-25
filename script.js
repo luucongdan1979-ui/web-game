@@ -15,7 +15,8 @@ const CARD_DATA = [
     category: "CHARACTER",
     rarity: "RARE",
     image: "./kh%C3%A1%20b%E1%BA%A3nh%20nv.png",
-    description: "Một nhân vật trong bộ sưu tập meme CARD ARENA."
+    description: "Một nhân vật trong bộ sưu tập meme CARD ARENA.",
+    power: 75
   },
   {
     id: "jack",
@@ -23,15 +24,19 @@ const CARD_DATA = [
     category: "CHARACTER",
     rarity: "LEGENDARY",
     image: "./jack%20nv.png",
-    description: "Lá nhân vật huyền thoại trong bộ sưu tập meme CARD ARENA."
+    description: "Lá nhân vật huyền thoại trong bộ sưu tập meme CARD ARENA.",
+    power: 95
   },
+
+  // LÁ TÌNH HUỐNG MỚI: VÀO TÙ
   {
     id: "vao-tu",
     name: "Vào Tù",
     category: "SITUATION",
     rarity: "LEGENDARY",
     image: "./V%C3%A0o%20T%C3%B9%20Th.png",
-    description: "Lá tình huống huyền thoại trong bộ sưu tập meme CARD ARENA."
+    description: "Lá bài tình huống huyền thoại trong CARD ARENA.",
+    power: 90
   }
 ];
 
@@ -83,9 +88,11 @@ function normalizePlayer(player) {
   if (!Array.isArray(player.ownedCards)) player.ownedCards = [];
   if (!Array.isArray(player.inventoryPacks)) player.inventoryPacks = [];
   if (!Number.isFinite(player.coins)) player.coins = 17;
+
   if (typeof player.claimedStarter !== "boolean") {
     player.claimedStarter = false;
   }
+
   return player;
 }
 
@@ -93,7 +100,9 @@ function savePlayer() {
   if (!currentUser || currentUser.isAdmin) return;
 
   const users = readUsers();
-  const index = users.findIndex(user => user.username === currentUser.username);
+  const index = users.findIndex(
+    user => user.username === currentUser.username
+  );
 
   if (index !== -1) {
     users[index] = currentUser;
@@ -136,6 +145,7 @@ function showToast(message) {
   toast.classList.add("show");
 
   clearTimeout(toastTimeout);
+
   toastTimeout = setTimeout(() => {
     toast.classList.remove("show");
   }, 2600);
@@ -183,13 +193,20 @@ function setAuthMode(mode) {
   const isRegister = mode === "register";
 
   $("authTitle").textContent = isRegister ? "ĐĂNG KÝ" : "ĐĂNG NHẬP";
-  $("authSubmitBtn").textContent = isRegister ? "TẠO TÀI KHOẢN" : "ĐĂNG NHẬP";
+  $("authSubmitBtn").textContent = isRegister
+    ? "TẠO TÀI KHOẢN"
+    : "ĐĂNG NHẬP";
+
   $("registerFields").classList.toggle("hidden", !isRegister);
   $("authEmail").required = isRegister;
+
   $("switchAuthText").textContent = isRegister
     ? "Đã có tài khoản?"
     : "Chưa có tài khoản?";
-  $("switchAuthBtn").textContent = isRegister ? "Đăng nhập" : "Đăng ký";
+
+  $("switchAuthBtn").textContent = isRegister
+    ? "Đăng nhập"
+    : "Đăng ký";
 
   $("authPassword").autocomplete = isRegister
     ? "new-password"
@@ -203,6 +220,7 @@ function openAuth(mode) {
   $("authForm").reset();
   setMessage("authMessage", "");
   showModal("authModal");
+
   setTimeout(() => $("authUsername").focus(), 100);
 }
 
@@ -252,6 +270,7 @@ function registerAccount(username, email, password) {
 
 function loginAccount(username, password) {
   const users = readUsers();
+
   const player = users.find(user =>
     user.username.toLowerCase() === username.toLowerCase()
   );
@@ -360,6 +379,7 @@ function enterGame() {
   currentUser = normalizePlayer(currentUser);
 
   $("adminBadge").classList.toggle("hidden", !currentUser.isAdmin);
+
   $("starterPanel").classList.toggle(
     "hidden",
     currentUser.isAdmin || currentUser.claimedStarter
@@ -439,12 +459,17 @@ function renderAlbum() {
   grid.innerHTML = "";
 
   const ownedCards = getOwnedCards();
+
   const filteredCards = ownedCards.filter(card =>
     albumFilter === "ALL" || card.category === albumFilter
   );
 
   $("collectionCount").textContent = `${ownedCards.length} thẻ`;
-  $("emptyAlbum").classList.toggle("hidden", filteredCards.length > 0);
+
+  $("emptyAlbum").classList.toggle(
+    "hidden",
+    filteredCards.length > 0
+  );
 
   filteredCards.forEach(card => {
     grid.appendChild(makeCardElement(card));
@@ -473,6 +498,7 @@ function makeCardElement(card) {
   `;
 
   button.addEventListener("click", () => openCardDetail(card));
+
   return button;
 }
 
@@ -500,15 +526,22 @@ $("albumFilters").addEventListener("click", event => {
 });
 
 function openCardDetail(card) {
-  const rarityText = card.rarity === "LEGENDARY" ? "LEGENDARY" : "RARE";
+  const rarityText = card.rarity === "LEGENDARY"
+    ? "LEGENDARY"
+    : "RARE";
 
   $("cardDetailContent").innerHTML = `
     <img src="${card.image}" alt="${escapeHTML(card.name)}"
          onerror="this.style.display='none'">
     <h2>${escapeHTML(card.name)}</h2>
-    <p><span class="rarity-tag ${card.rarity === "LEGENDARY" ? "legendary-tag" : "rare-tag"}">${rarityText}</span></p>
+    <p>
+      <span class="rarity-tag ${
+        card.rarity === "LEGENDARY" ? "legendary-tag" : "rare-tag"
+      }">${rarityText}</span>
+    </p>
     <p>Loại thẻ: ${categoryName(card.category)}</p>
     <p>${escapeHTML(card.description)}</p>
+    <p>Sức mạnh: ${card.power}/100</p>
   `;
 
   showModal("cardDetailModal");
@@ -550,6 +583,7 @@ function buyItem(itemType) {
 
   setMessage("shopMessage", "");
   showPage("bag");
+
   showToast(`🎒 Đã mua ${pack.name}! Pack đã được chuyển vào Balo.`);
 }
 
@@ -557,6 +591,7 @@ function buyItem(itemType) {
 
 function getBagPacks() {
   if (!currentUser) return [];
+
   if (!Array.isArray(currentUser.inventoryPacks)) {
     currentUser.inventoryPacks = [];
   }
@@ -573,6 +608,7 @@ function renderBag() {
   const packs = getBagPacks();
 
   $("bagCount").textContent = `${packs.length} pack`;
+
   $("emptyBag").classList.toggle("hidden", packs.length > 0);
 
   packs.forEach(pack => {
@@ -598,6 +634,7 @@ function renderBag() {
     `;
 
     packElement.addEventListener("click", () => openBagPack(pack.id));
+
     grid.appendChild(packElement);
   });
 }
@@ -609,6 +646,7 @@ function openBag() {
 
 function openBagPack(packId) {
   const pack = getBagPacks().find(item => item.id === packId);
+
   if (!pack) {
     showToast("Không tìm thấy pack này trong Balo.");
     renderBag();
@@ -624,7 +662,9 @@ function openBagPack(packId) {
   $("detailPackDescription").textContent = packInfo.description;
 
   const detailArt = $("detailPackArt");
-  detailArt.className = `pack-art detail-pack-art ${isPremium ? "premium-art" : "basic-art"}`;
+
+  detailArt.className =
+    `pack-art detail-pack-art ${isPremium ? "premium-art" : "basic-art"}`;
 
   detailArt.innerHTML = `
     <div class="pack-shine"></div>
@@ -636,16 +676,17 @@ function openBagPack(packId) {
 
   $("openSelectedPackBtn").disabled = false;
   $("openSelectedPackBtn").textContent = "XÉ PACK ✨";
+
   showModal("packDetailModal");
 }
 
 /* ---------- OPEN PACK ---------- */
 
 $("openSelectedPackBtn").addEventListener("click", () => {
-  if (!selectedPackId) return;
+  if (!selectedPackId || !currentUser) return;
 
-  const packIndex = getBagPacks().findIndex(pack =>
-    pack.id === selectedPackId
+  const packIndex = getBagPacks().findIndex(
+    pack => pack.id === selectedPackId
   );
 
   if (packIndex === -1) {
@@ -660,37 +701,55 @@ $("openSelectedPackBtn").addEventListener("click", () => {
 
   if (!packInfo) return;
 
+  // Xóa pack khỏi Balo khi bắt đầu mở.
   currentUser.inventoryPacks.splice(packIndex, 1);
 
+  // Xác định độ hiếm của lá bài.
   const roll = Math.random() * 100;
+
   const targetRarity = roll < packInfo.legendaryRate
     ? "LEGENDARY"
     : "RARE";
 
-  let possibleCards = CARD_DATA.filter(card =>
+  /*
+    Khi trúng LEGENDARY, danh sách có:
+    - Jack J97
+    - Vào Tù
+
+    Hai lá Legendary có cơ hội được chọn ngang nhau.
+    Khi trúng RARE, danh sách có Khá Bảnh.
+  */
+  const possibleCards = CARD_DATA.filter(card =>
     card.rarity === targetRarity
   );
 
-  if (possibleCards.length === 0) {
-    possibleCards = CARD_DATA;
-  }
+  // Phòng trường hợp sau này chưa có thẻ thuộc độ hiếm được chọn.
+  const cardPool = possibleCards.length > 0
+    ? possibleCards
+    : CARD_DATA;
 
   const receivedCard =
-    possibleCards[Math.floor(Math.random() * possibleCards.length)];
+    cardPool[Math.floor(Math.random() * cardPool.length)];
 
+  // Lưu thẻ vào bộ sưu tập của tài khoản.
   if (!currentUser.ownedCards.includes(receivedCard.id)) {
     currentUser.ownedCards.push(receivedCard.id);
   }
 
   selectedPackId = null;
+
   savePlayer();
   updateCoins();
+
+  // Cập nhật album ngay sau khi nhận thẻ.
   renderAlbum();
   renderBag();
 
   hideModal("packDetailModal");
 
-  $("revealTitle").textContent = `BẠN NHẬN ĐƯỢC ${receivedCard.name.toUpperCase()}!`;
+  $("revealTitle").textContent =
+    `BẠN NHẬN ĐƯỢC ${receivedCard.name.toUpperCase()}!`;
+
   $("revealedCard").innerHTML = "";
   $("tearEffect").classList.remove("tear-animate");
   $("tearEffect").textContent = "✦ PACK OPENING ✦";
@@ -699,14 +758,20 @@ $("openSelectedPackBtn").addEventListener("click", () => {
 
   $("openSelectedPackBtn").disabled = true;
 
+  // Hiệu ứng xé pack.
   setTimeout(() => {
     $("tearEffect").classList.add("tear-animate");
     $("tearEffect").textContent = "✂️ ĐANG XÉ PACK...";
   }, 100);
 
+  // Hiện lá bài sau hiệu ứng.
   setTimeout(() => {
     $("tearEffect").textContent = "✨ THẺ BÀI XUẤT HIỆN ✨";
-    $("revealedCard").appendChild(makeCardElement(receivedCard));
+
+    $("revealedCard").appendChild(
+      makeCardElement(receivedCard)
+    );
+
     showToast(`🎉 Bạn nhận được thẻ ${receivedCard.name}!`);
   }, 750);
 });
@@ -732,7 +797,11 @@ function updateStarterPanel() {
 }
 
 $("openChestBtn").addEventListener("click", () => {
-  if (!currentUser || currentUser.claimedStarter || currentUser.isAdmin) {
+  if (
+    !currentUser ||
+    currentUser.claimedStarter ||
+    currentUser.isAdmin
+  ) {
     return;
   }
 
@@ -740,13 +809,18 @@ $("openChestBtn").addEventListener("click", () => {
 });
 
 $("claimStarterBtn").addEventListener("click", () => {
-  if (!currentUser || currentUser.claimedStarter || currentUser.isAdmin) {
+  if (
+    !currentUser ||
+    currentUser.claimedStarter ||
+    currentUser.isAdmin
+  ) {
     hideModal("chestModal");
     return;
   }
 
   currentUser.claimedStarter = true;
 
+  // Quà khởi đầu được chuyển vào Balo để người chơi tự mở.
   currentUser.inventoryPacks.push({
     id: createId(),
     type: "basic",
@@ -760,6 +834,7 @@ $("claimStarterBtn").addEventListener("click", () => {
 
   hideModal("chestModal");
   showPage("bag");
+
   showToast("🎁 Bạn nhận được 1 Basic Pack miễn phí trong Balo!");
 });
 
@@ -793,7 +868,9 @@ function restoreSession() {
   let session;
 
   try {
-    session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+    session = JSON.parse(
+      sessionStorage.getItem(SESSION_KEY) || "null"
+    );
   } catch {
     session = null;
   }
@@ -815,7 +892,10 @@ function restoreSession() {
   }
 
   const users = readUsers();
-  const player = users.find(user => user.username === session.username);
+
+  const player = users.find(
+    user => user.username === session.username
+  );
 
   if (player) {
     currentUser = normalizePlayer(player);
