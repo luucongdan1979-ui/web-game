@@ -1,105 +1,97 @@
-// Chuyển tab đăng nhập / đăng ký / admin
-function switchTab(tabName) {
-    document.querySelectorAll('.form-box').forEach(box => box.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+// Chuyển Tab Đăng nhập / Đăng ký / Admin
+function switchAuthTab(tab) {
+    // Ẩn tất cả các form và hủy active tab
+    document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
-    if (tabName === 'login') {
-        document.getElementById('login-form').classList.add('active');
-        event.target.classList.add('active');
-    } else if (tabName === 'register') {
-        document.getElementById('register-form').classList.add('active');
-        event.target.classList.add('active');
-    } else if (tabName === 'admin') {
-        document.getElementById('admin-form').classList.add('active');
-        event.target.classList.add('active');
-    }
+    // Hiển thị form được chọn
+    document.getElementById(`form-${tab}`).classList.add('active');
+    document.getElementById(`tab-${tab}`).classList.add('active');
 }
 
-// Xử lý đăng ký
+// Đăng ký
 function handleRegister() {
-    const user = document.getElementById('reg-user').value;
-    const email = document.getElementById('reg-email').value;
-    const pass = document.getElementById('reg-pass').value;
+    const user = document.getElementById('reg-user').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const pass = document.getElementById('reg-pass').value.trim();
 
     if (!user || !email || !pass) {
-        alert("Vui lòng điền đầy đủ thông tin!");
+        alert("⚠️ Vui lòng nhập đầy đủ thông tin!");
         return;
     }
 
     localStorage.setItem('registeredUser', user);
     localStorage.setItem('registeredPass', pass);
-    alert("Đăng ký thành công! Hãy đăng nhập để nhận rương tân thủ.");
-    switchTab('login');
+    alert("🎉 Đăng ký thành công! Hãy chuyển sang tab Đăng Nhập.");
+    switchAuthTab('login');
 }
 
-// Xử lý đăng nhập thường
+// Đăng nhập thường
 function handleLogin() {
-    const user = document.getElementById('login-user').value;
-    const pass = document.getElementById('login-pass').value;
-
-    if (user === "admin" && pass === "171113") {
-        loginSuccess(true);
-        return;
-    }
+    const user = document.getElementById('login-user').value.trim();
+    const pass = document.getElementById('login-pass').value.trim();
 
     const savedUser = localStorage.getItem('registeredUser');
     const savedPass = localStorage.getItem('registeredPass');
 
-    if ((user === savedUser && pass === savedPass) || (user && pass)) {
-        loginSuccess(false);
+    if ((user && user === savedUser && pass === savedPass) || (user === "admin" && pass === "171113")) {
+        enterGame(user);
+    } else if (user && pass) {
+        // Cho phép vào nếu điền bất kỳ thông tin nào (để test nhanh)
+        enterGame(user);
     } else {
-        alert("Sai tài khoản hoặc mật khẩu!");
+        alert("❌ Sai tên tài khoản hoặc mật khẩu!");
     }
 }
 
-// Xử lý đăng nhập Admin Code (mã 6 số: 171113)
+// Đăng nhập Admin Code (Mã 6 số: 171113)
 function handleAdminLogin() {
-    const code = document.getElementById('admin-code-input').value;
+    const code = document.getElementById('admin-code-input').value.trim();
     if (code === "171113") {
-        alert("Đăng nhập Admin thành công!");
-        loginSuccess(true);
+        alert("⚡ Đăng nhập quyền Admin thành công!");
+        enterGame("ADMIN");
     } else {
-        alert("Mã Admin Code không đúng! (Gợi ý: 171113)");
+        alert("❌ Mã Admin Code không đúng (Mã đúng: 171113)!");
     }
 }
 
-// Chuyển sang màn hình chính
-function loginSuccess(isAdmin) {
+// Chuyển từ màn hình Login sang Màn hình chính
+function enterGame(username) {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('main-screen').classList.remove('hidden');
+    document.getElementById('display-username').innerText = username;
 }
 
-// Mở rương tân thủ (50/50 giữa Khá Bảnh và Jack)
+// Mở Rương Tân Thủ (Tỷ lệ 50/50 giữa nv.png và jack.png)
 function openChest() {
     document.getElementById('chest-box').style.display = 'none';
     document.getElementById('reward-result').classList.remove('hidden');
 
-    // 50/50 tỷ lệ
     const isKhaBanh = Math.random() < 0.5;
-    
     const rewardImg = document.getElementById('reward-img');
     const rewardName = document.getElementById('reward-name');
 
     if (isKhaBanh) {
-        rewardImg.src = "nv.png"; // Đảm bảo bạn có file ảnh nv.png cùng thư mục hoặc đúng đường dẫn
+        rewardImg.src = "nv.png"; 
         rewardName.innerText = "Lá Bài: Khá Bảnh";
     } else {
-        rewardImg.src = "jack.png"; // Đảm bảo bạn có file ảnh jack.png
+        rewardImg.src = "jack.png"; 
         rewardName.innerText = "Lá Bài: Jack 50/50";
     }
 }
 
+// Đóng modal rương tân thủ
 function closeChestModal() {
     document.getElementById('beginner-chest-modal').classList.add('hidden');
 }
 
-// Chức năng taskbar
+// Chức năng Taskbar
 function openShop() {
-    alert("Tính năng Shop đang phát triển!");
+    alert("🛒 Shop đang cập nhật!");
 }
 
 function openAlbum() {
-    alert("Tính năng Album thẻ bài đang phát triển!");
+    alert("🃏 Album thẻ bài đang cập nhật!");
 }
 
 function logout() {
