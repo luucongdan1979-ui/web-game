@@ -3,71 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Thẻ Bài Meme</title>
+    <title>Game Thẻ Bài Meme Anime</title>
     <link rel="stylesheet" href="style/style.css">
 </head>
 <body>
-    <!-- MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ / ADMIN -->
-    <div id="auth-screen" class="screen">
-        <div class="auth-container">
-            <h2>Game Thẻ Bài Meme</h2>
+
+    <!-- ================= 1. MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ / ADMIN ================= -->
+    <div id="auth-screen" class="screen active-screen">
+        <div class="auth-card">
+            <h1 class="game-title">🎴 MEME CARD GAME 🎴</h1>
             
-            <div class="tab-buttons">
-                <button onclick="switchTab('login')" class="tab-btn active">Đăng Nhập</button>
-                <button onclick="switchTab('register')" class="tab-btn">Đăng Ký</button>
-                <button onclick="switchTab('admin')" class="tab-btn">Admin Code</button>
+            <!-- Menu chọn phương thức đăng nhập -->
+            <div class="auth-tabs">
+                <button id="tab-login" class="tab-btn active" onclick="switchAuthTab('login')">Đăng Nhập</button>
+                <button id="tab-register" class="tab-btn" onclick="switchAuthTab('register')">Đăng Ký</button>
+                <button id="tab-admin" class="tab-btn" onclick="switchAuthTab('admin')">Admin Code</button>
             </div>
 
             <!-- Form Đăng Nhập -->
-            <div id="login-form" class="form-box active">
-                <input type="text" id="login-user" placeholder="Tên tài khoản">
-                <input type="password" id="login-pass" placeholder="Mật khẩu">
-                <button onclick="handleLogin()">Đăng Nhập</button>
+            <div id="form-login" class="auth-form active">
+                <div class="input-group">
+                    <label>Tên tài khoản</label>
+                    <input type="text" id="login-user" placeholder="Nhập tên tài khoản...">
+                </div>
+                <div class="input-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="login-pass" placeholder="Nhập mật khẩu...">
+                </div>
+                <button class="btn-submit" onclick="handleLogin()">VÀO GAME</button>
             </div>
 
             <!-- Form Đăng Ký -->
-            <div id="register-form" class="form-box">
-                <input type="text" id="reg-user" placeholder="Tên tài khoản">
-                <input type="email" id="reg-email" placeholder="Gmail">
-                <input type="password" id="reg-pass" placeholder="Mật khẩu">
-                <button onclick="handleRegister()">Đăng Ký</button>
+            <div id="form-register" class="auth-form">
+                <div class="input-group">
+                    <label>Tên tài khoản</label>
+                    <input type="text" id="reg-user" placeholder="Tạo tên tài khoản...">
+                </div>
+                <div class="input-group">
+                    <label>Gmail</label>
+                    <input type="email" id="reg-email" placeholder="example@gmail.com">
+                </div>
+                <div class="input-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="reg-pass" placeholder="Tạo mật khẩu...">
+                </div>
+                <button class="btn-submit" onclick="handleRegister()">ĐĂNG KÝ NGAY</button>
             </div>
 
             <!-- Form Admin Code -->
-            <div id="admin-form" class="form-box">
-                <input type="password" id="admin-code-input" placeholder="Nhập mã admin 6 số (171113)" maxlength="6">
-                <button onclick="handleAdminLogin()">Đăng Nhập Admin</button>
+            <div id="form-admin" class="auth-form">
+                <div class="input-group">
+                    <label>Admin Code (6 số)</label>
+                    <input type="password" id="admin-code-input" maxlength="6" placeholder="Nhập mã 171113...">
+                </div>
+                <button class="btn-submit btn-admin" onclick="handleAdminLogin()">ĐĂNG NHẬP ADMIN</button>
             </div>
         </div>
     </div>
 
-    <!-- MÀN HÌNH CHÍNH (GAME) -->
+    <!-- ================= 2. MÀN HÌNH CHÍNH (SẢNH GAME) ================= -->
     <div id="main-screen" class="screen hidden">
-        <!-- Rương tân thủ (Popup giữa màn hình) -->
-        <div id="beginner-chest-modal" class="modal">
-            <div class="modal-content">
-                <h3>🎁 Rương Tân Thủ</h3>
-                <p>Nhấn vào rương để mở gói quà đầu tiên!</p>
-                <div id="chest-box" onclick="openChest()">📦 Mở Rương</div>
-                <div id="reward-result" class="hidden">
-                    <p>Bạn nhận được lá bài:</p>
-                    <img id="reward-img" src="" alt="Thẻ bài">
-                    <h4 id="reward-name"></h4>
-                    <button onclick="closeChestModal()">Vào Game</button>
+        
+        <!-- Header thông tin người chơi -->
+        <div class="game-header">
+            <div class="user-info">
+                <span>👤 Người chơi: <strong id="display-username">User</strong></span>
+            </div>
+            <h2>⚔️ SẢNH CHÍNH ⚔️</h2>
+        </div>
+
+        <!-- Rương Tân Thủ Modal Popup -->
+        <div id="beginner-chest-modal" class="modal-overlay">
+            <div class="modal-card">
+                <h2 class="modal-title">🎁 RƯƠNG TÂN THỦ</h2>
+                <p class="modal-subtitle">Chúc mừng bạn gia nhập! Hãy bấm mở rương để nhận lá bài đầu tiên.</p>
+                
+                <div id="chest-box" class="chest-icon" onclick="openChest()">
+                    📦
+                    <span>BẤM ĐỂ MỞ</span>
+                </div>
+
+                <div id="reward-result" class="reward-box hidden">
+                    <div class="card-frame">
+                        <img id="reward-img" src="" alt="Thẻ bài">
+                    </div>
+                    <h3 id="reward-name">Lá Bài: ???</h3>
+                    <button class="btn-submit" onclick="closeChestModal()">BẮT ĐẦU CHƠI</button>
                 </div>
             </div>
         </div>
 
-        <div class="game-content">
-            <h1>Sảnh Chính</h1>
-            <p>Chào mừng bạn đến với thế giới thẻ bài meme!</p>
-        </div>
-
-        <!-- Thanh Taskbar ở dưới -->
+        <!-- Taskbar cố định phía dưới màn hình -->
         <div class="taskbar">
-            <button onclick="openShop()">🛒 Shop</button>
-            <button onclick="openAlbum()">🃏 Album</button>
-            <button onclick="logout()">🚪 Đăng Xuất</button>
+            <button class="taskbar-btn" onclick="openShop()">🛒 Shop</button>
+            <button class="taskbar-btn" onclick="openAlbum()">🃏 Album Thẻ</button>
+            <button class="taskbar-btn btn-logout" onclick="logout()">🚪 Đăng Xuất</button>
         </div>
     </div>
 
