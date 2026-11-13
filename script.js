@@ -1,9 +1,9 @@
 const $ = id => document.getElementById(id);
 
-const STORAGE_KEY = "memeCardArenaDemo_v2";
+const STORAGE_KEY = "memeCardArenaDemo_v3";
 const ADMIN_CODE = "171113";
 
-// Danh sách thẻ bài (Category gồm: CHARACTER, SKILL, SITUATION)
+// Danh sách thẻ bài (bao gồm cả lá "Vào Tù" loại SITUATION - LEGENDARY)
 const cards = {
   kha: {
     name: "Khá Bảnh",
@@ -16,8 +16,13 @@ const cards = {
     file: "jack nv.png",
     rarity: "LEGENDARY",
     category: "CHARACTER"
+  },
+  vaoTu: {
+    name: "Vào Tù",
+    file: "Vào Tù Th.png",
+    rarity: "LEGENDARY",
+    category: "SITUATION"
   }
-  // Khi thêm thẻ Skill hoặc Tình huống mới, đặt category là "SKILL" hoặc "SITUATION"
 };
 
 const CATEGORY_LABELS = {
@@ -265,8 +270,22 @@ function hideOldStarterChest() {
   if (oldArena) oldArena.classList.add("hidden");
 }
 
+// HÀM CHỌN LÁ BÀI THEO TỈ LỆ RARE / LEGENDARY
+function getRandomCardByRarity(rareChance) {
+  // rareChance: xác suất ra lá Rare (vd: 0.6 = 60% Rare, 40% Legendary)
+  const rand = Math.random();
+  const targetRarity = rand < rareChance ? "RARE" : "LEGENDARY";
+
+  // Lọc ra các lá bài có độ hiếm tương ứng
+  const matchingKeys = Object.keys(cards).filter(key => cards[key].rarity === targetRarity);
+  
+  // Random ngẫu nhiên 1 lá trong nhóm độ hiếm đó
+  const randomKey = matchingKeys[Math.floor(Math.random() * matchingKeys.length)];
+  return randomKey;
+}
+
 // ==========================================
-// RƯƠNG TÂN THỦ
+// RƯƠNG TÂN THỦ (Tỉ lệ: 60% Rare, 40% Legendary)
 // ==========================================
 $("openStarterBtn").addEventListener("click", () => {
   const profile = getProfile();
@@ -317,7 +336,8 @@ function openStarterPack() {
   const profile = getProfile();
   if (!profile || profile.starterOpened) return;
 
-  pendingCard = Math.random() < 0.6 ? "kha" : "jack";
+  // Rương tân thủ: 60% Rare, 40% Legendary
+  pendingCard = getRandomCardByRarity(0.60);
   const card = cards[pendingCard];
 
   profile.cards.push(pendingCard);
@@ -418,7 +438,6 @@ function renderBackpack() {
   });
 }
 
-// Bước 1: Nhấn vào pack ở Balo -> Phóng to pack ra giữa màn hình
 function openPackZoomModal(index, type) {
   activePackIndex = index;
   activePackType = type;
@@ -443,7 +462,6 @@ function openPackZoomModal(index, type) {
   $("packOpenOverlay").classList.remove("hidden");
 }
 
-// Bước 2: Nhấn lần nữa vào pack đã phóng to -> Hiệu ứng xé pack & nhận thẻ
 $("zoomedPackElement").addEventListener("click", () => {
   if (isTearingPack || activePackIndex === null) return;
   isTearingPack = true;
@@ -455,12 +473,13 @@ $("zoomedPackElement").addEventListener("click", () => {
 
   setTimeout(() => {
     const profile = getProfile();
-    // Xóa pack khỏi balo
     profile.bag.splice(activePackIndex, 1);
 
-    // Tỉ lệ mở thẻ (Premium tăng nhẹ tỉ lệ ra Jack)
-    const jackChance = activePackType === "premium" ? 0.55 : 0.40;
-    const cardId = Math.random() < jackChance ? "jack" : "kha";
+    // ÁP DỤNG TỈ LỆ THEO YÊU CẦU:
+    // Basic Pack: 60% Rare, 40% Legendary
+    // Premium Pack: 40% Rare, 60% Legendary
+    const rareChance = (activePackType === "premium") ? 0.40 : 0.60;
+    const cardId = getRandomCardByRarity(rareChance);
     const card = cards[cardId];
 
     if (!isAdmin) {
@@ -471,7 +490,6 @@ $("zoomedPackElement").addEventListener("click", () => {
     renderProfile();
     renderBackpack();
 
-    // Hiển thị thẻ bài nhận được
     $("zoomPackStage").classList.add("hidden");
     $("zoomResultStage").classList.remove("hidden");
 
@@ -504,7 +522,7 @@ $("closePackOverlay").addEventListener("click", closePackZoom);
 $("zoomFinishBtn").addEventListener("click", closePackZoom);
 
 // ==========================================
-// ALBUM (CHIA 4 DANH MỤC)
+// ALBUM (4 DANH MỤC)
 // ==========================================
 document.querySelectorAll(".album-tab").forEach(tab => {
   tab.addEventListener("click", () => {
