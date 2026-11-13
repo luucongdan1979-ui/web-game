@@ -15,6 +15,7 @@
       <span class="brand-mark">✦</span>
       <span>MEME <b>CARD</b> ARENA</span>
     </a>
+
     <div class="top-actions">
       <span id="welcomeUser" class="welcome-user">Chào mừng đến đấu trường!</span>
       <span class="coin-pill">✦ <b id="coinCount">0</b></span>
@@ -22,16 +23,18 @@
   </header>
 
   <main>
-    <!-- MÀN HÌNH ĐĂNG NHẬP -->
+    <!-- ĐĂNG NHẬP -->
     <section id="authScreen" class="auth-screen">
       <div class="auth-art">
         <div class="orbit orbit-one"></div>
         <div class="orbit orbit-two"></div>
+
         <div class="hero-card">
           <div class="hero-spark">✧</div>
           <div class="hero-emoji">🃏</div>
           <div class="hero-caption">COLLECT YOUR MEMES</div>
         </div>
+
         <span class="floating f1">LEGENDARY</span>
         <span class="floating f2">50 / 50</span>
         <span class="floating f3">✦ RARE ✦</span>
@@ -50,7 +53,6 @@
           <button class="tab" data-panel="adminPanel">Admin code</button>
         </div>
 
-        <!-- ĐĂNG NHẬP -->
         <form id="loginPanel" class="auth-form">
           <label>Tên tài khoản</label>
           <input id="loginUsername" placeholder="Nhập tên tài khoản" required>
@@ -70,7 +72,6 @@
           </p>
         </form>
 
-        <!-- ĐĂNG KÝ -->
         <form id="registerPanel" class="auth-form hidden">
           <label>Tên tài khoản</label>
           <input id="registerUsername" placeholder="Nhập tên tài khoản" required minlength="3">
@@ -93,7 +94,6 @@
           </p>
         </form>
 
-        <!-- ADMIN -->
         <form id="adminPanel" class="auth-form hidden">
           <label>Mã quản trị 6 số</label>
           <input id="adminCode" inputmode="numeric" maxlength="6" placeholder="••••••" required>
@@ -119,7 +119,6 @@
         <div id="adminTag" class="admin-tag hidden">✦ ADMIN MODE</div>
       </div>
 
-      <!-- RƯƠNG TÂN THỦ -->
       <div class="arena">
         <div class="arena-stars">✦　✧　✦　✧　✦</div>
 
@@ -138,7 +137,7 @@
           </button>
 
           <p class="tiny-note">
-            Tỉ lệ nhận: Khá Bảnh 50% · Jack 50%
+            Khá Bảnh 60% · Jack 40%
           </p>
         </div>
 
@@ -146,7 +145,6 @@
         <div class="arena-decoration deco-right">✦</div>
       </div>
 
-      <!-- THỐNG KÊ -->
       <section class="quick-stats">
         <div class="stat-card">
           <span>🃏</span>
@@ -167,7 +165,7 @@
         <div class="stat-card">
           <span>⭐</span>
           <div>
-            <b>50/50</b>
+            <b>60/40</b>
             <small>Tỉ lệ rương tân thủ</small>
           </div>
         </div>
@@ -218,7 +216,7 @@
       <div id="albumGrid" class="album-grid"></div>
 
       <p id="emptyAlbum" class="empty-state">
-        Bạn chưa có thẻ bài nào. Hãy mở rương tân thủ nhé!
+        Bạn chưa có thẻ bài nào. Hãy mở rương nhé!
       </p>
     </section>
   </main>
@@ -242,19 +240,58 @@
     </button>
   </nav>
 
-  <!-- HIỆN THẺ BÀI NHẬN ĐƯỢC -->
+  <!-- RƯƠNG VÀ STARTER PACK -->
+  <div id="starterOverlay" class="starter-overlay hidden">
+    <div class="starter-dialog">
+
+      <p class="eyebrow">WELCOME REWARD</p>
+      <h2 id="starterTitle">RƯƠNG TÂN THỦ</h2>
+
+      <p id="starterDescription">
+        Bạn nhận được một pack tân thủ miễn phí!
+      </p>
+
+      <div id="chestStage" class="starter-stage">
+        <div id="starterChestClick" class="starter-chest">
+          <div class="starter-chest-lid"></div>
+          <div class="starter-chest-body">✦</div>
+        </div>
+        <p>NHẤN VÀO RƯƠNG ĐỂ MỞ</p>
+      </div>
+
+      <div id="packStage" class="starter-stage hidden">
+        <div id="starterPackClick" class="starter-pack">
+          <div class="pack-shine">✦</div>
+          <div class="pack-logo">MEME<br>CARD</div>
+          <div class="pack-label">STARTER PACK</div>
+          <div class="pack-bottom">✧ ✦ ✧</div>
+        </div>
+        <p>NHẤN VÀO PACK ĐỂ XÉ GÓI</p>
+      </div>
+
+      <div id="starterResultStage" class="starter-stage hidden">
+        <div class="starter-result-card">
+          <img id="starterResultImage" src="" alt="Thẻ bài nhận được">
+          <div id="starterResultName"></div>
+          <div id="starterResultRarity"></div>
+          <div id="starterResultCategory">CHARACTER</div>
+        </div>
+
+        <button id="starterFinish" class="primary-btn">
+          NHẬN THẺ BÀI
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL THẺ BÀI SHOP -->
   <div id="revealModal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
       <button id="closeReveal" class="close-btn">×</button>
-
       <p class="eyebrow">CONGRATULATIONS!</p>
-      <h2 id="revealTitle">Bạn nhận được...</h2>
-
+      <h2>Bạn nhận được...</h2>
       <div id="revealedCard" class="revealed-card"></div>
-
-      <button id="revealDone" class="primary-btn">
-        TUYỆT VỜI!
-      </button>
+      <button id="revealDone" class="primary-btn">TUYỆT VỜI!</button>
     </div>
   </div>
 
