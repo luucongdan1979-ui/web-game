@@ -1,9 +1,8 @@
 const $ = id => document.getElementById(id);
 
-const STORAGE_KEY = "memeCardArenaDemo_v6";
+const STORAGE_KEY = "memeCardArenaDemo_v7";
 const ADMIN_CODE = "171113";
 
-// Danh sách thẻ bài kèm chỉ số ATK & DEF cho nhân vật
 const cards = {
   kha: {
     name: "Khá Bảnh",
@@ -43,6 +42,7 @@ let activePackIndex = null;
 let activePackType = null;
 let isTearingPack = false;
 let currentAlbumFilter = "ALL";
+let targetGiftUserKey = null;
 let toastTimer;
 
 function loadState() {
@@ -75,7 +75,6 @@ function getProfile() {
   return p;
 }
 
-// THÔNG BÁO
 function showToast(message) {
   $("toast").textContent = message;
   $("toast").classList.add("show");
@@ -90,7 +89,6 @@ function showAuthMessage(message, success = false) {
   $("authMessage").style.color = success ? "#8ef0c1" : "#ff9dbe";
 }
 
-// CHUYỂN TAB ĐĂNG NHẬP
 function switchPanel(panelId) {
   document.querySelectorAll(".auth-form").forEach(form => {
     form.classList.toggle("hidden", form.id !== panelId);
@@ -111,7 +109,6 @@ document.querySelectorAll("[data-switch]").forEach(btn => {
   btn.addEventListener("click", () => switchPanel(btn.dataset.switch));
 });
 
-// TẠO TÀI KHOẢN MỚI: 20 XU
 function createProfile(username, email, password) {
   return {
     username,
@@ -120,7 +117,8 @@ function createProfile(username, email, password) {
     coins: 20,
     cards: [],
     bag: [],
-    starterOpened: false
+    starterOpened: false,
+    banned: false
   };
 }
 
@@ -149,7 +147,6 @@ $("registerPanel").addEventListener("submit", event => {
   loginAs(key);
 });
 
-// ĐĂNG NHẬP
 $("loginPanel").addEventListener("submit", event => {
   event.preventDefault();
 
@@ -161,10 +158,13 @@ $("loginPanel").addEventListener("submit", event => {
     return showAuthMessage("Tên tài khoản hoặc mật khẩu không đúng!");
   }
 
+  if (profile.banned) {
+    return showAuthMessage("Tài khoản này đã bị BAN (Khóa) bởi Admin!");
+  }
+
   loginAs(username);
 });
 
-// ADMIN
 $("adminPanel").addEventListener("submit", event => {
   event.preventDefault();
 
@@ -196,6 +196,7 @@ function enterGame(displayName) {
     : `Xin chào, ${displayName}!`;
 
   $("adminTag").classList.toggle("hidden", !isAdmin);
+  $("adminCheckNavBtn").classList.toggle("hidden", !isAdmin);
 
   renderProfile();
   showScreen("gameScreen");
@@ -207,9 +208,8 @@ function enterGame(displayName) {
   }
 }
 
-// ĐIỀU HƯỚNG TASKBAR
 function showScreen(screenId) {
-  ["gameScreen", "shopScreen", "backpackScreen", "albumScreen"].forEach(id => {
+  ["gameScreen", "shopScreen", "backpackScreen", "albumScreen", "adminCheckScreen"].forEach(id => {
     $(id).classList.toggle("hidden", id !== screenId);
   });
 
@@ -219,13 +219,13 @@ function showScreen(screenId) {
 
   if (screenId === "backpackScreen") renderBackpack();
   if (screenId === "albumScreen") renderAlbum();
+  if (screenId === "adminCheckScreen") renderAdminUserManagement();
 }
 
 document.querySelectorAll(".nav-item[data-screen]").forEach(btn => {
   btn.addEventListener("click", () => showScreen(btn.dataset.screen));
 });
 
-// ĐĂNG XUẤT
 $("logoutBtn").addEventListener("click", () => {
   currentUser = null;
   isAdmin = false;
@@ -238,8 +238,8 @@ $("logoutBtn").addEventListener("click", () => {
   $("starterOverlay").classList.add("hidden");
   $("packOpenOverlay").classList.add("hidden");
   $("cardDetailModal").classList.add("hidden");
+  $("adminGiftModal").classList.add("hidden");
 
-  // Khôi phục lại rương tân thủ cho lần đăng nhập sau nếu chưa mở
   $("arenaCopyChest").classList.remove("hidden");
   $("chibiClownHome").classList.add("hidden");
   $("mainArena").classList.remove("chest-completed");
@@ -249,6 +249,7 @@ $("logoutBtn").addEventListener("click", () => {
   $("shopScreen").classList.add("hidden");
   $("backpackScreen").classList.add("hidden");
   $("albumScreen").classList.add("hidden");
+  $("adminCheckScreen").classList.add("hidden");
   $("bottomNav").classList.add("hidden");
 
   $("welcomeUser").textContent = "Chào mừng đến đấu trường!";
@@ -258,7 +259,6 @@ $("logoutBtn").addEventListener("click", () => {
   switchPanel("loginPanel");
 });
 
-// CẬP NHẬT THÔNG TIN & BADGE BALO
 function renderProfile() {
   const profile = getProfile();
   if (!profile) return;
@@ -275,7 +275,6 @@ function renderProfile() {
   $("openStarterBtn").disabled = !!profile.starterOpened;
 }
 
-// Khi đã mở rương xong, ẩn rương đi và hiện chú hề Chibi ở trang chủ
 function hideOldStarterChest() {
   const arena = $("mainArena");
   const chestCopy = $("arenaCopyChest");
@@ -288,7 +287,6 @@ function hideOldStarterChest() {
   }
 }
 
-// CHỌN LÁ BÀI THEO TỈ LỆ
 function getRandomCardByRarity(rareChance) {
   const rand = Math.random();
   const targetRarity = rand < rareChance ? "RARE" : "LEGENDARY";
@@ -296,9 +294,7 @@ function getRandomCardByRarity(rareChance) {
   return matchingKeys[Math.floor(Math.random() * matchingKeys.length)];
 }
 
-// ==========================================
 // RƯƠNG TÂN THỦ
-// ==========================================
 $("openStarterBtn").addEventListener("click", () => {
   const profile = getProfile();
   if (!isAdmin && !profile?.starterOpened) {
@@ -387,9 +383,7 @@ $("starterFinish").addEventListener("click", () => {
   showToast("Đã thêm thẻ bài vào Album!");
 });
 
-// ==========================================
-// SHOP -> MUA PACK CẤT VÀO BALO
-// ==========================================
+// SHOP
 document.querySelectorAll(".buy-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     const packType = btn.dataset.pack;
@@ -412,9 +406,7 @@ document.querySelectorAll(".buy-btn").forEach(btn => {
   });
 });
 
-// ==========================================
-// BALO -> PHÓNG TO PACK -> XÉ PACK
-// ==========================================
+// BALO
 function renderBackpack() {
   const profile = getProfile();
   const bag = profile?.bag || [];
@@ -529,9 +521,7 @@ function closePackZoom() {
 $("closePackOverlay").addEventListener("click", closePackZoom);
 $("zoomFinishBtn").addEventListener("click", closePackZoom);
 
-// ==========================================
-// ALBUM & PHÓNG TO XEM CHI TIẾT THẺ BÀI
-// ==========================================
+// ALBUM
 document.querySelectorAll(".album-tab").forEach(tab => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".album-tab").forEach(t => t.classList.remove("active"));
@@ -610,6 +600,146 @@ $("cardDetailModal").addEventListener("click", event => {
   if (event.target === $("cardDetailModal")) {
     $("cardDetailModal").classList.add("hidden");
   }
+});
+
+// ==========================================
+// ADMIN: CHECK ACCOUNT & QUẢN LÝ NGƯỜI CHƠI
+// ==========================================
+function renderAdminUserManagement() {
+  if (!isAdmin) return;
+  const usersObj = state.users || {};
+  const keys = Object.keys(usersObj);
+  const container = $("adminUserManagementList");
+
+  if (keys.length === 0) {
+    container.innerHTML = `<p class="empty-state">Chưa có người chơi nào đăng ký tài khoản.</p>`;
+    return;
+  }
+
+  container.innerHTML = keys.map(key => {
+    const u = usersObj[key];
+    const isBanned = !!u.banned;
+    const cardCount = u.cards ? u.cards.length : 0;
+    const packCount = u.bag ? u.bag.length : 0;
+
+    return `
+      <div class="admin-mgmt-card ${isBanned ? 'banned-card' : ''}">
+        <div class="mgmt-header">
+          <strong>👤 ${u.username}</strong>
+          <span class="mgmt-status-badge ${isBanned ? 'banned' : ''}">
+            ${isBanned ? 'ĐÃ BỊ BAN' : 'HOẠT ĐỘNG'}
+          </span>
+        </div>
+        <small style="color: var(--muted); font-size: 11px;">📧 ${u.email || 'Không có email'}</small>
+
+        <div class="mgmt-stats">
+          <span>🪙 Xu: <b>${u.coins}</b></span>
+          <span>🃏 Thẻ: <b>${cardCount}</b></span>
+          <span>🎒 Pack: <b>${packCount}</b></span>
+        </div>
+
+        <div class="mgmt-actions">
+          <div class="mgmt-btn-row">
+            <button class="mgmt-btn" onclick="adminAdjustCoins('${key}', 10)">+10 Xu</button>
+            <button class="mgmt-btn" onclick="adminAdjustCoins('${key}', -10)">-10 Xu</button>
+            <button class="mgmt-btn gift-btn" onclick="openAdminGiftModal('${key}')">🎁 Tặng thẻ</button>
+          </div>
+          <div class="mgmt-btn-row">
+            ${isBanned 
+              ? `<button class="mgmt-btn unban-btn" onclick="adminToggleBan('${key}')">Gỡ Ban</button>`
+              : `<button class="mgmt-btn ban-btn" onclick="adminToggleBan('${key}')">Ban TK</button>`
+            }
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+window.adminAdjustCoins = function(userKey, amount) {
+  const u = state.users[userKey];
+  if (!u) return;
+  u.coins = Math.max(0, u.coins + amount);
+  saveState();
+  renderAdminUserManagement();
+  showToast(`Đã cập nhật xu cho ${u.username}!`);
+};
+
+window.adminToggleBan = function(userKey) {
+  const u = state.users[userKey];
+  if (!u) return;
+  u.banned = !u.banned;
+  saveState();
+  renderAdminUserManagement();
+  showToast(u.banned ? `Đã ban tài khoản ${u.username}!` : `Đã mở khóa cho ${u.username}!`);
+};
+
+// TẶNG THẺ CHO TÀI KHOẢN CHƯA CÓ
+window.openAdminGiftModal = function(userKey) {
+  targetGiftUserKey = userKey;
+  const u = state.users[userKey];
+  if (!u) return;
+
+  $("giftModalTitle").textContent = `Tặng thẻ cho: ${u.username}`;
+  const ownedCards = u.cards || [];
+  
+  // Lọc các thẻ người chơi CHƯA CÓ
+  const unownedKeys = Object.keys(cards).filter(id => !ownedCards.includes(id));
+  const container = $("giftCardsContainer");
+
+  if (unownedKeys.length === 0) {
+    container.innerHTML = `<p class="empty-state" style="grid-column: span 2;">Người chơi này đã sở hữu toàn bộ thẻ bài trong game!</p>`;
+  } else {
+    container.innerHTML = unownedKeys.map(id => {
+      const card = cards[id];
+      return `
+        <div class="gift-card-item" data-card-id="${id}" onclick="toggleGiftCardSelect(this)">
+          <img src="${card.file}" alt="${card.name}">
+          <div class="gift-card-info">
+            <strong>${card.name}</strong>
+            <small>${card.rarity}</small>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  $("adminGiftModal").classList.remove("hidden");
+};
+
+window.toggleGiftCardSelect = function(el) {
+  el.classList.toggle("selected");
+};
+
+$("closeAdminGiftModal").addEventListener("click", () => {
+  $("adminGiftModal").classList.add("hidden");
+  targetGiftUserKey = null;
+});
+
+$("confirmGiftBtn").addEventListener("click", () => {
+  if (!targetGiftUserKey) return;
+  const u = state.users[targetGiftUserKey];
+  if (!u) return;
+
+  const selectedEls = document.querySelectorAll(".gift-card-item.selected");
+  if (selectedEls.length === 0) {
+    return showToast("Vui lòng chọn ít nhất một thẻ bài để tặng!");
+  }
+
+  if (!Array.isArray(u.cards)) u.cards = [];
+
+  selectedEls.forEach(el => {
+    const cardId = el.dataset.cardId;
+    if (!u.cards.includes(cardId)) {
+      u.cards.push(cardId);
+    }
+  });
+
+  saveState();
+  $("adminGiftModal").classList.add("hidden");
+  renderAdminUserManagement();
+  showToast(`Đã tặng thẻ thành công cho ${u.username}!`);
+  targetGiftUserKey = null;
 });
 
 // KHÔI PHỤC ĐĂNG NHẬP
