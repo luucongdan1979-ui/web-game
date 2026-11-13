@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -109,7 +108,7 @@
       </div>
     </section>
 
-    <!-- MÀN HÌNH CHÍNH -->
+    <!-- MÀN HÌNH CHÍNH (ĐÃ XÓA 3 MỤC THỐNG KÊ) -->
     <section id="gameScreen" class="game-screen hidden">
       <div class="game-heading">
         <div>
@@ -120,16 +119,21 @@
       </div>
 
       <div class="arena">
-        <div class="arena-stars">✦　✧　✦　✧　✦</div>
+        <div class="arena-stars">✦ ✧ ✦ ✧ ✦</div>
 
         <div class="arena-copy">
           <p class="eyebrow">STARTER EVENT</p>
           <h2>Rương tân thủ</h2>
           <p>Mở rương đầu tiên để nhận ngẫu nhiên một thẻ bài meme!</p>
 
-          <div class="chest" id="starterChest">
-            <div class="chest-lid"></div>
-            <div class="chest-body"><span>✦</span></div>
+          <div class="chest royal-chest" id="starterChest">
+            <div class="chest-glow"></div>
+            <div class="chest-lid">
+              <div class="chest-trim"></div>
+            </div>
+            <div class="chest-body">
+              <div class="chest-lock">✦</div>
+            </div>
           </div>
 
           <button id="openStarterBtn" class="primary-btn chest-btn">
@@ -144,32 +148,6 @@
         <div class="arena-decoration deco-left">✧</div>
         <div class="arena-decoration deco-right">✦</div>
       </div>
-
-      <section class="quick-stats">
-        <div class="stat-card">
-          <span>🃏</span>
-          <div>
-            <b id="cardCount">0</b>
-            <small>Thẻ đã sở hữu</small>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <span>📦</span>
-          <div>
-            <b id="packCount">0</b>
-            <small>Pack đã mở</small>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <span>⭐</span>
-          <div>
-            <b>60/40</b>
-            <small>Tỉ lệ rương tân thủ</small>
-          </div>
-        </div>
-      </section>
     </section>
 
     <!-- SHOP -->
@@ -183,28 +161,54 @@
 
       <div class="shop-grid">
         <article class="pack-card">
-          <div class="pack-art basic-art">
-            ✦
-            <small>BASIC PACK</small>
+          <div class="foil-pack basic-foil">
+            <div class="foil-crimp top"></div>
+            <div class="foil-shine"></div>
+            <span class="foil-badge">STANDARD</span>
+            <div class="foil-emblem">✦</div>
+            <div class="foil-title">BASIC<br>PACK</div>
+            <div class="foil-sub">MEME ARENA</div>
+            <div class="foil-crimp bottom"></div>
           </div>
           <h3>Basic Pack</h3>
-          <p>Gói thẻ bài cơ bản.</p>
+          <p>Gói thẻ bài cơ bản. Sau khi mua sẽ được cất vào Balo.</p>
           <button class="buy-btn" data-pack="basic">Mua · 10 xu</button>
         </article>
 
         <article class="pack-card">
-          <div class="pack-art premium-art">
-            ✧
-            <small>PREMIUM PACK</small>
+          <div class="foil-pack premium-foil">
+            <div class="foil-crimp top"></div>
+            <div class="foil-shine"></div>
+            <span class="foil-badge">GOLD EDITION</span>
+            <div class="foil-emblem">✧</div>
+            <div class="foil-title">PREMIUM<br>PACK</div>
+            <div class="foil-sub">MEME ARENA</div>
+            <div class="foil-crimp bottom"></div>
           </div>
           <h3>Premium Pack</h3>
-          <p>Gói thẻ bài cao cấp.</p>
+          <p>Gói thẻ bài cao cấp ánh kim. Sau khi mua sẽ được cất vào Balo.</p>
           <button class="buy-btn" data-pack="premium">Mua · 20 xu</button>
         </article>
       </div>
     </section>
 
-    <!-- ALBUM -->
+    <!-- BALO -->
+    <section id="backpackScreen" class="content-screen hidden">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">YOUR INVENTORY</p>
+          <h2>Balo <span>vật phẩm</span></h2>
+        </div>
+      </div>
+
+      <div id="backpackGrid" class="backpack-grid"></div>
+
+      <p id="emptyBackpack" class="empty-state">
+        Balo của bạn đang trống. Hãy ghé Shop để mua thêm pack nhé!
+      </p>
+    </section>
+
+    <!-- ALBUM (4 DANH MỤC) -->
     <section id="albumScreen" class="content-screen hidden">
       <div class="section-heading">
         <div>
@@ -213,15 +217,22 @@
         </div>
       </div>
 
+      <div class="album-tabs" id="albumTabs">
+        <button class="album-tab active" data-filter="ALL">Tất cả</button>
+        <button class="album-tab" data-filter="CHARACTER">Nhân vật</button>
+        <button class="album-tab" data-filter="SKILL">Skill</button>
+        <button class="album-tab" data-filter="SITUATION">Tình huống</button>
+      </div>
+
       <div id="albumGrid" class="album-grid"></div>
 
       <p id="emptyAlbum" class="empty-state">
-        Bạn chưa có thẻ bài nào. Hãy mở rương nhé!
+        Chưa có thẻ bài nào trong mục này!
       </p>
     </section>
   </main>
 
-  <!-- THANH ĐIỀU HƯỚNG -->
+  <!-- THANH ĐIỀU HƯỚNG (TASKBAR) -->
   <nav id="bottomNav" class="bottom-nav hidden">
     <button class="nav-item active" data-screen="gameScreen">
       <span>⌂</span>Trang chủ
@@ -229,6 +240,10 @@
 
     <button class="nav-item" data-screen="shopScreen">
       <span>✧</span>Shop
+    </button>
+
+    <button class="nav-item" data-screen="backpackScreen">
+      <span>🎒</span>Balo <em id="navPackBadge" class="nav-badge hidden">0</em>
     </button>
 
     <button class="nav-item" data-screen="albumScreen">
@@ -243,30 +258,38 @@
   <!-- RƯƠNG VÀ STARTER PACK -->
   <div id="starterOverlay" class="starter-overlay hidden">
     <div class="starter-dialog">
-
       <p class="eyebrow">WELCOME REWARD</p>
       <h2 id="starterTitle">RƯƠNG TÂN THỦ</h2>
 
       <p id="starterDescription">
-        Bạn nhận được một pack tân thủ miễn phí!
+        Bạn nhận được một rương tân thủ miễn phí!
       </p>
 
       <div id="chestStage" class="starter-stage">
-        <div id="starterChestClick" class="starter-chest">
-          <div class="starter-chest-lid"></div>
-          <div class="starter-chest-body">✦</div>
+        <div id="starterChestClick" class="starter-chest royal-chest">
+          <div class="chest-glow"></div>
+          <div class="starter-chest-lid">
+            <div class="chest-trim"></div>
+          </div>
+          <div class="starter-chest-body">
+            <div class="chest-lock">✦</div>
+          </div>
         </div>
-        <p>NHẤN VÀO RƯƠNG ĐỂ MỞ</p>
+        <p class="tap-hint">NHẤN VÀO RƯƠNG ĐỂ MỞ</p>
       </div>
 
       <div id="packStage" class="starter-stage hidden">
-        <div id="starterPackClick" class="starter-pack">
-          <div class="pack-shine">✦</div>
-          <div class="pack-logo">MEME<br>CARD</div>
-          <div class="pack-label">STARTER PACK</div>
-          <div class="pack-bottom">✧ ✦ ✧</div>
+        <div id="starterPackClick" class="foil-pack starter-foil tearable-pack">
+          <div class="foil-crimp top"></div>
+          <div class="foil-shine"></div>
+          <span class="foil-badge">STARTER</span>
+          <div class="foil-emblem">✦</div>
+          <div class="foil-title">MEME<br>CARD</div>
+          <div class="foil-sub">STARTER PACK</div>
+          <div class="foil-crimp bottom"></div>
+          <div class="tear-line"></div>
         </div>
-        <p>NHẤN VÀO PACK ĐỂ XÉ GÓI</p>
+        <p class="tap-hint">NHẤN VÀO PACK ĐỂ XÉ GÓI</p>
       </div>
 
       <div id="starterResultStage" class="starter-stage hidden">
@@ -284,14 +307,37 @@
     </div>
   </div>
 
-  <!-- MODAL THẺ BÀI SHOP -->
-  <div id="revealModal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-card">
-      <button id="closeReveal" class="close-btn">×</button>
-      <p class="eyebrow">CONGRATULATIONS!</p>
-      <h2>Bạn nhận được...</h2>
-      <div id="revealedCard" class="revealed-card"></div>
-      <button id="revealDone" class="primary-btn">TUYỆT VỜI!</button>
+  <!-- MODAL PHÓNG TO & XÉ PACK TỪ BALO -->
+  <div id="packOpenOverlay" class="starter-overlay hidden">
+    <div class="starter-dialog pack-zoom-dialog">
+      <button id="closePackOverlay" class="close-btn">×</button>
+      <p class="eyebrow" id="packOverlayEyebrow">UNBOXING</p>
+      <h2 id="packOverlayTitle">GÓI THẺ BÀI</h2>
+      <p id="packOverlayDesc">Nhấn vào gói bài để xé mở!</p>
+
+      <div id="zoomPackStage" class="starter-stage">
+        <div id="zoomedPackElement" class="foil-pack basic-foil zoomed-pack tearable-pack">
+          <div class="foil-crimp top"></div>
+          <div class="foil-shine"></div>
+          <span class="foil-badge" id="zoomPackBadge">STANDARD</span>
+          <div class="foil-emblem" id="zoomPackEmblem">✦</div>
+          <div class="foil-title" id="zoomPackTitle">BASIC<br>PACK</div>
+          <div class="foil-sub">MEME ARENA</div>
+          <div class="foil-crimp bottom"></div>
+          <div class="tear-line"></div>
+        </div>
+        <p class="tap-hint">CHẠM LẦN NỮA ĐỂ XÉ PACK ✦</p>
+      </div>
+
+      <div id="zoomResultStage" class="starter-stage hidden">
+        <div class="starter-result-card">
+          <img id="zoomResultImage" src="" alt="Thẻ bài">
+          <div id="zoomResultName"></div>
+          <div id="zoomResultRarity"></div>
+          <div id="zoomResultCategory"></div>
+        </div>
+        <button id="zoomFinishBtn" class="primary-btn">CẤT VÀO ALBUM</button>
+      </div>
     </div>
   </div>
 
