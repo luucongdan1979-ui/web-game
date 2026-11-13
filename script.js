@@ -1,9 +1,9 @@
-
 const $ = id => document.getElementById(id);
 
-const STORAGE_KEY = "memeCardArenaDemo_v1";
+const STORAGE_KEY = "memeCardArenaDemo_v2";
 const ADMIN_CODE = "171113";
 
+// Danh sách thẻ bài (Category gồm: CHARACTER, SKILL, SITUATION)
 const cards = {
   kha: {
     name: "Khá Bảnh",
@@ -17,12 +17,23 @@ const cards = {
     rarity: "LEGENDARY",
     category: "CHARACTER"
   }
+  // Khi thêm thẻ Skill hoặc Tình huống mới, đặt category là "SKILL" hoặc "SITUATION"
+};
+
+const CATEGORY_LABELS = {
+  CHARACTER: "NHÂN VẬT",
+  SKILL: "SKILL",
+  SITUATION: "TÌNH HUỐNG"
 };
 
 let state = loadState();
 let currentUser = null;
 let isAdmin = false;
 let pendingCard = null;
+let activePackIndex = null;
+let activePackType = null;
+let isTearingPack = false;
+let currentAlbumFilter = "ALL";
 let toastTimer;
 
 function loadState() {
@@ -41,17 +52,25 @@ function saveState() {
 }
 
 function getProfile() {
-  return currentUser ? state.users[currentUser] : null;
+  if (isAdmin) {
+    if (!state.adminBag) state.adminBag = [];
+    return {
+      coins: Infinity,
+      cards: Object.keys(cards),
+      bag: state.adminBag,
+      starterOpened: true
+    };
+  }
+  const p = currentUser ? state.users[currentUser] : null;
+  if (p && !Array.isArray(p.bag)) p.bag = [];
+  return p;
 }
 
 // THÔNG BÁO
-
 function showToast(message) {
   $("toast").textContent = message;
   $("toast").classList.add("show");
-
   clearTimeout(toastTimer);
-
   toastTimer = setTimeout(() => {
     $("toast").classList.remove("show");
   }, 2400);
@@ -59,13 +78,10 @@ function showToast(message) {
 
 function showAuthMessage(message, success = false) {
   $("authMessage").textContent = message;
-  $("authMessage").style.color = success
-    ? "#8ef0c1"
-    : "#ff9dbe";
+  $("authMessage").style.color = success ? "#8ef0c1" : "#ff9dbe";
 }
 
-// CHUYỂN TAB
-
+// CHUYỂN TAB ĐĂNG NHẬP
 function switchPanel(panelId) {
   document.querySelectorAll(".auth-form").forEach(form => {
     form.classList.toggle("hidden", form.id !== panelId);
@@ -79,19 +95,14 @@ function switchPanel(panelId) {
 }
 
 document.querySelectorAll(".tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    switchPanel(tab.dataset.panel);
-  });
+  tab.addEventListener("click", () => switchPanel(tab.dataset.panel));
 });
 
 document.querySelectorAll("[data-switch]").forEach(btn => {
-  btn.addEventListener("click", () => {
-    switchPanel(btn.dataset.switch);
-  });
+  btn.addEventListener("click", () => switchPanel(btn.dataset.switch));
 });
 
 // TẠO TÀI KHOẢN MỚI: 20 XU
-
 function createProfile(username, email, password) {
   return {
     username,
@@ -99,7 +110,7 @@ function createProfile(username, email, password) {
     password,
     coins: 20,
     cards: [],
-    packsOpened: 0,
+    bag: [],
     starterOpened: false
   };
 }
@@ -110,7 +121,6 @@ $("registerPanel").addEventListener("submit", event => {
   const username = $("registerUsername").value.trim();
   const email = $("registerEmail").value.trim().toLowerCase();
   const password = $("registerPassword").value;
-
   const key = username.toLowerCase();
 
   if (state.users[key]) {
@@ -118,9 +128,7 @@ $("registerPanel").addEventListener("submit", event => {
   }
 
   if (!/^[a-zA-Z0-9_]{3,18}$/.test(username)) {
-    return showAuthMessage(
-      "Tên tài khoản cần 3–18 ký tự chữ, số hoặc dấu gạch dưới."
-    );
+    return showAuthMessage("Tên tài khoản cần 3–18 ký tự chữ, số hoặc dấu gạch dưới.");
   }
 
   if (password.length < 6) {
@@ -128,20 +136,16 @@ $("registerPanel").addEventListener("submit", event => {
   }
 
   state.users[key] = createProfile(username, email, password);
-
   saveState();
-
   loginAs(key);
 });
 
 // ĐĂNG NHẬP
-
 $("loginPanel").addEventListener("submit", event => {
   event.preventDefault();
 
   const username = $("loginUsername").value.trim().toLowerCase();
   const password = $("loginPassword").value;
-
   const profile = state.users[username];
 
   if (!profile || profile.password !== password) {
@@ -152,7 +156,6 @@ $("loginPanel").addEventListener("submit", event => {
 });
 
 // ADMIN
-
 $("adminPanel").addEventListener("submit", event => {
   event.preventDefault();
 
@@ -162,19 +165,14 @@ $("adminPanel").addEventListener("submit", event => {
 
   currentUser = null;
   isAdmin = true;
-
   enterGame("ADMIN");
 });
-
-// ĐĂNG NHẬP THÀNH CÔNG
 
 function loginAs(username) {
   currentUser = username;
   isAdmin = false;
-
   state.active = username;
   saveState();
-
   enterGame(state.users[username].username);
 }
 
@@ -182,7 +180,6 @@ function enterGame(displayName) {
   $("authScreen").classList.add("hidden");
   $("gameScreen").classList.remove("hidden");
   $("bottomNav").classList.remove("hidden");
-
   document.body.classList.add("logged-in");
 
   $("welcomeUser").textContent = isAdmin
@@ -201,33 +198,25 @@ function enterGame(displayName) {
   }
 }
 
-// ĐIỀU HƯỚNG
-
+// ĐIỀU HƯỚNG TASKBAR
 function showScreen(screenId) {
-  ["gameScreen", "shopScreen", "albumScreen"].forEach(id => {
+  ["gameScreen", "shopScreen", "backpackScreen", "albumScreen"].forEach(id => {
     $(id).classList.toggle("hidden", id !== screenId);
   });
 
   document.querySelectorAll(".nav-item[data-screen]").forEach(btn => {
-    btn.classList.toggle(
-      "active",
-      btn.dataset.screen === screenId
-    );
+    btn.classList.toggle("active", btn.dataset.screen === screenId);
   });
 
-  if (screenId === "albumScreen") {
-    renderAlbum();
-  }
+  if (screenId === "backpackScreen") renderBackpack();
+  if (screenId === "albumScreen") renderAlbum();
 }
 
 document.querySelectorAll(".nav-item[data-screen]").forEach(btn => {
-  btn.addEventListener("click", () => {
-    showScreen(btn.dataset.screen);
-  });
+  btn.addEventListener("click", () => showScreen(btn.dataset.screen));
 });
 
 // ĐĂNG XUẤT
-
 $("logoutBtn").addEventListener("click", () => {
   currentUser = null;
   isAdmin = false;
@@ -236,71 +225,58 @@ $("logoutBtn").addEventListener("click", () => {
   state.active = null;
   saveState();
 
-  document.body.classList.remove("logged-in");
-  document.body.classList.remove("starter-active");
-
+  document.body.classList.remove("logged-in", "starter-active");
   $("starterOverlay").classList.add("hidden");
+  $("packOpenOverlay").classList.add("hidden");
 
   $("authScreen").classList.remove("hidden");
   $("gameScreen").classList.add("hidden");
   $("shopScreen").classList.add("hidden");
+  $("backpackScreen").classList.add("hidden");
   $("albumScreen").classList.add("hidden");
   $("bottomNav").classList.add("hidden");
 
   $("welcomeUser").textContent = "Chào mừng đến đấu trường!";
-
   $("loginPassword").value = "";
   $("adminCode").value = "";
 
   switchPanel("loginPanel");
 });
 
-// CẬP NHẬT THÔNG TIN
-
+// CẬP NHẬT THÔNG TIN & BADGE BALO
 function renderProfile() {
   const profile = getProfile();
+  if (!profile) return;
 
-  $("coinCount").textContent = isAdmin
-    ? "∞"
-    : profile.coins;
+  $("coinCount").textContent = isAdmin ? "∞" : profile.coins;
 
-  $("cardCount").textContent = isAdmin
-    ? "∞"
-    : profile.cards.length;
+  const bagCount = profile.bag ? profile.bag.length : 0;
+  const badge = $("navPackBadge");
+  badge.textContent = bagCount;
+  badge.classList.toggle("hidden", bagCount === 0);
 
-  $("packCount").textContent = isAdmin
-    ? "∞"
-    : profile.packsOpened;
-
-  $("starterChest").classList.toggle(
-    "opened",
-    !!profile?.starterOpened
-  );
-
-  $("openStarterBtn").textContent =
-    profile?.starterOpened
-      ? "ĐÃ MỞ RƯƠNG"
-      : "MỞ RƯƠNG NGAY ✦";
-
-  $("openStarterBtn").disabled =
-    !!profile?.starterOpened;
+  $("starterChest").classList.toggle("opened", !!profile.starterOpened);
+  $("openStarterBtn").textContent = profile.starterOpened ? "ĐÃ MỞ RƯƠNG" : "MỞ RƯƠNG NGAY ✦";
+  $("openStarterBtn").disabled = !!profile.starterOpened;
 }
-
-// ẨN RƯƠNG CŨ TRÊN MÀN HÌNH CHÍNH
 
 function hideOldStarterChest() {
   const oldArena = document.querySelector(".arena");
-
-  if (oldArena) {
-    oldArena.classList.add("hidden");
-  }
+  if (oldArena) oldArena.classList.add("hidden");
 }
 
+// ==========================================
 // RƯƠNG TÂN THỦ
+// ==========================================
+$("openStarterBtn").addEventListener("click", () => {
+  const profile = getProfile();
+  if (!isAdmin && !profile?.starterOpened) {
+    showStarterOverlay();
+  }
+});
 
 function showStarterOverlay() {
   $("starterOverlay").classList.remove("hidden");
-
   document.body.classList.add("starter-active");
 
   $("chestStage").classList.remove("hidden");
@@ -308,200 +284,264 @@ function showStarterOverlay() {
   $("starterResultStage").classList.add("hidden");
 
   $("starterTitle").textContent = "RƯƠNG TÂN THỦ";
-
-  $("starterDescription").textContent =
-    "Bạn nhận được một pack tân thủ miễn phí!";
+  $("starterDescription").textContent = "Bạn nhận được một rương tân thủ miễn phí!";
 
   $("starterChestClick").classList.remove("opening");
   $("starterPackClick").classList.remove("tearing");
-
   pendingCard = null;
 }
 
-// BƯỚC 1: NHẤN RƯƠNG
-
 $("starterChestClick").addEventListener("click", () => {
   $("starterChestClick").classList.add("opening");
-
   showToast("Rương đang mở...");
 
   setTimeout(() => {
     $("chestStage").classList.add("hidden");
     $("packStage").classList.remove("hidden");
-
     $("starterTitle").textContent = "STARTER PACK";
-
-    $("starterDescription").textContent =
-      "Bạn tìm thấy một gói thẻ bài bí ẩn!";
+    $("starterDescription").textContent = "Bạn tìm thấy một gói thẻ bài bí ẩn!";
   }, 650);
 });
-
-// BƯỚC 2: XÉ PACK
 
 $("starterPackClick").addEventListener("click", () => {
   if (pendingCard) return;
 
   $("starterPackClick").classList.add("tearing");
-
-  $("starterTitle").textContent = "ĐANG MỞ PACK...";
-
-  $("starterDescription").textContent =
-    "Một lá bài đang xuất hiện!";
+  $("starterTitle").textContent = "ĐANG XÉ PACK...";
+  $("starterDescription").textContent = "Ánh sáng đang lóe lên!";
 
   setTimeout(openStarterPack, 850);
 });
 
-// BƯỚC 3: RANDOM THẺ
-
 function openStarterPack() {
   const profile = getProfile();
-
   if (!profile || profile.starterOpened) return;
 
-  // 60% Khá Bảnh, 40% Jack.
   pendingCard = Math.random() < 0.6 ? "kha" : "jack";
-
   const card = cards[pendingCard];
 
-  // Chỉ thêm đúng thẻ được mở.
   profile.cards.push(pendingCard);
-  profile.packsOpened += 1;
   profile.starterOpened = true;
-
   saveState();
 
   $("packStage").classList.add("hidden");
   $("starterResultStage").classList.remove("hidden");
 
   $("starterTitle").textContent = "CHÚC MỪNG!";
+  $("starterDescription").textContent = "Bạn đã nhận được một thẻ bài mới!";
 
-  $("starterDescription").textContent =
-    "Bạn đã nhận được một thẻ bài mới!";
-
-  $("starterResultImage").style.display = "block";
-  $("starterResultImage").src = card.file;
-  $("starterResultImage").alt = card.name;
-
-  $("starterResultImage").onerror = function() {
-    this.style.display = "none";
-  };
+  const img = $("starterResultImage");
+  img.style.display = "block";
+  img.src = card.file;
+  img.alt = card.name;
+  img.onerror = function() { this.style.display = "none"; };
 
   $("starterResultName").textContent = card.name;
   $("starterResultRarity").textContent = card.rarity;
-  $("starterResultCategory").textContent = card.category;
+  $("starterResultCategory").textContent = CATEGORY_LABELS[card.category] || card.category;
 
   renderProfile();
 }
-
-// BƯỚC 4: NHẬN THẺ
 
 $("starterFinish").addEventListener("click", () => {
   if (!pendingCard) return;
 
   $("starterOverlay").classList.add("hidden");
-
   document.body.classList.remove("starter-active");
-
   hideOldStarterChest();
 
   pendingCard = null;
-
   renderProfile();
   renderAlbum();
-
   showToast("Đã thêm thẻ bài vào Album!");
 });
 
-// SHOP - MUA PACK
-
+// ==========================================
+// SHOP -> MUA PACK CẤT VÀO BALO
+// ==========================================
 document.querySelectorAll(".buy-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-    const price = btn.dataset.pack === "basic" ? 10 : 20;
-
-    if (isAdmin) {
-      return showToast("Admin có thể thử pack miễn phí!");
-    }
-
+    const packType = btn.dataset.pack; // "basic" hoặc "premium"
+    const price = packType === "basic" ? 10 : 20;
     const profile = getProfile();
 
-    if (!profile || profile.coins < price) {
-      return showToast("Bạn không đủ xu để mua pack!");
+    if (!isAdmin) {
+      if (!profile || profile.coins < price) {
+        return showToast("Bạn không đủ xu để mua pack!");
+      }
+      profile.coins -= price;
     }
 
-    profile.coins -= price;
-
-    // Tỉ lệ thẻ của pack: Khá Bảnh 60%, Jack 40%.
-    const cardId = Math.random() < 0.6 ? "kha" : "jack";
-
-    profile.cards.push(cardId);
-    profile.packsOpened += 1;
-
+    profile.bag.push(packType);
     saveState();
     renderProfile();
 
-    showShopCard(cardId);
+    const packName = packType === "basic" ? "Basic Pack" : "Premium Pack";
+    showToast(`Đã mua ${packName} và cất vào Balo! 🎒`);
   });
 });
 
-// HIỆN THẺ SHOP
+// ==========================================
+// BALO -> PHÓNG TO PACK -> XÉ PACK
+// ==========================================
+function renderBackpack() {
+  const profile = getProfile();
+  const bag = profile?.bag || [];
 
-function showShopCard(cardId) {
-  const card = cards[cardId];
+  $("emptyBackpack").classList.toggle("hidden", bag.length > 0);
 
-  $("revealedCard").innerHTML = `
-    <img src="${card.file}" alt="${card.name}">
-    <h3>${card.name}</h3>
-    <small>${card.rarity} · ${card.category}</small>
-  `;
+  $("backpackGrid").innerHTML = bag.map((type, index) => {
+    const isPremium = type === "premium";
+    return `
+      <div class="bag-item" data-index="${index}" data-type="${type}">
+        <div class="foil-pack ${isPremium ? "premium-foil" : "basic-foil"}">
+          <div class="foil-crimp top"></div>
+          <div class="foil-shine"></div>
+          <span class="foil-badge">${isPremium ? "GOLD EDITION" : "STANDARD"}</span>
+          <div class="foil-emblem">${isPremium ? "✧" : "✦"}</div>
+          <div class="foil-title">${isPremium ? "PREMIUM<br>PACK" : "BASIC<br>PACK"}</div>
+          <div class="foil-sub">MEME ARENA</div>
+          <div class="foil-crimp bottom"></div>
+        </div>
+        <h4>${isPremium ? "Premium Pack" : "Basic Pack"}</h4>
+        <span>Nhấn để xem & mở</span>
+      </div>
+    `;
+  }).join("");
 
-  $("revealModal").classList.remove("hidden");
+  document.querySelectorAll(".bag-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const idx = Number(item.dataset.index);
+      const type = item.dataset.type;
+      openPackZoomModal(idx, type);
+    });
+  });
 }
 
-function closeReveal() {
-  $("revealModal").classList.add("hidden");
-  renderProfile();
+// Bước 1: Nhấn vào pack ở Balo -> Phóng to pack ra giữa màn hình
+function openPackZoomModal(index, type) {
+  activePackIndex = index;
+  activePackType = type;
+  isTearingPack = false;
+
+  const isPremium = type === "premium";
+  const zoomedEl = $("zoomedPackElement");
+
+  zoomedEl.className = `foil-pack ${isPremium ? "premium-foil" : "basic-foil"} zoomed-pack tearable-pack`;
+  $("zoomPackBadge").textContent = isPremium ? "GOLD EDITION" : "STANDARD";
+  $("zoomPackEmblem").textContent = isPremium ? "✧" : "✦";
+  $("zoomPackTitle").innerHTML = isPremium ? "PREMIUM<br>PACK" : "BASIC<br>PACK";
+
+  $("packOverlayEyebrow").textContent = "UNBOXING";
+  $("packOverlayTitle").textContent = isPremium ? "PREMIUM PACK" : "BASIC PACK";
+  $("packOverlayDesc").textContent = "Nhấn thêm lần nữa vào gói bài để xé!";
+
+  $("zoomPackStage").classList.remove("hidden");
+  $("zoomResultStage").classList.add("hidden");
+  $("closePackOverlay").classList.remove("hidden");
+
+  $("packOpenOverlay").classList.remove("hidden");
 }
 
-$("closeReveal").addEventListener("click", closeReveal);
-$("revealDone").addEventListener("click", closeReveal);
+// Bước 2: Nhấn lần nữa vào pack đã phóng to -> Hiệu ứng xé pack & nhận thẻ
+$("zoomedPackElement").addEventListener("click", () => {
+  if (isTearingPack || activePackIndex === null) return;
+  isTearingPack = true;
 
-$("revealModal").addEventListener("click", event => {
-  if (event.target === $("revealModal")) {
-    closeReveal();
-  }
+  $("closePackOverlay").classList.add("hidden");
+  $("zoomedPackElement").classList.add("tearing");
+  $("packOverlayTitle").textContent = "ĐANG XÉ PACK...";
+  $("packOverlayDesc").textContent = "Thẻ bài bên trong đang lộ diện!";
+
+  setTimeout(() => {
+    const profile = getProfile();
+    // Xóa pack khỏi balo
+    profile.bag.splice(activePackIndex, 1);
+
+    // Tỉ lệ mở thẻ (Premium tăng nhẹ tỉ lệ ra Jack)
+    const jackChance = activePackType === "premium" ? 0.55 : 0.40;
+    const cardId = Math.random() < jackChance ? "jack" : "kha";
+    const card = cards[cardId];
+
+    if (!isAdmin) {
+      profile.cards.push(cardId);
+    }
+
+    saveState();
+    renderProfile();
+    renderBackpack();
+
+    // Hiển thị thẻ bài nhận được
+    $("zoomPackStage").classList.add("hidden");
+    $("zoomResultStage").classList.remove("hidden");
+
+    $("packOverlayEyebrow").textContent = "CONGRATULATIONS!";
+    $("packOverlayTitle").textContent = "NHẬN THẺ THÀNH CÔNG";
+    $("packOverlayDesc").textContent = "Thẻ bài đã được chuyển vào Album!";
+
+    const img = $("zoomResultImage");
+    img.style.display = "block";
+    img.src = card.file;
+    img.alt = card.name;
+    img.onerror = function() { this.style.display = "none"; };
+
+    $("zoomResultName").textContent = card.name;
+    $("zoomResultRarity").textContent = card.rarity;
+    $("zoomResultCategory").textContent = CATEGORY_LABELS[card.category] || card.category;
+
+    activePackIndex = null;
+    isTearingPack = false;
+  }, 850);
 });
 
-// ALBUM - CHỈ HIỆN THẺ ĐÃ SỞ HỮU
+function closePackZoom() {
+  if (isTearingPack) return;
+  $("packOpenOverlay").classList.add("hidden");
+  activePackIndex = null;
+}
+
+$("closePackOverlay").addEventListener("click", closePackZoom);
+$("zoomFinishBtn").addEventListener("click", closePackZoom);
+
+// ==========================================
+// ALBUM (CHIA 4 DANH MỤC)
+// ==========================================
+document.querySelectorAll(".album-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".album-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    currentAlbumFilter = tab.dataset.filter;
+    renderAlbum();
+  });
+});
 
 function renderAlbum() {
   const profile = getProfile();
+  const owned = isAdmin ? Object.keys(cards) : (profile?.cards || []);
 
-  const owned = isAdmin
-    ? ["kha", "jack"]
-    : (profile?.cards || []);
-
-  $("emptyAlbum").classList.toggle(
-    "hidden",
-    owned.length > 0
-  );
-
-  $("albumGrid").innerHTML = owned.map(id => {
+  const filtered = owned.filter(id => {
     const card = cards[id];
+    if (!card) return false;
+    if (currentAlbumFilter === "ALL") return true;
+    return card.category === currentAlbumFilter;
+  });
 
-    if (!card) return "";
+  $("emptyAlbum").classList.toggle("hidden", filtered.length > 0);
 
+  $("albumGrid").innerHTML = filtered.map(id => {
+    const card = cards[id];
+    const catLabel = CATEGORY_LABELS[card.category] || card.category;
     return `
       <article class="owned-card">
         <img src="${card.file}" alt="${card.name}">
         <h3>${card.name}</h3>
-        <small>${card.rarity} · ${card.category}</small>
+        <small>${card.rarity} · ${catLabel}</small>
       </article>
     `;
   }).join("");
 }
 
 // KHÔI PHỤC ĐĂNG NHẬP
-
 if (state.active && state.users[state.active]) {
   loginAs(state.active);
 } else {
