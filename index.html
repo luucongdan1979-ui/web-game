@@ -232,28 +232,97 @@
     </section>
   </main>
 
-  <!-- THANH ĐIỀU HƯỚNG -->
+  <!-- THANH ĐIỀU HƯỚNG VỚI ICON SVG SẮC NÉT -->
   <nav id="bottomNav" class="bottom-nav hidden">
     <button class="nav-item active" data-screen="gameScreen">
-      <span>⌂</span>Trang chủ
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 10.5L12 3l9 7.5"></path>
+          <path d="M5 9.5V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9.5"></path>
+          <path d="M9 21v-6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6"></path>
+        </svg>
+      </span>
+      Trang chủ
     </button>
 
     <button class="nav-item" data-screen="shopScreen">
-      <span>✧</span>Shop
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l2.4-4.8A2 2 0 0 1 7.2 3h9.6a2 2 0 0 1 1.8 1.2L21 9"></path>
+          <path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"></path>
+          <path d="M5 11.8V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7.2"></path>
+        </svg>
+      </span>
+      Shop
     </button>
 
     <button class="nav-item" data-screen="backpackScreen">
-      <span>🎒</span>Balo <em id="navPackBadge" class="nav-badge hidden">0</em>
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10z"></path>
+          <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path>
+          <path d="M8 14h8"></path>
+          <path d="M10 14v3"></path>
+          <path d="M14 14v3"></path>
+        </svg>
+      </span>
+      Balo <em id="navPackBadge" class="nav-badge hidden">0</em>
     </button>
 
     <button class="nav-item" data-screen="albumScreen">
-      <span>▣</span>Album
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="3" width="12" height="16" rx="2"></rect>
+          <path d="M8 7h4"></path>
+          <path d="M8 11h4"></path>
+          <path d="M16 7h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-1"></path>
+        </svg>
+      </span>
+      Album
     </button>
 
-    <button id="logoutBtn" class="nav-item">
-      <span>⇥</span>Đăng xuất
+    <button id="logoutBtn" class="nav-item logout-nav">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </span>
+      Đăng xuất
     </button>
   </nav>
+
+  <!-- MODAL PHÓNG TO XEM CHI TIẾT THẺ BÀI TRONG ALBUM -->
+  <div id="cardDetailModal" class="starter-overlay hidden">
+    <div class="starter-dialog card-detail-dialog">
+      <button id="closeCardDetail" class="close-btn">×</button>
+      <p class="eyebrow" id="detailCategoryBadge">NHÂN VẬT</p>
+      <h2 id="detailCardName">Tên Thẻ Bài</h2>
+      <span class="detail-rarity-pill" id="detailRarity">LEGENDARY</span>
+
+      <div class="detail-card-frame">
+        <img id="detailCardImage" src="" alt="Chi tiết thẻ bài">
+      </div>
+
+      <!-- Khung chỉ số ATK / DEF (Chỉ hiện khi là thẻ Nhân vật) -->
+      <div id="detailStatsBox" class="detail-stats-box">
+        <div class="stat-pill atk-pill">
+          <span class="stat-label">⚔️ ĐIỂM ATK</span>
+          <strong id="detailAtkValue">0</strong>
+        </div>
+        <div class="stat-pill def-pill">
+          <span class="stat-label">🛡️ ĐIỂM DEF</span>
+          <strong id="detailDefValue">0</strong>
+        </div>
+      </div>
+
+      <!-- Mô tả dành cho thẻ Tình huống -->
+      <p id="detailSituationNote" class="detail-situation-note hidden">
+        Thẻ bài tình huống đặc biệt kích hoạt hiệu ứng trên đấu trường.
+      </p>
+    </div>
+  </div>
 
   <!-- RƯƠNG VÀ STARTER PACK -->
   <div id="starterOverlay" class="starter-overlay hidden">
