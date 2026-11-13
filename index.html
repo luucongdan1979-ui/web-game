@@ -121,7 +121,7 @@
       <div class="arena" id="mainArena">
         <div class="arena-stars">✦ ✧ ✦ ✧ ✦</div>
 
-        <!-- Rương tân thủ (hiển thị khi chưa mở rương) -->
+        <!-- Rương tân thủ -->
         <div class="arena-copy" id="arenaCopyChest">
           <p class="eyebrow">STARTER EVENT</p>
           <h2>Rương tân thủ</h2>
@@ -146,7 +146,7 @@
           </p>
         </div>
 
-        <!-- Chú hề Chibi tóc 7 sắc cầu vồng & thẻ bài bay (hiển thị ở Trang chủ sau khi đã mở rương / Admin) -->
+        <!-- Chú hề Chibi tóc 7 sắc cầu vồng -->
         <div class="chibi-clown-home hidden" id="chibiClownHome">
           <div class="chibi-clown-stage">
             <div class="clown-speech-bubble">Hãy mua pack ở mục shop nhé !</div>
@@ -270,6 +270,18 @@
         Chưa có thẻ bài nào trong mục này!
       </p>
     </section>
+
+    <!-- CHECK ACCOUNT (DÀNH RIÊNG CHO ADMIN) -->
+    <section id="adminCheckScreen" class="content-screen hidden">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ADMIN MANAGEMENT</p>
+          <h2>Quản lý <span>Tài khoản người chơi</span></h2>
+        </div>
+      </div>
+
+      <div id="adminUserManagementList" class="admin-user-mgmt-grid"></div>
+    </section>
   </main>
 
   <!-- THANH ĐIỀU HƯỚNG -->
@@ -302,6 +314,14 @@
       Album
     </button>
 
+    <!-- NÚT CHECK ACCOUNT CHỈ HIỆN VỚI ADMIN -->
+    <button id="adminCheckNavBtn" class="nav-item admin-only-nav hidden" data-screen="adminCheckScreen">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      </span>
+      Check TK
+    </button>
+
     <button id="logoutBtn" class="nav-item logout-nav">
       <span class="nav-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -309,6 +329,22 @@
       Đăng xuất
     </button>
   </nav>
+
+  <!-- MODAL TẶNG THẺ BÀI CHO TÀI KHOẢN (ADMIN) -->
+  <div id="adminGiftModal" class="starter-overlay hidden">
+    <div class="starter-dialog admin-gift-dialog">
+      <button id="closeAdminGiftModal" class="close-btn">×</button>
+      <p class="eyebrow">ADMIN GIFT</p>
+      <h2 id="giftModalTitle">Tặng thẻ bài</h2>
+      <p>Chọn các thẻ bài chưa sở hữu để tặng cho người chơi này:</p>
+
+      <div id="giftCardsContainer" class="gift-cards-grid"></div>
+
+      <button id="confirmGiftBtn" class="primary-btn" style="margin-top: 20px;">
+        XÁC NHẬN TẶNG THẺ ✦
+      </button>
+    </div>
+  </div>
 
   <!-- MODAL XEM CHI TIẾT THẺ BÀI -->
   <div id="cardDetailModal" class="starter-overlay hidden">
