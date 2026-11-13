@@ -22,21 +22,44 @@
   </header>
 
   <main>
-    <!-- ĐĂNG NHẬP -->
+    <!-- ĐĂNG NHẬP (TÍCH HỢP CHÚ HỀ CHIBI ẢO THUẬT CÓ CHUYỂN ĐỘNG) -->
     <section id="authScreen" class="auth-screen">
       <div class="auth-art">
         <div class="orbit orbit-one"></div>
         <div class="orbit orbit-two"></div>
 
-        <div class="hero-card">
-          <div class="hero-spark">✧</div>
-          <div class="hero-emoji">🃏</div>
-          <div class="hero-caption">COLLECT YOUR MEMES</div>
+        <!-- Chú hề Chibi ảo thuật thẻ bài có chuyển động -->
+        <div class="chibi-clown-stage">
+          <div class="magic-wand-hand">🪄</div>
+          <div class="chibi-clown">
+            <div class="clown-hat">
+              <div class="hat-pom">⭐</div>
+            </div>
+            <div class="clown-head">
+              <div class="blush left"></div>
+              <div class="blush right"></div>
+              <div class="eye left"><span></span></div>
+              <div class="eye right"><span></span></div>
+              <div class="nose"></div>
+              <div class="smile"></div>
+            </div>
+            <div class="clown-body">
+              <div class="collar"></div>
+              <div class="bowtie">🎀</div>
+            </div>
+          </div>
+
+          <!-- Thẻ bài ảo thuật bay múa xung quanh -->
+          <div class="flying-card card-alpha">🃏</div>
+          <div class="flying-card card-beta">🎴</div>
+          <div class="flying-card card-gamma">✨</div>
+          <div class="magic-sparkle s1">✦</div>
+          <div class="magic-sparkle s2">✧</div>
         </div>
 
-        <span class="floating f1">LEGENDARY</span>
-        <span class="floating f2">50 / 50</span>
-        <span class="floating f3">✦ RARE ✦</span>
+        <span class="floating f1">MAGIC SHOW</span>
+        <span class="floating f2">CHIBI CLOWN</span>
+        <span class="floating f3">✦ 50/50 ✦</span>
       </div>
 
       <div class="auth-panel">
@@ -232,7 +255,7 @@
     </section>
   </main>
 
-  <!-- THANH ĐIỀU HƯỚNG VỚI ICON SVG SẮC NÉT -->
+  <!-- THANH ĐIỀU HƯỚNG VỚI ICON SẮC NÉT -->
   <nav id="bottomNav" class="bottom-nav hidden">
     <button class="nav-item active" data-screen="gameScreen">
       <span class="nav-icon">
@@ -293,7 +316,7 @@
     </button>
   </nav>
 
-  <!-- MODAL PHÓNG TO XEM CHI TIẾT THẺ BÀI TRONG ALBUM -->
+  <!-- MODAL XEM CHI TIẾT THẺ BÀI -->
   <div id="cardDetailModal" class="starter-overlay hidden">
     <div class="starter-dialog card-detail-dialog">
       <button id="closeCardDetail" class="close-btn">×</button>
@@ -305,7 +328,6 @@
         <img id="detailCardImage" src="" alt="Chi tiết thẻ bài">
       </div>
 
-      <!-- Khung chỉ số ATK / DEF (Chỉ hiện khi là thẻ Nhân vật) -->
       <div id="detailStatsBox" class="detail-stats-box">
         <div class="stat-pill atk-pill">
           <span class="stat-label">⚔️ ĐIỂM ATK</span>
@@ -317,7 +339,6 @@
         </div>
       </div>
 
-      <!-- Mô tả dành cho thẻ Tình huống -->
       <p id="detailSituationNote" class="detail-situation-note hidden">
         Thẻ bài tình huống đặc biệt kích hoạt hiệu ứng trên đấu trường.
       </p>
