@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 
-const STORAGE_KEY = "memeCardArenaDemo_v4";
+const STORAGE_KEY = "memeCardArenaDemo_v5";
 const ADMIN_CODE = "171113";
 
 // Danh sách thẻ bài kèm chỉ số ATK & DEF cho nhân vật
@@ -553,7 +553,6 @@ function renderAlbum() {
     `;
   }).join("");
 
-  // Gắn sự kiện click để phóng to thẻ bài
   document.querySelectorAll(".owned-card").forEach(cardEl => {
     cardEl.addEventListener("click", () => {
       const cardId = cardEl.dataset.cardId;
@@ -579,7 +578,6 @@ function openCardDetail(cardId) {
   img.alt = card.name;
   img.onerror = function() { this.style.display = "none"; };
 
-  // Hiển thị chỉ số ATK/DEF nếu là Nhân vật, ẩn nếu là Tình huống
   $("detailStatsBox").classList.toggle("hidden", !isCharacter);
   $("detailSituationNote").classList.toggle("hidden", isCharacter);
 
