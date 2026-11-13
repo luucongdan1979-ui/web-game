@@ -1,750 +1,468 @@
-const $ = id => document.getElementById(id);
-
-const STORAGE_KEY = "memeCardArenaDemo_v7";
-const ADMIN_CODE = "171113";
-
-const cards = {
-  kha: {
-    name: "Khá Bảnh",
-    file: "khá bảnh nv.png",
-    rarity: "RARE",
-    category: "CHARACTER",
-    atk: 49,
-    def: 49
-  },
-  jack: {
-    name: "Jack",
-    file: "jack nv.png",
-    rarity: "LEGENDARY",
-    category: "CHARACTER",
-    atk: 97,
-    def: 13
-  },
-  vaoTu: {
-    name: "Vào Tù",
-    file: "Vào Tù Th.png",
-    rarity: "LEGENDARY",
-    category: "SITUATION"
-  }
-};
-
-const CATEGORY_LABELS = {
-  CHARACTER: "NHÂN VẬT",
-  SKILL: "SKILL",
-  SITUATION: "TÌNH HUỐNG"
-};
-
-let state = loadState();
-let currentUser = null;
-let isAdmin = false;
-let pendingCard = null;
-let activePackIndex = null;
-let activePackType = null;
-let isTearingPack = false;
-let currentAlbumFilter = "ALL";
-let targetGiftUserKey = null;
-let toastTimer;
-
-function loadState() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-      users: {},
-      active: null
-    };
-  } catch {
-    return { users: {}, active: null };
-  }
-}
-
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-function getProfile() {
-  if (isAdmin) {
-    if (!state.adminBag) state.adminBag = [];
-    return {
-      coins: Infinity,
-      cards: Object.keys(cards),
-      bag: state.adminBag,
-      starterOpened: true
-    };
-  }
-  const p = currentUser ? state.users[currentUser] : null;
-  if (p && !Array.isArray(p.bag)) p.bag = [];
-  return p;
-}
-
-function showToast(message) {
-  $("toast").textContent = message;
-  $("toast").classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    $("toast").classList.remove("show");
-  }, 2400);
-}
-
-function showAuthMessage(message, success = false) {
-  $("authMessage").textContent = message;
-  $("authMessage").style.color = success ? "#8ef0c1" : "#ff9dbe";
-}
-
-function switchPanel(panelId) {
-  document.querySelectorAll(".auth-form").forEach(form => {
-    form.classList.toggle("hidden", form.id !== panelId);
-  });
-
-  document.querySelectorAll(".tab").forEach(tab => {
-    tab.classList.toggle("active", tab.dataset.panel === panelId);
-  });
-
-  showAuthMessage("");
-}
-
-document.querySelectorAll(".tab").forEach(tab => {
-  tab.addEventListener("click", () => switchPanel(tab.dataset.panel));
-});
-
-document.querySelectorAll("[data-switch]").forEach(btn => {
-  btn.addEventListener("click", () => switchPanel(btn.dataset.switch));
-});
-
-function createProfile(username, email, password) {
-  return {
-    username,
-    email,
-    password,
-    coins: 20,
-    cards: [],
-    bag: [],
-    starterOpened: false,
-    banned: false
-  };
-}
-
-$("registerPanel").addEventListener("submit", event => {
-  event.preventDefault();
-
-  const username = $("registerUsername").value.trim();
-  const email = $("registerEmail").value.trim().toLowerCase();
-  const password = $("registerPassword").value;
-  const key = username.toLowerCase();
-
-  if (state.users[key]) {
-    return showAuthMessage("Tên tài khoản đã tồn tại!");
-  }
-
-  if (!/^[a-zA-Z0-9_]{3,18}$/.test(username)) {
-    return showAuthMessage("Tên tài khoản cần 3–18 ký tự chữ, số hoặc dấu gạch dưới.");
-  }
-
-  if (password.length < 6) {
-    return showAuthMessage("Mật khẩu cần ít nhất 6 ký tự!");
-  }
-
-  state.users[key] = createProfile(username, email, password);
-  saveState();
-  loginAs(key);
-});
-
-$("loginPanel").addEventListener("submit", event => {
-  event.preventDefault();
-
-  const username = $("loginUsername").value.trim().toLowerCase();
-  const password = $("loginPassword").value;
-  const profile = state.users[username];
-
-  if (!profile || profile.password !== password) {
-    return showAuthMessage("Tên tài khoản hoặc mật khẩu không đúng!");
-  }
-
-  if (profile.banned) {
-    return showAuthMessage("Tài khoản này đã bị BAN (Khóa) bởi Admin!");
-  }
-
-  loginAs(username);
-});
-
-$("adminPanel").addEventListener("submit", event => {
-  event.preventDefault();
-
-  if ($("adminCode").value !== ADMIN_CODE) {
-    return showAuthMessage("Mã Admin không chính xác!");
-  }
-
-  currentUser = null;
-  isAdmin = true;
-  enterGame("ADMIN");
-});
-
-function loginAs(username) {
-  currentUser = username;
-  isAdmin = false;
-  state.active = username;
-  saveState();
-  enterGame(state.users[username].username);
-}
-
-function enterGame(displayName) {
-  $("authScreen").classList.add("hidden");
-  $("gameScreen").classList.remove("hidden");
-  $("bottomNav").classList.remove("hidden");
-  document.body.classList.add("logged-in");
-
-  $("welcomeUser").textContent = isAdmin
-    ? "Xin chào, Admin!"
-    : `Xin chào, ${displayName}!`;
-
-  $("adminTag").classList.toggle("hidden", !isAdmin);
-  $("adminCheckNavBtn").classList.toggle("hidden", !isAdmin);
-
-  renderProfile();
-  showScreen("gameScreen");
-
-  if (isAdmin || getProfile().starterOpened) {
-    hideOldStarterChest();
-  } else {
-    showStarterOverlay();
-  }
-}
-
-function showScreen(screenId) {
-  ["gameScreen", "shopScreen", "backpackScreen", "albumScreen", "adminCheckScreen"].forEach(id => {
-    $(id).classList.toggle("hidden", id !== screenId);
-  });
-
-  document.querySelectorAll(".nav-item[data-screen]").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.screen === screenId);
-  });
-
-  if (screenId === "backpackScreen") renderBackpack();
-  if (screenId === "albumScreen") renderAlbum();
-  if (screenId === "adminCheckScreen") renderAdminUserManagement();
-}
-
-document.querySelectorAll(".nav-item[data-screen]").forEach(btn => {
-  btn.addEventListener("click", () => showScreen(btn.dataset.screen));
-});
-
-$("logoutBtn").addEventListener("click", () => {
-  currentUser = null;
-  isAdmin = false;
-  pendingCard = null;
-
-  state.active = null;
-  saveState();
-
-  document.body.classList.remove("logged-in", "starter-active");
-  $("starterOverlay").classList.add("hidden");
-  $("packOpenOverlay").classList.add("hidden");
-  $("cardDetailModal").classList.add("hidden");
-  $("adminGiftModal").classList.add("hidden");
-
-  $("arenaCopyChest").classList.remove("hidden");
-  $("chibiClownHome").classList.add("hidden");
-  $("mainArena").classList.remove("chest-completed");
-
-  $("authScreen").classList.remove("hidden");
-  $("gameScreen").classList.add("hidden");
-  $("shopScreen").classList.add("hidden");
-  $("backpackScreen").classList.add("hidden");
-  $("albumScreen").classList.add("hidden");
-  $("adminCheckScreen").classList.add("hidden");
-  $("bottomNav").classList.add("hidden");
-
-  $("welcomeUser").textContent = "Chào mừng đến đấu trường!";
-  $("loginPassword").value = "";
-  $("adminCode").value = "";
-
-  switchPanel("loginPanel");
-});
-
-function renderProfile() {
-  const profile = getProfile();
-  if (!profile) return;
-
-  $("coinCount").textContent = isAdmin ? "∞" : profile.coins;
-
-  const bagCount = profile.bag ? profile.bag.length : 0;
-  const badge = $("navPackBadge");
-  badge.textContent = bagCount;
-  badge.classList.toggle("hidden", bagCount === 0);
-
-  $("starterChest").classList.toggle("opened", !!profile.starterOpened);
-  $("openStarterBtn").textContent = profile.starterOpened ? "ĐÃ MỞ RƯƠNG" : "MỞ RƯƠNG NGAY ✦";
-  $("openStarterBtn").disabled = !!profile.starterOpened;
-}
-
-function hideOldStarterChest() {
-  const arena = $("mainArena");
-  const chestCopy = $("arenaCopyChest");
-  const clownHome = $("chibiClownHome");
-
-  if (arena && chestCopy && clownHome) {
-    chestCopy.classList.add("hidden");
-    clownHome.classList.remove("hidden");
-    arena.classList.add("chest-completed");
-  }
-}
-
-function getRandomCardByRarity(rareChance) {
-  const rand = Math.random();
-  const targetRarity = rand < rareChance ? "RARE" : "LEGENDARY";
-  const matchingKeys = Object.keys(cards).filter(key => cards[key].rarity === targetRarity);
-  return matchingKeys[Math.floor(Math.random() * matchingKeys.length)];
-}
-
-// RƯƠNG TÂN THỦ
-$("openStarterBtn").addEventListener("click", () => {
-  const profile = getProfile();
-  if (!isAdmin && !profile?.starterOpened) {
-    showStarterOverlay();
-  }
-});
-
-function showStarterOverlay() {
-  $("starterOverlay").classList.remove("hidden");
-  document.body.classList.add("starter-active");
-
-  $("chestStage").classList.remove("hidden");
-  $("packStage").classList.add("hidden");
-  $("starterResultStage").classList.add("hidden");
-
-  $("starterTitle").textContent = "RƯƠNG TÂN THỦ";
-  $("starterDescription").textContent = "Bạn nhận được một rương tân thủ miễn phí!";
-
-  $("starterChestClick").classList.remove("opening");
-  $("starterPackClick").classList.remove("tearing");
-  pendingCard = null;
-}
-
-$("starterChestClick").addEventListener("click", () => {
-  $("starterChestClick").classList.add("opening");
-  showToast("Rương đang mở...");
-
-  setTimeout(() => {
-    $("chestStage").classList.add("hidden");
-    $("packStage").classList.remove("hidden");
-    $("starterTitle").textContent = "STARTER PACK";
-    $("starterDescription").textContent = "Bạn tìm thấy một gói thẻ bài bí ẩn!";
-  }, 650);
-});
-
-$("starterPackClick").addEventListener("click", () => {
-  if (pendingCard) return;
-
-  $("starterPackClick").classList.add("tearing");
-  $("starterTitle").textContent = "ĐANG XÉ PACK...";
-  $("starterDescription").textContent = "Ánh sáng đang lóe lên!";
-
-  setTimeout(openStarterPack, 850);
-});
-
-function openStarterPack() {
-  const profile = getProfile();
-  if (!profile || profile.starterOpened) return;
-
-  pendingCard = getRandomCardByRarity(0.60);
-  const card = cards[pendingCard];
-
-  profile.cards.push(pendingCard);
-  profile.starterOpened = true;
-  saveState();
-
-  $("packStage").classList.add("hidden");
-  $("starterResultStage").classList.remove("hidden");
-
-  $("starterTitle").textContent = "CHÚC MỪNG!";
-  $("starterDescription").textContent = "Bạn đã nhận được một thẻ bài mới!";
-
-  const img = $("starterResultImage");
-  img.style.display = "block";
-  img.src = card.file;
-  img.alt = card.name;
-  img.onerror = function() { this.style.display = "none"; };
-
-  $("starterResultName").textContent = card.name;
-  $("starterResultRarity").textContent = card.rarity;
-  $("starterResultCategory").textContent = CATEGORY_LABELS[card.category] || card.category;
-
-  renderProfile();
-}
-
-$("starterFinish").addEventListener("click", () => {
-  if (!pendingCard) return;
-
-  $("starterOverlay").classList.add("hidden");
-  document.body.classList.remove("starter-active");
-  hideOldStarterChest();
-
-  pendingCard = null;
-  renderProfile();
-  renderAlbum();
-  showToast("Đã thêm thẻ bài vào Album!");
-});
-
-// SHOP
-document.querySelectorAll(".buy-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const packType = btn.dataset.pack;
-    const price = packType === "basic" ? 10 : 20;
-    const profile = getProfile();
-
-    if (!isAdmin) {
-      if (!profile || profile.coins < price) {
-        return showToast("Bạn không đủ xu để mua pack!");
-      }
-      profile.coins -= price;
-    }
-
-    profile.bag.push(packType);
-    saveState();
-    renderProfile();
-
-    const packName = packType === "basic" ? "Basic Pack" : "Premium Pack";
-    showToast(`Đã mua ${packName} và cất vào Balo!`);
-  });
-});
-
-// BALO
-function renderBackpack() {
-  const profile = getProfile();
-  const bag = profile?.bag || [];
-
-  $("emptyBackpack").classList.toggle("hidden", bag.length > 0);
-
-  $("backpackGrid").innerHTML = bag.map((type, index) => {
-    const isPremium = type === "premium";
-    return `
-      <div class="bag-item" data-index="${index}" data-type="${type}">
-        <div class="foil-pack ${isPremium ? "premium-foil" : "basic-foil"}">
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MEME CARD ARENA</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#">
+      <span class="brand-mark">✦</span>
+      <span>MEME <b>CARD</b> ARENA</span>
+    </a>
+
+    <div class="top-actions">
+      <span id="welcomeUser" class="welcome-user">Chào mừng đến đấu trường!</span>
+      <span class="coin-pill">✦ <b id="coinCount">0</b></span>
+    </div>
+  </header>
+
+  <main>
+    <!-- ĐĂNG NHẬP -->
+    <section id="authScreen" class="auth-screen">
+      <div class="auth-art">
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+
+        <div class="hero-card">
+          <div class="hero-spark">✧</div>
+          <div class="hero-emoji">🃏</div>
+          <div class="hero-caption">COLLECT YOUR MEMES</div>
+        </div>
+
+        <span class="floating f1">LEGENDARY</span>
+        <span class="floating f2">50 / 50</span>
+        <span class="floating f3">✦ RARE ✦</span>
+      </div>
+
+      <div class="auth-panel">
+        <p class="eyebrow">WELCOME TO THE ARENA</p>
+        <h1>Vào đấu trường<br><span>thẻ bài meme!</span></h1>
+        <p class="muted">
+          Sưu tầm nhân vật, mở pack và xây dựng bộ sưu tập của bạn.
+        </p>
+
+        <div class="auth-tabs">
+          <button class="tab active" data-panel="loginPanel">Đăng nhập</button>
+          <button class="tab" data-panel="registerPanel">Đăng ký</button>
+          <button class="tab" data-panel="adminPanel">Admin code</button>
+        </div>
+
+        <form id="loginPanel" class="auth-form">
+          <label>Tên tài khoản</label>
+          <input id="loginUsername" placeholder="Nhập tên tài khoản" required>
+
+          <label>Mật khẩu</label>
+          <input id="loginPassword" type="password" placeholder="Nhập mật khẩu" required>
+
+          <button class="primary-btn" type="submit">
+            ĐĂNG NHẬP <span>➜</span>
+          </button>
+
+          <p class="form-note">
+            Chưa có tài khoản?
+            <button type="button" class="text-btn" data-switch="registerPanel">
+              Đăng ký ngay
+            </button>
+          </p>
+        </form>
+
+        <form id="registerPanel" class="auth-form hidden">
+          <label>Tên tài khoản</label>
+          <input id="registerUsername" placeholder="Nhập tên tài khoản" required minlength="3">
+
+          <label>Gmail</label>
+          <input id="registerEmail" type="email" placeholder="name@gmail.com" required>
+
+          <label>Mật khẩu</label>
+          <input id="registerPassword" type="password" placeholder="Tạo mật khẩu" required minlength="6">
+
+          <button class="primary-btn" type="submit">
+            TẠO TÀI KHOẢN <span>➜</span>
+          </button>
+
+          <p class="form-note">
+            Đã có tài khoản?
+            <button type="button" class="text-btn" data-switch="loginPanel">
+              Đăng nhập
+            </button>
+          </p>
+        </form>
+
+        <form id="adminPanel" class="auth-form hidden">
+          <label>Mã quản trị 6 số</label>
+          <input id="adminCode" inputmode="numeric" maxlength="6" placeholder="••••••" required>
+
+          <button class="primary-btn" type="submit">
+            VÀO CHẾ ĐỘ ADMIN <span>➜</span>
+          </button>
+
+          <p class="form-note">Chỉ sử dụng mã quản trị được cấp.</p>
+        </form>
+
+        <p id="authMessage" class="message"></p>
+      </div>
+    </section>
+
+    <!-- MÀN HÌNH CHÍNH (TRANG CHỦ) -->
+    <section id="gameScreen" class="game-screen hidden">
+      <div class="game-heading">
+        <div>
+          <p class="eyebrow">YOUR MEME UNIVERSE</p>
+          <h2>Đấu trường <span>của bạn</span></h2>
+        </div>
+        <div id="adminTag" class="admin-tag hidden">✦ ADMIN MODE</div>
+      </div>
+
+      <div class="arena" id="mainArena">
+        <div class="arena-stars">✦ ✧ ✦ ✧ ✦</div>
+
+        <!-- Rương tân thủ -->
+        <div class="arena-copy" id="arenaCopyChest">
+          <p class="eyebrow">STARTER EVENT</p>
+          <h2>Rương tân thủ</h2>
+          <p>Mở rương đầu tiên để nhận ngẫu nhiên một thẻ bài meme!</p>
+
+          <div class="chest royal-chest" id="starterChest">
+            <div class="chest-glow"></div>
+            <div class="chest-lid">
+              <div class="chest-trim"></div>
+            </div>
+            <div class="chest-body">
+              <div class="chest-lock">✦</div>
+            </div>
+          </div>
+
+          <button id="openStarterBtn" class="primary-btn chest-btn">
+            MỞ RƯƠNG NGAY ✦
+          </button>
+
+          <p class="tiny-note">
+            Rare 60% · Legendary 40%
+          </p>
+        </div>
+
+        <!-- Chú hề Chibi tóc 7 sắc cầu vồng -->
+        <div class="chibi-clown-home hidden" id="chibiClownHome">
+          <div class="chibi-clown-stage">
+            <div class="clown-speech-bubble">Hãy mua pack ở mục shop nhé !</div>
+            <div class="magic-wand-hand">🪄</div>
+            <div class="chibi-clown">
+              <div class="clown-hair-puffs">
+                <span class="puff"></span>
+                <span class="puff"></span>
+                <span class="puff"></span>
+                <span class="puff"></span>
+                <span class="puff"></span>
+                <span class="puff"></span>
+                <span class="puff"></span>
+              </div>
+              <div class="clown-hat">
+                <div class="hat-pom">⭐</div>
+              </div>
+              <div class="clown-head">
+                <div class="blush left"></div>
+                <div class="blush right"></div>
+                <div class="eye left"><span></span></div>
+                <div class="eye right"><span></span></div>
+                <div class="nose"></div>
+                <div class="smile"></div>
+              </div>
+              <div class="clown-body">
+                <div class="collar"></div>
+                <div class="bowtie">🎀</div>
+              </div>
+            </div>
+            <div class="flying-card card-alpha">🃏</div>
+            <div class="flying-card card-beta">🎴</div>
+            <div class="flying-card card-gamma">✨</div>
+            <div class="magic-sparkle s1">✦</div>
+            <div class="magic-sparkle s2">✧</div>
+          </div>
+        </div>
+
+        <div class="arena-decoration deco-left">✧</div>
+        <div class="arena-decoration deco-right">✦</div>
+      </div>
+    </section>
+
+    <!-- SHOP -->
+    <section id="shopScreen" class="content-screen hidden">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">CARD STORE</p>
+          <h2>Cửa hàng <span>pack</span></h2>
+        </div>
+      </div>
+
+      <div class="shop-grid">
+        <article class="pack-card">
+          <div class="foil-pack basic-foil">
+            <div class="foil-crimp top"></div>
+            <div class="foil-shine"></div>
+            <span class="foil-badge">STANDARD</span>
+            <div class="foil-emblem">✦</div>
+            <div class="foil-title">BASIC<br>PACK</div>
+            <div class="foil-sub">MEME ARENA</div>
+            <div class="foil-crimp bottom"></div>
+          </div>
+          <h3>Basic Pack</h3>
+          <p>60% Rare · 40% Legendary. Mua xong sẽ lưu vào Balo.</p>
+          <button class="buy-btn" data-pack="basic">Mua · 10 xu</button>
+        </article>
+
+        <article class="pack-card">
+          <div class="foil-pack premium-foil">
+            <div class="foil-crimp top"></div>
+            <div class="foil-shine"></div>
+            <span class="foil-badge">GOLD EDITION</span>
+            <div class="foil-emblem">✧</div>
+            <div class="foil-title">PREMIUM<br>PACK</div>
+            <div class="foil-sub">MEME ARENA</div>
+            <div class="foil-crimp bottom"></div>
+          </div>
+          <h3>Premium Pack</h3>
+          <p>60% Legendary · 40% Rare. Mua xong sẽ lưu vào Balo.</p>
+          <button class="buy-btn" data-pack="premium">Mua · 20 xu</button>
+        </article>
+      </div>
+    </section>
+
+    <!-- BALO -->
+    <section id="backpackScreen" class="content-screen hidden">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">YOUR INVENTORY</p>
+          <h2>Balo <span>vật phẩm</span></h2>
+        </div>
+      </div>
+
+      <div id="backpackGrid" class="backpack-grid"></div>
+
+      <p id="emptyBackpack" class="empty-state">
+        Balo của bạn đang trống. Hãy ghé Shop để mua thêm pack nhé!
+      </p>
+    </section>
+
+    <!-- ALBUM -->
+    <section id="albumScreen" class="content-screen hidden">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">YOUR COLLECTION</p>
+          <h2>Bộ sưu tập <span>thẻ bài</span></h2>
+        </div>
+      </div>
+
+      <div class="album-tabs" id="albumTabs">
+        <button class="album-tab active" data-filter="ALL">Tất cả</button>
+        <button class="album-tab" data-filter="CHARACTER">Nhân vật</button>
+        <button class="album-tab" data-filter="SKILL">Skill</button>
+        <button class="album-tab" data-filter="SITUATION">Tình huống</button>
+      </div>
+
+      <div id="albumGrid" class="album-grid"></div>
+
+      <p id="emptyAlbum" class="empty-state">
+        Chưa có thẻ bài nào trong mục này!
+      </p>
+    </section>
+
+    <!-- CHECK ACCOUNT (DÀNH RIÊNG CHO ADMIN) -->
+    <section id="adminCheckScreen" class="content-screen hidden">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ADMIN MANAGEMENT</p>
+          <h2>Quản lý <span>Tài khoản người chơi</span></h2>
+        </div>
+      </div>
+
+      <div id="adminUserManagementList" class="admin-user-mgmt-grid"></div>
+    </section>
+  </main>
+
+  <!-- THANH ĐIỀU HƯỚNG -->
+  <nav id="bottomNav" class="bottom-nav hidden">
+    <button class="nav-item active" data-screen="gameScreen">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"></path><path d="M5 9.5V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9.5"></path><path d="M9 21v-6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6"></path></svg>
+      </span>
+      Trang chủ
+    </button>
+
+    <button class="nav-item" data-screen="shopScreen">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l2.4-4.8A2 2 0 0 1 7.2 3h9.6a2 2 0 0 1 1.8 1.2L21 9"></path><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"></path><path d="M5 11.8V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7.2"></path></svg>
+      </span>
+      Shop
+    </button>
+
+    <button class="nav-item" data-screen="backpackScreen">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10z"></path><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path><path d="M8 14h8"></path><path d="M10 14v3"></path><path d="M14 14v3"></path></svg>
+      </span>
+      Balo <em id="navPackBadge" class="nav-badge hidden">0</em>
+    </button>
+
+    <button class="nav-item" data-screen="albumScreen">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="16" rx="2"></rect><path d="M8 7h4"></path><path d="M8 11h4"></path><path d="M16 7h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-1"></path></svg>
+      </span>
+      Album
+    </button>
+
+    <!-- NÚT CHECK ACCOUNT CHỈ HIỆN VỚI ADMIN -->
+    <button id="adminCheckNavBtn" class="nav-item admin-only-nav hidden" data-screen="adminCheckScreen">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      </span>
+      Check TK
+    </button>
+
+    <button id="logoutBtn" class="nav-item logout-nav">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      </span>
+      Đăng xuất
+    </button>
+  </nav>
+
+  <!-- MODAL TẶNG THẺ BÀI CHO TÀI KHOẢN (ADMIN) -->
+  <div id="adminGiftModal" class="starter-overlay hidden">
+    <div class="starter-dialog admin-gift-dialog">
+      <button id="closeAdminGiftModal" class="close-btn">×</button>
+      <p class="eyebrow">ADMIN GIFT</p>
+      <h2 id="giftModalTitle">Tặng thẻ bài</h2>
+      <p>Chọn các thẻ bài chưa sở hữu để tặng cho người chơi này:</p>
+
+      <div id="giftCardsContainer" class="gift-cards-grid"></div>
+
+      <button id="confirmGiftBtn" class="primary-btn" style="margin-top: 20px;">
+        XÁC NHẬN TẶNG THẺ ✦
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL XEM CHI TIẾT THẺ BÀI -->
+  <div id="cardDetailModal" class="starter-overlay hidden">
+    <div class="starter-dialog card-detail-dialog">
+      <button id="closeCardDetail" class="close-btn">×</button>
+      <p class="eyebrow" id="detailCategoryBadge">NHÂN VẬT</p>
+      <h2 id="detailCardName">Tên Thẻ Bài</h2>
+      <span class="detail-rarity-pill" id="detailRarity">LEGENDARY</span>
+
+      <div class="detail-card-frame">
+        <img id="detailCardImage" src="" alt="Chi tiết thẻ bài">
+      </div>
+
+      <div id="detailStatsBox" class="detail-stats-box">
+        <div class="stat-pill atk-pill">
+          <span class="stat-label">⚔️ ĐIỂM ATK</span>
+          <strong id="detailAtkValue">0</strong>
+        </div>
+        <div class="stat-pill def-pill">
+          <span class="stat-label">🛡️ ĐIỂM DEF</span>
+          <strong id="detailDefValue">0</strong>
+        </div>
+      </div>
+
+      <p id="detailSituationNote" class="detail-situation-note hidden">
+        Thẻ bài tình huống đặc biệt kích hoạt hiệu ứng trên đấu trường.
+      </p>
+    </div>
+  </div>
+
+  <!-- RƯƠNG VÀ STARTER PACK -->
+  <div id="starterOverlay" class="starter-overlay hidden">
+    <div class="starter-dialog">
+      <p class="eyebrow">WELCOME REWARD</p>
+      <h2 id="starterTitle">RƯƠNG TÂN THỦ</h2>
+
+      <p id="starterDescription">
+        Bạn nhận được một rương tân thủ miễn phí!
+      </p>
+
+      <div id="chestStage" class="starter-stage">
+        <div id="starterChestClick" class="starter-chest royal-chest">
+          <div class="chest-glow"></div>
+          <div class="starter-chest-lid">
+            <div class="chest-trim"></div>
+          </div>
+          <div class="starter-chest-body">
+            <div class="chest-lock">✦</div>
+          </div>
+        </div>
+        <p class="tap-hint">NHẤN VÀO RƯƠNG ĐỂ MỞ</p>
+      </div>
+
+      <div id="packStage" class="starter-stage hidden">
+        <div id="starterPackClick" class="foil-pack starter-foil tearable-pack">
           <div class="foil-crimp top"></div>
           <div class="foil-shine"></div>
-          <span class="foil-badge">${isPremium ? "GOLD EDITION" : "STANDARD"}</span>
-          <div class="foil-emblem">${isPremium ? "✧" : "✦"}</div>
-          <div class="foil-title">${isPremium ? "PREMIUM<br>PACK" : "BASIC<br>PACK"}</div>
+          <span class="foil-badge">STARTER</span>
+          <div class="foil-emblem">✦</div>
+          <div class="foil-title">MEME<br>CARD</div>
+          <div class="foil-sub">STARTER PACK</div>
+          <div class="foil-crimp bottom"></div>
+          <div class="tear-line"></div>
+        </div>
+        <p class="tap-hint">NHẤN VÀO PACK ĐỂ XÉ GÓI</p>
+      </div>
+
+      <div id="starterResultStage" class="starter-stage hidden">
+        <div class="starter-result-card">
+          <img id="starterResultImage" src="" alt="Thẻ bài nhận được">
+          <div id="starterResultName"></div>
+          <div id="starterResultRarity"></div>
+          <div id="starterResultCategory">CHARACTER</div>
+        </div>
+
+        <button id="starterFinish" class="primary-btn">
+          NHẬN THẺ BÀI
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL XÉ PACK TỪ BALO -->
+  <div id="packOpenOverlay" class="starter-overlay hidden">
+    <div class="starter-dialog pack-zoom-dialog">
+      <button id="closePackOverlay" class="close-btn">×</button>
+      <p class="eyebrow" id="packOverlayEyebrow">UNBOXING</p>
+      <h2 id="packOverlayTitle">GÓI THẺ BÀI</h2>
+      <p id="packOverlayDesc">Nhấn vào gói bài để xé mở!</p>
+
+      <div id="zoomPackStage" class="starter-stage">
+        <div id="zoomedPackElement" class="foil-pack basic-foil zoomed-pack tearable-pack">
+          <div class="foil-crimp top"></div>
+          <div class="foil-shine"></div>
+          <span class="foil-badge" id="zoomPackBadge">STANDARD</span>
+          <div class="foil-emblem" id="zoomPackEmblem">✦</div>
+          <div class="foil-title" id="zoomPackTitle">BASIC<br>PACK</div>
           <div class="foil-sub">MEME ARENA</div>
           <div class="foil-crimp bottom"></div>
+          <div class="tear-line"></div>
         </div>
-        <h4>${isPremium ? "Premium Pack" : "Basic Pack"}</h4>
-        <span>Nhấn để xem & mở</span>
+        <p class="tap-hint">CHẠM LẦN NỮA ĐỂ XÉ PACK ✦</p>
       </div>
-    `;
-  }).join("");
 
-  document.querySelectorAll(".bag-item").forEach(item => {
-    item.addEventListener("click", () => {
-      const idx = Number(item.dataset.index);
-      const type = item.dataset.type;
-      openPackZoomModal(idx, type);
-    });
-  });
-}
-
-function openPackZoomModal(index, type) {
-  activePackIndex = index;
-  activePackType = type;
-  isTearingPack = false;
-
-  const isPremium = type === "premium";
-  const zoomedEl = $("zoomedPackElement");
-
-  zoomedEl.className = `foil-pack ${isPremium ? "premium-foil" : "basic-foil"} zoomed-pack tearable-pack`;
-  $("zoomPackBadge").textContent = isPremium ? "GOLD EDITION" : "STANDARD";
-  $("zoomPackEmblem").textContent = isPremium ? "✧" : "✦";
-  $("zoomPackTitle").innerHTML = isPremium ? "PREMIUM<br>PACK" : "BASIC<br>PACK";
-
-  $("packOverlayEyebrow").textContent = "UNBOXING";
-  $("packOverlayTitle").textContent = isPremium ? "PREMIUM PACK" : "BASIC PACK";
-  $("packOverlayDesc").textContent = "Nhấn thêm lần nữa vào gói bài để xé!";
-
-  $("zoomPackStage").classList.remove("hidden");
-  $("zoomResultStage").classList.add("hidden");
-  $("closePackOverlay").classList.remove("hidden");
-
-  $("packOpenOverlay").classList.remove("hidden");
-}
-
-$("zoomedPackElement").addEventListener("click", () => {
-  if (isTearingPack || activePackIndex === null) return;
-  isTearingPack = true;
-
-  $("closePackOverlay").classList.add("hidden");
-  $("zoomedPackElement").classList.add("tearing");
-  $("packOverlayTitle").textContent = "ĐANG XÉ PACK...";
-  $("packOverlayDesc").textContent = "Thẻ bài bên trong đang lộ diện!";
-
-  setTimeout(() => {
-    const profile = getProfile();
-    profile.bag.splice(activePackIndex, 1);
-
-    const rareChance = (activePackType === "premium") ? 0.40 : 0.60;
-    const cardId = getRandomCardByRarity(rareChance);
-    const card = cards[cardId];
-
-    if (!isAdmin) {
-      profile.cards.push(cardId);
-    }
-
-    saveState();
-    renderProfile();
-    renderBackpack();
-
-    $("zoomPackStage").classList.add("hidden");
-    $("zoomResultStage").classList.remove("hidden");
-
-    $("packOverlayEyebrow").textContent = "CONGRATULATIONS!";
-    $("packOverlayTitle").textContent = "NHẬN THẺ THÀNH CÔNG";
-    $("packOverlayDesc").textContent = "Thẻ bài đã được chuyển vào Album!";
-
-    const img = $("zoomResultImage");
-    img.style.display = "block";
-    img.src = card.file;
-    img.alt = card.name;
-    img.onerror = function() { this.style.display = "none"; };
-
-    $("zoomResultName").textContent = card.name;
-    $("zoomResultRarity").textContent = card.rarity;
-    $("zoomResultCategory").textContent = CATEGORY_LABELS[card.category] || card.category;
-
-    activePackIndex = null;
-    isTearingPack = false;
-  }, 850);
-});
-
-function closePackZoom() {
-  if (isTearingPack) return;
-  $("packOpenOverlay").classList.add("hidden");
-  activePackIndex = null;
-}
-
-$("closePackOverlay").addEventListener("click", closePackZoom);
-$("zoomFinishBtn").addEventListener("click", closePackZoom);
-
-// ALBUM
-document.querySelectorAll(".album-tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".album-tab").forEach(t => t.classList.remove("active"));
-    tab.classList.add("active");
-    currentAlbumFilter = tab.dataset.filter;
-    renderAlbum();
-  });
-});
-
-function renderAlbum() {
-  const profile = getProfile();
-  const owned = isAdmin ? Object.keys(cards) : (profile?.cards || []);
-
-  const filtered = owned.filter(id => {
-    const card = cards[id];
-    if (!card) return false;
-    if (currentAlbumFilter === "ALL") return true;
-    return card.category === currentAlbumFilter;
-  });
-
-  $("emptyAlbum").classList.toggle("hidden", filtered.length > 0);
-
-  $("albumGrid").innerHTML = filtered.map(id => {
-    const card = cards[id];
-    const catLabel = CATEGORY_LABELS[card.category] || card.category;
-    return `
-      <article class="owned-card" data-card-id="${id}">
-        <img src="${card.file}" alt="${card.name}">
-        <h3>${card.name}</h3>
-        <small>${card.rarity} · ${catLabel}</small>
-      </article>
-    `;
-  }).join("");
-
-  document.querySelectorAll(".owned-card").forEach(cardEl => {
-    cardEl.addEventListener("click", () => {
-      const cardId = cardEl.dataset.cardId;
-      openCardDetail(cardId);
-    });
-  });
-}
-
-function openCardDetail(cardId) {
-  const card = cards[cardId];
-  if (!card) return;
-
-  const isCharacter = card.category === "CHARACTER";
-  const catLabel = CATEGORY_LABELS[card.category] || card.category;
-
-  $("detailCategoryBadge").textContent = catLabel;
-  $("detailCardName").textContent = card.name;
-  $("detailRarity").textContent = card.rarity;
-
-  const img = $("detailCardImage");
-  img.style.display = "block";
-  img.src = card.file;
-  img.alt = card.name;
-  img.onerror = function() { this.style.display = "none"; };
-
-  $("detailStatsBox").classList.toggle("hidden", !isCharacter);
-  $("detailSituationNote").classList.toggle("hidden", isCharacter);
-
-  if (isCharacter) {
-    $("detailAtkValue").textContent = card.atk ?? 0;
-    $("detailDefValue").textContent = card.def ?? 0;
-  }
-
-  $("cardDetailModal").classList.remove("hidden");
-}
-
-$("closeCardDetail").addEventListener("click", () => {
-  $("cardDetailModal").classList.add("hidden");
-});
-
-$("cardDetailModal").addEventListener("click", event => {
-  if (event.target === $("cardDetailModal")) {
-    $("cardDetailModal").classList.add("hidden");
-  }
-});
-
-// ==========================================
-// ADMIN: CHECK ACCOUNT & QUẢN LÝ NGƯỜI CHƠI
-// ==========================================
-function renderAdminUserManagement() {
-  if (!isAdmin) return;
-  const usersObj = state.users || {};
-  const keys = Object.keys(usersObj);
-  const container = $("adminUserManagementList");
-
-  if (keys.length === 0) {
-    container.innerHTML = `<p class="empty-state">Chưa có người chơi nào đăng ký tài khoản.</p>`;
-    return;
-  }
-
-  container.innerHTML = keys.map(key => {
-    const u = usersObj[key];
-    const isBanned = !!u.banned;
-    const cardCount = u.cards ? u.cards.length : 0;
-    const packCount = u.bag ? u.bag.length : 0;
-
-    return `
-      <div class="admin-mgmt-card ${isBanned ? 'banned-card' : ''}">
-        <div class="mgmt-header">
-          <strong>👤 ${u.username}</strong>
-          <span class="mgmt-status-badge ${isBanned ? 'banned' : ''}">
-            ${isBanned ? 'ĐÃ BỊ BAN' : 'HOẠT ĐỘNG'}
-          </span>
+      <div id="zoomResultStage" class="starter-stage hidden">
+        <div class="starter-result-card">
+          <img id="zoomResultImage" src="" alt="Thẻ bài">
+          <div id="zoomResultName"></div>
+          <div id="zoomResultRarity"></div>
+          <div id="zoomResultCategory"></div>
         </div>
-        <small style="color: var(--muted); font-size: 11px;">📧 ${u.email || 'Không có email'}</small>
-
-        <div class="mgmt-stats">
-          <span>🪙 Xu: <b>${u.coins}</b></span>
-          <span>🃏 Thẻ: <b>${cardCount}</b></span>
-          <span>🎒 Pack: <b>${packCount}</b></span>
-        </div>
-
-        <div class="mgmt-actions">
-          <div class="mgmt-btn-row">
-            <button class="mgmt-btn" onclick="adminAdjustCoins('${key}', 10)">+10 Xu</button>
-            <button class="mgmt-btn" onclick="adminAdjustCoins('${key}', -10)">-10 Xu</button>
-            <button class="mgmt-btn gift-btn" onclick="openAdminGiftModal('${key}')">🎁 Tặng thẻ</button>
-          </div>
-          <div class="mgmt-btn-row">
-            ${isBanned 
-              ? `<button class="mgmt-btn unban-btn" onclick="adminToggleBan('${key}')">Gỡ Ban</button>`
-              : `<button class="mgmt-btn ban-btn" onclick="adminToggleBan('${key}')">Ban TK</button>`
-            }
-          </div>
-        </div>
+        <button id="zoomFinishBtn" class="primary-btn">CẤT VÀO ALBUM</button>
       </div>
-    `;
-  }).join("");
-}
+    </div>
+  </div>
 
-window.adminAdjustCoins = function(userKey, amount) {
-  const u = state.users[userKey];
-  if (!u) return;
-  u.coins = Math.max(0, u.coins + amount);
-  saveState();
-  renderAdminUserManagement();
-  showToast(`Đã cập nhật xu cho ${u.username}!`);
-};
+  <div id="toast" class="toast"></div>
 
-window.adminToggleBan = function(userKey) {
-  const u = state.users[userKey];
-  if (!u) return;
-  u.banned = !u.banned;
-  saveState();
-  renderAdminUserManagement();
-  showToast(u.banned ? `Đã ban tài khoản ${u.username}!` : `Đã mở khóa cho ${u.username}!`);
-};
-
-// TẶNG THẺ CHO TÀI KHOẢN CHƯA CÓ
-window.openAdminGiftModal = function(userKey) {
-  targetGiftUserKey = userKey;
-  const u = state.users[userKey];
-  if (!u) return;
-
-  $("giftModalTitle").textContent = `Tặng thẻ cho: ${u.username}`;
-  const ownedCards = u.cards || [];
-  
-  // Lọc các thẻ người chơi CHƯA CÓ
-  const unownedKeys = Object.keys(cards).filter(id => !ownedCards.includes(id));
-  const container = $("giftCardsContainer");
-
-  if (unownedKeys.length === 0) {
-    container.innerHTML = `<p class="empty-state" style="grid-column: span 2;">Người chơi này đã sở hữu toàn bộ thẻ bài trong game!</p>`;
-  } else {
-    container.innerHTML = unownedKeys.map(id => {
-      const card = cards[id];
-      return `
-        <div class="gift-card-item" data-card-id="${id}" onclick="toggleGiftCardSelect(this)">
-          <img src="${card.file}" alt="${card.name}">
-          <div class="gift-card-info">
-            <strong>${card.name}</strong>
-            <small>${card.rarity}</small>
-          </div>
-        </div>
-      `;
-    }).join("");
-  }
-
-  $("adminGiftModal").classList.remove("hidden");
-};
-
-window.toggleGiftCardSelect = function(el) {
-  el.classList.toggle("selected");
-};
-
-$("closeAdminGiftModal").addEventListener("click", () => {
-  $("adminGiftModal").classList.add("hidden");
-  targetGiftUserKey = null;
-});
-
-$("confirmGiftBtn").addEventListener("click", () => {
-  if (!targetGiftUserKey) return;
-  const u = state.users[targetGiftUserKey];
-  if (!u) return;
-
-  const selectedEls = document.querySelectorAll(".gift-card-item.selected");
-  if (selectedEls.length === 0) {
-    return showToast("Vui lòng chọn ít nhất một thẻ bài để tặng!");
-  }
-
-  if (!Array.isArray(u.cards)) u.cards = [];
-
-  selectedEls.forEach(el => {
-    const cardId = el.dataset.cardId;
-    if (!u.cards.includes(cardId)) {
-      u.cards.push(cardId);
-    }
-  });
-
-  saveState();
-  $("adminGiftModal").classList.add("hidden");
-  renderAdminUserManagement();
-  showToast(`Đã tặng thẻ thành công cho ${u.username}!`);
-  targetGiftUserKey = null;
-});
-
-// KHÔI PHỤC ĐĂNG NHẬP
-if (state.active && state.users[state.active]) {
-  loginAs(state.active);
-} else {
-  switchPanel("loginPanel");
-}
+  <script src="script.js"></script>
+</body>
+</html>
