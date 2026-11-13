@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 
-const STORAGE_KEY = "memeCardArenaDemo_v5";
+const STORAGE_KEY = "memeCardArenaDemo_v6";
 const ADMIN_CODE = "171113";
 
 // Danh sách thẻ bài kèm chỉ số ATK & DEF cho nhân vật
@@ -239,6 +239,11 @@ $("logoutBtn").addEventListener("click", () => {
   $("packOpenOverlay").classList.add("hidden");
   $("cardDetailModal").classList.add("hidden");
 
+  // Khôi phục lại rương tân thủ cho lần đăng nhập sau nếu chưa mở
+  $("arenaCopyChest").classList.remove("hidden");
+  $("chibiClownHome").classList.add("hidden");
+  $("mainArena").classList.remove("chest-completed");
+
   $("authScreen").classList.remove("hidden");
   $("gameScreen").classList.add("hidden");
   $("shopScreen").classList.add("hidden");
@@ -270,9 +275,17 @@ function renderProfile() {
   $("openStarterBtn").disabled = !!profile.starterOpened;
 }
 
+// Khi đã mở rương xong, ẩn rương đi và hiện chú hề Chibi ở trang chủ
 function hideOldStarterChest() {
-  const oldArena = document.querySelector(".arena");
-  if (oldArena) oldArena.classList.add("hidden");
+  const arena = $("mainArena");
+  const chestCopy = $("arenaCopyChest");
+  const clownHome = $("chibiClownHome");
+
+  if (arena && chestCopy && clownHome) {
+    chestCopy.classList.add("hidden");
+    clownHome.classList.remove("hidden");
+    arena.classList.add("chest-completed");
+  }
 }
 
 // CHỌN LÁ BÀI THEO TỈ LỆ
