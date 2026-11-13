@@ -1,7 +1,5 @@
 
-// MEME CARD ARENA
-
-const $ = (id) => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
 const STORAGE_KEY = "memeCardArenaDemo_v1";
 const ADMIN_CODE = "171113";
@@ -10,18 +8,21 @@ const cards = {
   kha: {
     name: "Khá Bảnh",
     file: "khá bảnh nv.png",
-    rarity: "LEGENDARY"
+    rarity: "RARE",
+    category: "CHARACTER"
   },
   jack: {
     name: "Jack",
     file: "jack nv.png",
-    rarity: "LEGENDARY"
+    rarity: "LEGENDARY",
+    category: "CHARACTER"
   }
 };
 
 let state = loadState();
 let currentUser = null;
 let isAdmin = false;
+let pendingCard = null;
 let toastTimer;
 
 function loadState() {
@@ -43,6 +44,8 @@ function getProfile() {
   return currentUser ? state.users[currentUser] : null;
 }
 
+// THÔNG BÁO
+
 function showToast(message) {
   $("toast").textContent = message;
   $("toast").classList.add("show");
@@ -61,7 +64,7 @@ function showAuthMessage(message, success = false) {
     : "#ff9dbe";
 }
 
-// CHUYỂN TAB ĐĂNG NHẬP / ĐĂNG KÝ / ADMIN
+// CHUYỂN TAB
 
 function switchPanel(panelId) {
   document.querySelectorAll(".auth-form").forEach(form => {
@@ -87,52 +90,53 @@ document.querySelectorAll("[data-switch]").forEach(btn => {
   });
 });
 
-// TẠO TÀI KHOẢN
+// TẠO TÀI KHOẢN MỚI: 20 XU
 
 function createProfile(username, email, password) {
   return {
     username,
     email,
     password,
-    coins: 30,
+    coins: 20,
     cards: [],
     packsOpened: 0,
     starterOpened: false
   };
 }
 
-$("registerPanel").addEventListener("submit", (event) => {
+$("registerPanel").addEventListener("submit", event => {
   event.preventDefault();
 
   const username = $("registerUsername").value.trim();
   const email = $("registerEmail").value.trim().toLowerCase();
   const password = $("registerPassword").value;
 
-  if (state.users[username.toLowerCase()]) {
-    return showAuthMessage("Tên tài khoản đã tồn tại.");
+  const key = username.toLowerCase();
+
+  if (state.users[key]) {
+    return showAuthMessage("Tên tài khoản đã tồn tại!");
   }
 
   if (!/^[a-zA-Z0-9_]{3,18}$/.test(username)) {
     return showAuthMessage(
-      "Tên tài khoản dùng 3–18 ký tự chữ, số hoặc dấu gạch dưới."
+      "Tên tài khoản cần 3–18 ký tự chữ, số hoặc dấu gạch dưới."
     );
   }
 
   if (password.length < 6) {
-    return showAuthMessage("Mật khẩu cần ít nhất 6 ký tự.");
+    return showAuthMessage("Mật khẩu cần ít nhất 6 ký tự!");
   }
 
-  state.users[username.toLowerCase()] =
-    createProfile(username, email, password);
+  state.users[key] = createProfile(username, email, password);
 
   saveState();
 
-  loginAs(username.toLowerCase(), false);
+  loginAs(key);
 });
 
 // ĐĂNG NHẬP
 
-$("loginPanel").addEventListener("submit", (event) => {
+$("loginPanel").addEventListener("submit", event => {
   event.preventDefault();
 
   const username = $("loginUsername").value.trim().toLowerCase();
@@ -141,21 +145,19 @@ $("loginPanel").addEventListener("submit", (event) => {
   const profile = state.users[username];
 
   if (!profile || profile.password !== password) {
-    return showAuthMessage(
-      "Tên tài khoản hoặc mật khẩu không đúng."
-    );
+    return showAuthMessage("Tên tài khoản hoặc mật khẩu không đúng!");
   }
 
-  loginAs(username, false);
+  loginAs(username);
 });
 
-// ADMIN CODE
+// ADMIN
 
-$("adminPanel").addEventListener("submit", (event) => {
+$("adminPanel").addEventListener("submit", event => {
   event.preventDefault();
 
   if ($("adminCode").value !== ADMIN_CODE) {
-    return showAuthMessage("Mã admin không chính xác.");
+    return showAuthMessage("Mã Admin không chính xác!");
   }
 
   currentUser = null;
@@ -164,11 +166,11 @@ $("adminPanel").addEventListener("submit", (event) => {
   enterGame("ADMIN");
 });
 
-// VÀO GAME
+// ĐĂNG NHẬP THÀNH CÔNG
 
-function loginAs(username, admin) {
+function loginAs(username) {
   currentUser = username;
-  isAdmin = admin;
+  isAdmin = false;
 
   state.active = username;
   saveState();
@@ -181,6 +183,8 @@ function enterGame(displayName) {
   $("gameScreen").classList.remove("hidden");
   $("bottomNav").classList.remove("hidden");
 
+  document.body.classList.add("logged-in");
+
   $("welcomeUser").textContent = isAdmin
     ? "Xin chào, Admin!"
     : `Xin chào, ${displayName}!`;
@@ -189,9 +193,15 @@ function enterGame(displayName) {
 
   renderProfile();
   showScreen("gameScreen");
+
+  if (isAdmin || getProfile().starterOpened) {
+    hideOldStarterChest();
+  } else {
+    showStarterOverlay();
+  }
 }
 
-// CHUYỂN MÀN HÌNH
+// ĐIỀU HƯỚNG
 
 function showScreen(screenId) {
   ["gameScreen", "shopScreen", "albumScreen"].forEach(id => {
@@ -221,9 +231,15 @@ document.querySelectorAll(".nav-item[data-screen]").forEach(btn => {
 $("logoutBtn").addEventListener("click", () => {
   currentUser = null;
   isAdmin = false;
+  pendingCard = null;
 
   state.active = null;
   saveState();
+
+  document.body.classList.remove("logged-in");
+  document.body.classList.remove("starter-active");
+
+  $("starterOverlay").classList.add("hidden");
 
   $("authScreen").classList.remove("hidden");
   $("gameScreen").classList.add("hidden");
@@ -234,11 +250,12 @@ $("logoutBtn").addEventListener("click", () => {
   $("welcomeUser").textContent = "Chào mừng đến đấu trường!";
 
   $("loginPassword").value = "";
+  $("adminCode").value = "";
 
   switchPanel("loginPanel");
 });
 
-// HIỂN THỊ THÔNG TIN TÀI KHOẢN
+// CẬP NHẬT THÔNG TIN
 
 function renderProfile() {
   const profile = getProfile();
@@ -267,69 +284,178 @@ function renderProfile() {
 
   $("openStarterBtn").disabled =
     !!profile?.starterOpened;
-
-  $("openStarterBtn").style.opacity =
-    profile?.starterOpened ? ".6" : "1";
 }
 
-// RANDOM THẺ BÀI 50/50
+// ẨN RƯƠNG CŨ TRÊN MÀN HÌNH CHÍNH
 
-function randomCard() {
-  return Math.random() < 0.5 ? "kha" : "jack";
-}
+function hideOldStarterChest() {
+  const oldArena = document.querySelector(".arena");
 
-// THÊM THẺ VÀO ALBUM
-
-function addCard(cardId) {
-  const profile = getProfile();
-
-  if (!profile) return;
-
-  profile.cards.push(cardId);
-  profile.packsOpened += 1;
-
-  saveState();
-  renderProfile();
-}
-
-// HIỆN THẺ BÀI NHẬN ĐƯỢC
-
-function reveal(cardId) {
-  const card = cards[cardId];
-
-  $("revealedCard").innerHTML = `
-    <img
-      src="${card.file}"
-      alt="${card.name}"
-      onerror="this.style.display='none';this.parentElement.insertAdjacentHTML('afterbegin','<div style=&quot;font-size:76px;padding:45px 0&quot;>🃏</div>')"
-    >
-    <h3>${card.name}</h3>
-    <small>${card.rarity}</small>
-  `;
-
-  $("revealModal").classList.remove("hidden");
-}
-
-// MỞ RƯƠNG TÂN THỦ
-
-$("openStarterBtn").addEventListener("click", () => {
-  if (isAdmin) {
-    return showToast("Admin có thể thử mở pack trong Shop.");
+  if (oldArena) {
+    oldArena.classList.add("hidden");
   }
+}
 
+// RƯƠNG TÂN THỦ
+
+function showStarterOverlay() {
+  $("starterOverlay").classList.remove("hidden");
+
+  document.body.classList.add("starter-active");
+
+  $("chestStage").classList.remove("hidden");
+  $("packStage").classList.add("hidden");
+  $("starterResultStage").classList.add("hidden");
+
+  $("starterTitle").textContent = "RƯƠNG TÂN THỦ";
+
+  $("starterDescription").textContent =
+    "Bạn nhận được một pack tân thủ miễn phí!";
+
+  $("starterChestClick").classList.remove("opening");
+  $("starterPackClick").classList.remove("tearing");
+
+  pendingCard = null;
+}
+
+// BƯỚC 1: NHẤN RƯƠNG
+
+$("starterChestClick").addEventListener("click", () => {
+  $("starterChestClick").classList.add("opening");
+
+  showToast("Rương đang mở...");
+
+  setTimeout(() => {
+    $("chestStage").classList.add("hidden");
+    $("packStage").classList.remove("hidden");
+
+    $("starterTitle").textContent = "STARTER PACK";
+
+    $("starterDescription").textContent =
+      "Bạn tìm thấy một gói thẻ bài bí ẩn!";
+  }, 650);
+});
+
+// BƯỚC 2: XÉ PACK
+
+$("starterPackClick").addEventListener("click", () => {
+  if (pendingCard) return;
+
+  $("starterPackClick").classList.add("tearing");
+
+  $("starterTitle").textContent = "ĐANG MỞ PACK...";
+
+  $("starterDescription").textContent =
+    "Một lá bài đang xuất hiện!";
+
+  setTimeout(openStarterPack, 850);
+});
+
+// BƯỚC 3: RANDOM THẺ
+
+function openStarterPack() {
   const profile = getProfile();
 
   if (!profile || profile.starterOpened) return;
 
+  // 60% Khá Bảnh, 40% Jack.
+  pendingCard = Math.random() < 0.6 ? "kha" : "jack";
+
+  const card = cards[pendingCard];
+
+  // Chỉ thêm đúng thẻ được mở.
+  profile.cards.push(pendingCard);
+  profile.packsOpened += 1;
   profile.starterOpened = true;
 
-  const cardId = randomCard();
+  saveState();
 
-  addCard(cardId);
-  reveal(cardId);
+  $("packStage").classList.add("hidden");
+  $("starterResultStage").classList.remove("hidden");
+
+  $("starterTitle").textContent = "CHÚC MỪNG!";
+
+  $("starterDescription").textContent =
+    "Bạn đã nhận được một thẻ bài mới!";
+
+  $("starterResultImage").style.display = "block";
+  $("starterResultImage").src = card.file;
+  $("starterResultImage").alt = card.name;
+
+  $("starterResultImage").onerror = function() {
+    this.style.display = "none";
+  };
+
+  $("starterResultName").textContent = card.name;
+  $("starterResultRarity").textContent = card.rarity;
+  $("starterResultCategory").textContent = card.category;
+
+  renderProfile();
+}
+
+// BƯỚC 4: NHẬN THẺ
+
+$("starterFinish").addEventListener("click", () => {
+  if (!pendingCard) return;
+
+  $("starterOverlay").classList.add("hidden");
+
+  document.body.classList.remove("starter-active");
+
+  hideOldStarterChest();
+
+  pendingCard = null;
+
+  renderProfile();
+  renderAlbum();
+
+  showToast("Đã thêm thẻ bài vào Album!");
 });
 
-// ĐÓNG MODAL
+// SHOP - MUA PACK
+
+document.querySelectorAll(".buy-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const price = btn.dataset.pack === "basic" ? 10 : 20;
+
+    if (isAdmin) {
+      return showToast("Admin có thể thử pack miễn phí!");
+    }
+
+    const profile = getProfile();
+
+    if (!profile || profile.coins < price) {
+      return showToast("Bạn không đủ xu để mua pack!");
+    }
+
+    profile.coins -= price;
+
+    // Tỉ lệ thẻ của pack: Khá Bảnh 60%, Jack 40%.
+    const cardId = Math.random() < 0.6 ? "kha" : "jack";
+
+    profile.cards.push(cardId);
+    profile.packsOpened += 1;
+
+    saveState();
+    renderProfile();
+
+    showShopCard(cardId);
+  });
+});
+
+// HIỆN THẺ SHOP
+
+function showShopCard(cardId) {
+  const card = cards[cardId];
+
+  $("revealedCard").innerHTML = `
+    <img src="${card.file}" alt="${card.name}">
+    <h3>${card.name}</h3>
+    <small>${card.rarity} · ${card.category}</small>
+  `;
+
+  $("revealModal").classList.remove("hidden");
+}
 
 function closeReveal() {
   $("revealModal").classList.add("hidden");
@@ -339,43 +465,13 @@ function closeReveal() {
 $("closeReveal").addEventListener("click", closeReveal);
 $("revealDone").addEventListener("click", closeReveal);
 
-$("revealModal").addEventListener("click", (event) => {
+$("revealModal").addEventListener("click", event => {
   if (event.target === $("revealModal")) {
     closeReveal();
   }
 });
 
-// SHOP - MUA PACK
-
-document.querySelectorAll(".buy-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-
-    const price = btn.dataset.pack === "basic"
-      ? 10
-      : 20;
-
-    if (isAdmin) {
-      const cardId = randomCard();
-      reveal(cardId);
-      return;
-    }
-
-    const profile = getProfile();
-
-    if (profile.coins < price) {
-      return showToast("Bạn không đủ xu để mua pack!");
-    }
-
-    profile.coins -= price;
-
-    const cardId = randomCard();
-
-    addCard(cardId);
-    reveal(cardId);
-  });
-});
-
-// HIỂN THỊ ALBUM
+// ALBUM - CHỈ HIỆN THẺ ĐÃ SỞ HỮU
 
 function renderAlbum() {
   const profile = getProfile();
@@ -392,24 +488,22 @@ function renderAlbum() {
   $("albumGrid").innerHTML = owned.map(id => {
     const card = cards[id];
 
+    if (!card) return "";
+
     return `
       <article class="owned-card">
-        <img
-          src="${card.file}"
-          alt="${card.name}"
-          onerror="this.style.display='none'"
-        >
+        <img src="${card.file}" alt="${card.name}">
         <h3>${card.name}</h3>
-        <small>${card.rarity}</small>
+        <small>${card.rarity} · ${card.category}</small>
       </article>
     `;
   }).join("");
 }
 
-// KHÔI PHỤC PHIÊN ĐĂNG NHẬP
+// KHÔI PHỤC ĐĂNG NHẬP
 
 if (state.active && state.users[state.active]) {
-  loginAs(state.active, false);
+  loginAs(state.active);
 } else {
   switchPanel("loginPanel");
 }
