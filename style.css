@@ -486,60 +486,95 @@ body.logged-in .coin-pill { display: inline-flex; }
 .deco-left { left: 8%; top: 25%; }
 .deco-right { right: 9%; bottom: 17%; }
 
-/* TASKBAR */
+/* TASKBAR & ICON SVG ĐẸP */
 .bottom-nav {
   position: fixed;
   bottom: 18px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 6px;
-  padding: 9px;
-  background: #11152cef;
-  border: 1px solid #ffffff26;
-  border-radius: 18px;
-  box-shadow: 0 15px 45px #0009;
+  gap: 8px;
+  padding: 9px 12px;
+  background: #10142cf2;
+  border: 1px solid #ffffff28;
+  border-radius: 22px;
+  box-shadow: 0 18px 50px #000b, inset 0 1px 0 #ffffff1a;
   z-index: 5;
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(20px);
 }
 
 .nav-item {
   position: relative;
-  min-width: 84px;
+  min-width: 82px;
   border: 0;
   background: transparent;
-  color: #aaa9c5;
-  border-radius: 11px;
-  padding: 9px 12px;
-  font: 600 10px 'Be Vietnam Pro';
+  color: #9e9dbd;
+  border-radius: 14px;
+  padding: 8px 10px;
+  font: 600 10.5px 'Be Vietnam Pro';
   cursor: pointer;
-  transition: .2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all .22s cubic-bezier(.22,1,.36,1);
 }
 
-.nav-item span {
-  display: block;
-  font-size: 19px;
-  margin-bottom: 3px;
+.nav-icon {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  transition: transform .22s ease, filter .22s ease;
 }
 
-.nav-item.active,
+.nav-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
 .nav-item:hover {
   color: white;
-  background: #8e6df044;
+  background: #ffffff0e;
+}
+
+.nav-item:hover .nav-icon {
+  transform: translateY(-2px);
+}
+
+.nav-item.active {
+  color: white;
+  background: linear-gradient(145deg, #8b68f555, #c36be533);
+  box-shadow: inset 0 0 0 1px #b599ff66, 0 6px 16px #8c69f533;
+}
+
+.nav-item.active .nav-icon {
+  color: var(--cyan);
+  filter: drop-shadow(0 0 8px #69e4ff88);
+  transform: translateY(-1px) scale(1.06);
+}
+
+.logout-nav:hover {
+  color: #ff8fb8;
+  background: #ff5c931c;
+}
+
+.logout-nav:hover .nav-icon {
+  color: #ff8fb8;
 }
 
 .nav-badge {
   position: absolute;
-  top: 5px;
-  right: 12px;
+  top: 4px;
+  right: 14px;
   font-style: normal;
-  background: var(--pink);
+  background: linear-gradient(135deg, #ff5ea8, #ff8566);
   color: white;
   font-size: 9px;
   font-weight: 900;
   padding: 2px 6px;
   border-radius: 20px;
-  box-shadow: 0 0 10px #ff72c699;
+  box-shadow: 0 2px 8px #ff5ea899;
 }
 
 /* FOIL PACK */
@@ -823,6 +858,14 @@ body.logged-in .coin-pill { display: inline-flex; }
   background: #171b35;
   border: 1px solid #ffffff25;
   border-radius: 16px;
+  cursor: pointer;
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+
+.owned-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--purple);
+  box-shadow: 0 12px 28px #9b78ff28;
 }
 
 .owned-card img {
@@ -835,6 +878,101 @@ body.logged-in .coin-pill { display: inline-flex; }
 
 .owned-card h3 { font-size: 14px; margin: 10px 0 3px; }
 .owned-card small { color: #ffd77e; font-size: 10px; font-weight: 700; }
+
+/* MODAL PHÓNG TO CHI TIẾT THẺ BÀI */
+.card-detail-dialog {
+  min-height: auto;
+  padding: 32px 26px;
+  border-color: #ffe07d88;
+}
+
+.detail-rarity-pill {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  background: #ffd76e22;
+  border: 1px solid #ffd76e66;
+  color: #ffe28a;
+}
+
+.detail-card-frame {
+  width: 245px;
+  margin: 18px auto;
+  padding: 12px;
+  border-radius: 18px;
+  border: 2px solid #ffe18b;
+  background: linear-gradient(145deg, #322959, #10142a);
+  box-shadow: 0 15px 45px #0009, 0 0 35px #9b78ff44;
+  animation: zoomCardPop .38s cubic-bezier(.18,1.25,.35,1);
+}
+
+@keyframes zoomCardPop {
+  from { opacity: 0; transform: scale(.65); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.detail-card-frame img {
+  width: 100%;
+  height: 275px;
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+}
+
+.detail-stats-box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.stat-pill {
+  padding: 12px 10px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  opacity: .85;
+}
+
+.stat-pill strong {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.atk-pill {
+  background: linear-gradient(145deg, #ff5e7e24, #331424);
+  border: 1px solid #ff6b8b66;
+  color: #ff94ab;
+}
+
+.def-pill {
+  background: linear-gradient(145deg, #69e4ff24, #122a3d);
+  border: 1px solid #69e4ff66;
+  color: #8beaff;
+}
+
+.detail-situation-note {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #ffffff0a;
+  border: 1px solid #ffffff1a;
+  color: #d6d3ed;
+  font-size: 12px;
+  line-height: 1.5;
+}
 
 .empty-state {
   text-align: center;
@@ -1066,8 +1204,10 @@ body.starter-active .bottom-nav {
     width: calc(100% - 20px);
     justify-content: space-around;
     bottom: 10px;
+    gap: 2px;
+    padding: 7px 6px;
   }
-  .nav-item { min-width: 0; flex: 1; padding: 8px 3px; }
+  .nav-item { min-width: 0; flex: 1; padding: 7px 2px; font-size: 9.5px; }
   .shop-grid { gap: 12px; }
   .pack-card { padding: 16px 12px; }
 }
