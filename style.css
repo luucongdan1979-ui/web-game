@@ -391,7 +391,7 @@ body.logged-in .coin-pill { display: inline-flex; }
   color: #ffffff75;
 }
 
-/* RƯƠNG TÂN THỦ HOÀNG GIA 3D */
+/* RƯƠNG TÂN THỦ */
 .chest {
   width: 145px;
   height: 122px;
@@ -542,7 +542,7 @@ body.logged-in .coin-pill { display: inline-flex; }
   box-shadow: 0 0 10px #ff72c699;
 }
 
-/* THIẾT KẾ GÓI PACK BÓNG BẨY (FOIL PACK) */
+/* FOIL PACK */
 .foil-pack {
   position: relative;
   width: 155px;
@@ -633,7 +633,6 @@ body.logged-in .coin-pill { display: inline-flex; }
   opacity: .85;
 }
 
-/* Màu sắc từng loại Pack */
 .basic-foil {
   border: 2px solid #78b9ff;
   background:
@@ -720,7 +719,7 @@ body.logged-in .coin-pill { display: inline-flex; }
   font-weight: 700;
 }
 
-/* HIỆU ỨNG PHÓNG TO & XÉ PACK */
+/* ZOOM PACK */
 .pack-zoom-dialog {
   border-color: var(--cyan);
 }
@@ -782,7 +781,7 @@ body.logged-in .coin-pill { display: inline-flex; }
   to { opacity: 1; }
 }
 
-/* ALBUM & 4 DANH MỤC */
+/* ALBUM */
 .album-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -879,7 +878,7 @@ body.logged-in .coin-pill { display: inline-flex; }
   transform: translate(-50%, 0);
 }
 
-/* RƯƠNG TÂN THỦ OVERLAY */
+/* OVERLAY */
 body.starter-active .topbar,
 body.starter-active main,
 body.starter-active .bottom-nav {
@@ -940,7 +939,6 @@ body.starter-active .bottom-nav {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* RƯƠNG TRONG DIALOG */
 .starter-chest {
   position: relative;
   width: 175px;
@@ -996,7 +994,6 @@ body.starter-active .bottom-nav {
   transform: translateY(-6px) scale(1.04);
 }
 
-/* THẺ NHẬN ĐƯỢC */
 .starter-result-card {
   width: 220px;
   margin: 10px auto 25px;
@@ -1049,34 +1046,27 @@ body.starter-active .bottom-nav {
 #starterFinish,
 #zoomFinishBtn { width: 100%; }
 
-/* RESPONSIVE */
 @media (max-width: 850px) {
   .auth-screen {
     grid-template-columns: 1fr;
     max-width: 520px;
     padding: 25px 18px;
   }
-
   .auth-art { height: 300px; }
   .hero-card { transform: scale(.72) rotate(-7deg); }
-
   .orbit { transform: rotate(-25deg) scale(.7, .4); }
   .orbit-two { transform: rotate(40deg) scale(.7, .4); }
-
   .auth-panel { padding: 25px; }
   .topbar { padding: 0 18px; }
   .welcome-user { display: none; }
-
   .game-screen, .content-screen { padding: 0 16px; }
   .arena { min-height: 390px; }
   .arena-decoration { font-size: 60px; }
-
   .bottom-nav {
     width: calc(100% - 20px);
     justify-content: space-around;
     bottom: 10px;
   }
-
   .nav-item { min-width: 0; flex: 1; padding: 8px 3px; }
   .shop-grid { gap: 12px; }
   .pack-card { padding: 16px 12px; }
