@@ -148,79 +148,97 @@
           </p>
         </div>
 
-        <!-- Chú hề Chibi tóc xoăn đứng nép bên trái, 2 tay làm ảo thuật -->
+        <!-- Giao diện trang chủ sau khi mở rương: Chú hề bên trái + Nút Chiến Đấu PvE bên phải -->
         <div class="chibi-clown-home hidden" id="chibiClownHome">
-          <div class="chibi-clown-stage">
-            <div class="clown-speech-bubble">Hãy mua pack ở mục shop nhé !</div>
+          <div class="arena-layout-flex" style="display: flex; align-items: center; justify-content: space-around; gap: 30px; width: 100%; max-width: 860px; margin: 0 auto; flex-wrap: wrap;">
+            
+            <!-- Chú hề Chibi tóc xoăn đứng nép bên trái, 2 tay làm ảo thuật -->
+            <div class="chibi-clown-stage">
+              <div class="clown-speech-bubble">Đấu trường sẵn sàng rồi!</div>
 
-            <div class="chibi-clown">
-              <!-- Mũ chóp -->
-              <div class="clown-hat">
-                <div class="hat-pom">⭐</div>
-              </div>
+              <div class="chibi-clown">
+                <!-- Mũ chóp -->
+                <div class="clown-hat">
+                  <div class="hat-pom">⭐</div>
+                </div>
 
-              <!-- Tóc xoăn xù 2 bên đầu -->
-              <div class="clown-curly-hair left-curls">
-                <span class="curl c1"></span>
-                <span class="curl c2"></span>
-                <span class="curl c3"></span>
-                <span class="curl c4"></span>
-              </div>
-              <div class="clown-curly-hair right-curls">
-                <span class="curl c5"></span>
-                <span class="curl c6"></span>
-                <span class="curl c7"></span>
-                <span class="curl c1"></span>
-              </div>
+                <!-- Tóc xoăn xù 2 bên đầu -->
+                <div class="clown-curly-hair left-curls">
+                  <span class="curl c1"></span>
+                  <span class="curl c2"></span>
+                  <span class="curl c3"></span>
+                  <span class="curl c4"></span>
+                </div>
+                <div class="clown-curly-hair right-curls">
+                  <span class="curl c5"></span>
+                  <span class="curl c6"></span>
+                  <span class="curl c7"></span>
+                  <span class="curl c1"></span>
+                </div>
 
-              <!-- Đầu chú hề -->
-              <div class="clown-head">
-                <div class="blush left"></div>
-                <div class="blush right"></div>
-                <div class="eye left"><span></span></div>
-                <div class="eye right"><span></span></div>
-                <div class="nose"></div>
-                <div class="smile"></div>
-              </div>
+                <!-- Đầu chú hề -->
+                <div class="clown-head">
+                  <div class="blush left"></div>
+                  <div class="blush right"></div>
+                  <div class="eye left"><span></span></div>
+                  <div class="eye right"><span></span></div>
+                  <div class="nose"></div>
+                  <div class="smile"></div>
+                </div>
 
-              <!-- Thân áo -->
-              <div class="clown-body">
-                <div class="collar"></div>
-                <div class="bowtie">🎀</div>
-                <div class="body-button b1"></div>
-                <div class="body-button b2"></div>
-              </div>
+                <!-- Thân áo -->
+                <div class="clown-body">
+                  <div class="collar"></div>
+                  <div class="bowtie">🎀</div>
+                  <div class="body-button b1"></div>
+                  <div class="body-button b2"></div>
+                </div>
 
-              <!-- 2 Tay đang làm ảo thuật -->
-              <div class="clown-arm left-arm">
-                <div class="clown-glove"></div>
-              </div>
-              <div class="clown-arm right-arm">
-                <div class="clown-glove">
-                  <span class="magic-wand">🪄</span>
+                <!-- 2 Tay đang làm ảo thuật -->
+                <div class="clown-arm left-arm">
+                  <div class="clown-glove"></div>
+                </div>
+                <div class="clown-arm right-arm">
+                  <div class="clown-glove">
+                    <span class="magic-wand">🪄</span>
+                  </div>
+                </div>
+
+                <!-- 2 Chân đứng nhún -->
+                <div class="clown-legs">
+                  <div class="clown-leg left-leg">
+                    <div class="clown-shoe"></div>
+                  </div>
+                  <div class="clown-leg right-leg">
+                    <div class="clown-shoe"></div>
+                  </div>
                 </div>
               </div>
 
-              <!-- 2 Chân đứng nhún -->
-              <div class="clown-legs">
-                <div class="clown-leg left-leg">
-                  <div class="clown-shoe"></div>
-                </div>
-                <div class="clown-leg right-leg">
-                  <div class="clown-shoe"></div>
-                </div>
+              <!-- Hiệu ứng thẻ bài bay ảo thuật phía trước -->
+              <div class="magic-orbit-zone">
+                <div class="flying-card card-alpha">🃏</div>
+                <div class="flying-card card-beta">🎴</div>
+                <div class="flying-card card-gamma">✨</div>
+                <div class="magic-sparkle s1">✦</div>
+                <div class="magic-sparkle s2">✧</div>
+                <div class="magic-sparkle s3">✦</div>
               </div>
             </div>
 
-            <!-- Hiệu ứng thẻ bài bay ảo thuật phía trước -->
-            <div class="magic-orbit-zone">
-              <div class="flying-card card-alpha">🃏</div>
-              <div class="flying-card card-beta">🎴</div>
-              <div class="flying-card card-gamma">✨</div>
-              <div class="magic-sparkle s1">✦</div>
-              <div class="magic-sparkle s2">✧</div>
-              <div class="magic-sparkle s3">✦</div>
+            <!-- Cột bên phải: Khu vực Nút Chiến Đấu PvE -->
+            <div class="arena-action-column" style="text-align: left; max-width: 380px;">
+              <p class="eyebrow">PVE ARENA BATTLE</p>
+              <h2 style="font-size: 26px; margin: 5px 0 10px;">Thách đấu <span>Bot</span></h2>
+              <p class="muted" style="margin-bottom: 20px;">
+                Đem bộ bài meme mạnh nhất của bạn ra để so tài với các bot thông minh và giành lấy phần thưởng hấp dẫn!
+              </p>
+              <button id="startPveBtn" class="primary-btn" style="display: flex; align-items: center; gap: 12px; padding: 15px 24px; font-size: 14px; background: linear-gradient(135deg, #ff5ea8 0%, #9b78ff 50%, #69e4ff 100%); box-shadow: 0 10px 30px rgba(155, 120, 255, 0.4);">
+                <span style="font-size: 20px;">⚔️</span>
+                <span>CHIẾN ĐẤU (PVE) NGAY</span>
+              </button>
             </div>
+
           </div>
         </div>
 
