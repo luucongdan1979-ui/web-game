@@ -193,6 +193,9 @@ function enterGame(displayName) {
   $("adminTag").classList.toggle("hidden", !isAdmin);
   $("adminCheckNavBtn").classList.toggle("hidden", !isAdmin);
   $("adminSendMailNavBtn").classList.toggle("hidden", !isAdmin);
+  
+  // Chỉ hiển thị nút Xuất Backup trên topbar cho tài khoản thường
+  if ($("userExportBtn")) $("userExportBtn").classList.toggle("hidden", isAdmin);
 
   renderProfile();
   showScreen("gameScreen");
@@ -235,6 +238,7 @@ $("logoutBtn").addEventListener("click", () => {
   $("packOpenOverlay").classList.add("hidden");
   $("cardDetailModal").classList.add("hidden");
   $("adminGiftModal").classList.add("hidden");
+  if ($("userExportBtn")) $("userExportBtn").classList.add("hidden");
 
   $("arenaCopyChest").classList.remove("hidden");
   $("chibiClownHome").classList.add("hidden");
