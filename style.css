@@ -541,7 +541,9 @@ body.logged-in .coin-pill { display: inline-flex; }
   margin-top: 5px;
 }
 
-.auth-form input {
+.auth-form input,
+.admin-mail-composer input,
+.admin-mail-composer textarea {
   width: 100%;
   border: 1px solid #ffffff20;
   background: #090d20;
@@ -552,7 +554,9 @@ body.logged-in .coin-pill { display: inline-flex; }
   font: 13px 'Be Vietnam Pro';
 }
 
-.auth-form input:focus {
+.auth-form input:focus,
+.admin-mail-composer input:focus,
+.admin-mail-composer textarea:focus {
   border-color: var(--purple);
   box-shadow: 0 0 0 3px #9b78ff20;
 }
@@ -797,7 +801,7 @@ body.logged-in .coin-pill { display: inline-flex; }
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 8px;
+  gap: 6px;
   padding: 9px 12px;
   background: #10142cf2;
   border: 1px solid #ffffff28;
@@ -805,11 +809,12 @@ body.logged-in .coin-pill { display: inline-flex; }
   box-shadow: 0 18px 50px #000b, inset 0 1px 0 #ffffff1a;
   z-index: 5;
   backdrop-filter: blur(20px);
+  max-width: calc(100vw - 20px);
 }
 
 .nav-item {
   position: relative;
-  min-width: 80px;
+  min-width: 72px;
   border: 0;
   background: transparent;
   color: #9e9dbd;
@@ -870,7 +875,7 @@ body.logged-in .coin-pill { display: inline-flex; }
 .nav-badge {
   position: absolute;
   top: 4px;
-  right: 14px;
+  right: 12px;
   font-style: normal;
   background: linear-gradient(135deg, #ff5ea8, #ff8566);
   color: white;
@@ -879,6 +884,199 @@ body.logged-in .coin-pill { display: inline-flex; }
   padding: 2px 6px;
   border-radius: 20px;
   box-shadow: 0 2px 8px #ff5ea899;
+}
+
+/* HÒM THƯ (MAIL INBOX) */
+.mail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mail-card {
+  background: #171b35;
+  border: 1px solid #ffffff22;
+  border-radius: 18px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: .2s;
+}
+
+.mail-card.unclaimed {
+  border-color: var(--cyan);
+  background: linear-gradient(135deg, #1b2247, #151932);
+  box-shadow: 0 8px 25px rgba(105, 228, 255, 0.12);
+}
+
+.mail-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.mail-card-top h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  color: white;
+}
+
+.mail-date {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.mail-body-text {
+  font-size: 13px;
+  color: #d6d3ed;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.mail-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.reward-chip {
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: #10142c;
+  border: 1px solid #ffe07d55;
+  color: #ffe18b;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mail-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.claim-mail-btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 0;
+  background: linear-gradient(100deg, #2ec4b6, #38b6ff);
+  color: #090b1b;
+  font: 900 11px 'Be Vietnam Pro';
+  cursor: pointer;
+  transition: .2s;
+}
+
+.claim-mail-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.claimed-tag {
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: #ffffff0e;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* GỬI THƯ ADMIN COMPOSER */
+.admin-mail-composer {
+  background: #171b35;
+  border: 1px solid #ffffff22;
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.composer-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.composer-group > label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--cyan);
+}
+
+.recipient-mode-tabs {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.radio-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #10142c;
+  border: 1px solid #ffffff22;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.recipient-checklist {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+  background: #10142c;
+  padding: 14px;
+  border-radius: 12px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.recipient-check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 6px 10px;
+  background: #171b35;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.attach-rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.attach-box {
+  background: #10142c;
+  border: 1px solid #ffffff1a;
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attach-box span {
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffe18b;
+}
+
+.attach-box input {
+  padding: 8px 10px !important;
+  text-align: center;
+  font-weight: 800 !important;
 }
 
 /* ADMIN BACKUP BAR */
@@ -1005,14 +1203,14 @@ body.logged-in .coin-pill { display: inline-flex; }
 /* ADMIN GIFT MODAL */
 .admin-gift-dialog {
   width: min(480px, 100%) !important;
-  max-height: 85vh;
+  max-height: 88vh;
   display: flex;
   flex-direction: column;
 }
 
 .gift-cards-grid {
-  margin-top: 15px;
-  max-height: 320px;
+  margin-top: 10px;
+  max-height: 250px;
   overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1680,13 +1878,14 @@ body.starter-active .bottom-nav {
   .arena { min-height: 390px; }
   .arena-decoration { font-size: 60px; }
   .bottom-nav {
-    width: calc(100% - 20px);
+    width: calc(100% - 14px);
     justify-content: space-around;
     bottom: 10px;
-    gap: 2px;
-    padding: 7px 6px;
+    gap: 1px;
+    padding: 6px 4px;
+    overflow-x: auto;
   }
-  .nav-item { min-width: 0; flex: 1; padding: 7px 2px; font-size: 9.5px; }
+  .nav-item { min-width: 54px; flex: 1; padding: 6px 2px; font-size: 9px; }
   .shop-grid { gap: 12px; }
   .pack-card { padding: 16px 12px; }
 }
