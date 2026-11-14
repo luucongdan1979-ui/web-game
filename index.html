@@ -16,6 +16,8 @@
     </a>
 
     <div class="top-actions">
+      <!-- Nút xuất backup dành riêng cho tài khoản thường hiển thị ở đây -->
+      <button id="userExportBtn" class="primary-btn hidden" onclick="exportDataBackup()" style="padding: 8px 14px; font-size: 11px;">📥 Xuất Backup</button>
       <span id="welcomeUser" class="welcome-user">Chào mừng đến đấu trường!</span>
       <span class="coin-pill">✦ <b id="coinCount">0</b></span>
     </div>
@@ -308,7 +310,7 @@
       </p>
     </section>
 
-    <!-- HÒM THƯ (DÀNH CHO TẤT CẢ TÀI KHOẢN) -->
+    <!-- HÒM THƯ -->
     <section id="mailScreen" class="content-screen hidden">
       <div class="section-heading">
         <div>
@@ -327,7 +329,7 @@
       </p>
     </section>
 
-    <!-- GỬI THƯ (DÀNH RIÊNG CHO ADMIN MODE) -->
+    <!-- GỬI THƯ (ADMIN) -->
     <section id="adminSendMailScreen" class="content-screen hidden">
       <div class="section-heading">
         <div>
@@ -355,12 +357,12 @@
 
         <div class="composer-group">
           <label>2. Nội dung thư</label>
-          <input id="mailSubjectInput" placeholder="Tiêu đề thư (VD: Quà đền bù bảo trì, Quà sự kiện...)" required>
-          <textarea id="mailBodyInput" rows="3" placeholder="Nhập lời nhắn gửi tới người chơi..." required></textarea>
+          <input id="mailSubjectInput" placeholder="Tiêu đề thư..." required>
+          <textarea id="mailBodyInput" rows="3" placeholder="Nhập lời nhắn..." required></textarea>
         </div>
 
         <div class="composer-group">
-          <label>3. Đính kèm quà tặng (Không bắt buộc)</label>
+          <label>3. Đính kèm quà tặng</label>
           <div class="attach-rewards-grid">
             <div class="attach-box">
               <span>🪙 Tặng Xu</span>
@@ -376,7 +378,7 @@
             </div>
           </div>
 
-          <label style="margin-top: 12px; display: block;">🃏 Đính kèm Thẻ bài (Bấm để chọn):</label>
+          <label style="margin-top: 12px; display: block;">🃏 Đính kèm Thẻ bài:</label>
           <div id="mailAttachCardsGrid" class="gift-cards-grid"></div>
         </div>
 
@@ -386,7 +388,7 @@
       </form>
     </section>
 
-    <!-- CHECK ACCOUNT (DÀNH RIÊNG CHO ADMIN) -->
+    <!-- CHECK ACCOUNT (ADMIN) -->
     <section id="adminCheckScreen" class="content-screen hidden">
       <div class="section-heading">
         <div>
@@ -410,73 +412,37 @@
   <!-- THANH ĐIỀU HƯỚNG -->
   <nav id="bottomNav" class="bottom-nav hidden">
     <button class="nav-item active" data-screen="gameScreen">
-      <span class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"></path><path d="M5 9.5V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9.5"></path><path d="M9 21v-6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6"></path></svg>
-      </span>
-      Trang chủ
+      <span class="nav-icon">🏠</span> Trang chủ
     </button>
-
     <button class="nav-item" data-screen="shopScreen">
-      <span class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l2.4-4.8A2 2 0 0 1 7.2 3h9.6a2 2 0 0 1 1.8 1.2L21 9"></path><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"></path><path d="M5 11.8V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7.2"></path></svg>
-      </span>
-      Shop
+      <span class="nav-icon">🛍️</span> Shop
     </button>
-
     <button class="nav-item" data-screen="backpackScreen">
-      <span class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10z"></path><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path><path d="M8 14h8"></path><path d="M10 14v3"></path><path d="M14 14v3"></path></svg>
-      </span>
-      Balo <em id="navPackBadge" class="nav-badge hidden">0</em>
+      <span class="nav-icon">🎒</span> Balo <em id="navPackBadge" class="nav-badge hidden">0</em>
     </button>
-
     <button class="nav-item" data-screen="albumScreen">
-      <span class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="16" rx="2"></rect><path d="M8 7h4"></path><path d="M8 11h4"></path><path d="M16 7h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-1"></path></svg>
-      </span>
-      Album
+      <span class="nav-icon">📖</span> Album
     </button>
-
-    <!-- ICON THƯ (CHO TẤT CẢ TÀI KHOẢN) -->
     <button id="mailNavBtn" class="nav-item" data-screen="mailScreen">
-      <span class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
-      </span>
-      Thư <em id="navMailBadge" class="nav-badge hidden">0</em>
+      <span class="nav-icon">📬</span> Thư <em id="navMailBadge" class="nav-badge hidden">0</em>
     </button>
-
-    <!-- ICON GỬI THƯ (CHỈ DÀNH RIÊNG CHO ADMIN MODE) -->
     <button id="adminSendMailNavBtn" class="nav-item admin-only-nav hidden" data-screen="adminSendMailScreen">
-      <span class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-      </span>
-      Gửi thư
+      <span class="nav-icon">✉️</span> Gửi thư
     </button>
-
-    <!-- ICON CHECK TK (CHỈ DÀNH RIÊNG CHO ADMIN MODE) -->
     <button id="adminCheckNavBtn" class="nav-item admin-only-nav hidden" data-screen="adminCheckScreen">
-      <span class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-      </span>
-      Check TK
+      <span class="nav-icon">⚙️</span> Check TK
     </button>
-
     <button id="logoutBtn" class="nav-item logout-nav">
-      <span class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-      </span>
-      Đăng xuất
+      <span class="nav-icon">🚪</span> Đăng xuất
     </button>
   </nav>
 
-  <!-- MODAL TẶNG QUÀ (THẺ & PACK) GỬI VÀO THƯ NGƯỜI CHƠI (ADMIN) -->
+  <!-- MODALS -->
   <div id="adminGiftModal" class="starter-overlay hidden">
     <div class="starter-dialog admin-gift-dialog">
       <button id="closeAdminGiftModal" class="close-btn">×</button>
       <p class="eyebrow">ADMIN GIFT MAIL</p>
       <h2 id="giftModalTitle">Tặng quà qua hòm thư</h2>
-      <p>Quà sẽ được gửi vào mục <b>Thư</b> của người chơi để nhận:</p>
-
       <div class="attach-rewards-grid" style="margin-top: 12px;">
         <div class="attach-box">
           <span>📦 Basic Pack</span>
@@ -487,127 +453,74 @@
           <input id="giftPremiumPackQty" type="number" min="0" value="0">
         </div>
       </div>
-
-      <p style="font-size: 11px; color: var(--cyan); margin: 14px 0 4px; font-weight: 700;">
-        Chọn thẻ bài người chơi chưa sở hữu:
-      </p>
-      <div id="giftCardsContainer" class="gift-cards-grid"></div>
-
-      <button id="confirmGiftBtn" class="primary-btn" style="margin-top: 18px;">
-        GỬI QUÀ VÀO THƯ ✉
-      </button>
+      <div id="giftCardsContainer" class="gift-cards-grid" style="margin-top: 14px;"></div>
+      <button id="confirmGiftBtn" class="primary-btn" style="margin-top: 18px;">GỬI QUÀ VÀO THƯ ✉</button>
     </div>
   </div>
 
-  <!-- MODAL XEM CHI TIẾT THẺ BÀI -->
   <div id="cardDetailModal" class="starter-overlay hidden">
     <div class="starter-dialog card-detail-dialog">
       <button id="closeCardDetail" class="close-btn">×</button>
       <p class="eyebrow" id="detailCategoryBadge">NHÂN VẬT</p>
       <h2 id="detailCardName">Tên Thẻ Bài</h2>
       <span class="detail-rarity-pill" id="detailRarity">LEGENDARY</span>
-
-      <div class="detail-card-frame">
-        <img id="detailCardImage" src="" alt="Chi tiết thẻ bài">
-      </div>
-
+      <div class="detail-card-frame"><img id="detailCardImage" src="" alt="Card"></div>
       <div id="detailStatsBox" class="detail-stats-box">
-        <div class="stat-pill atk-pill">
-          <span class="stat-label">⚔️ ĐIỂM ATK</span>
-          <strong id="detailAtkValue">0</strong>
-        </div>
-        <div class="stat-pill def-pill">
-          <span class="stat-label">🛡️ ĐIỂM DEF</span>
-          <strong id="detailDefValue">0</strong>
-        </div>
+        <div class="stat-pill atk-pill"><span class="stat-label">⚔️ ATK</span><strong id="detailAtkValue">0</strong></div>
+        <div class="stat-pill def-pill"><span class="stat-label">🛡️ DEF</span><strong id="detailDefValue">0</strong></div>
       </div>
-
-      <p id="detailSituationNote" class="detail-situation-note hidden">
-        Thẻ bài tình huống đặc biệt kích hoạt hiệu ứng trên đấu trường.
-      </p>
     </div>
   </div>
 
-  <!-- RƯƠNG VÀ STARTER PACK -->
   <div id="starterOverlay" class="starter-overlay hidden">
     <div class="starter-dialog">
       <p class="eyebrow">WELCOME REWARD</p>
       <h2 id="starterTitle">RƯƠNG TÂN THỦ</h2>
-
-      <p id="starterDescription">
-        Bạn nhận được một rương tân thủ miễn phí!
-      </p>
-
+      <p id="starterDescription">Bạn nhận được một rương tân thủ miễn phí!</p>
       <div id="chestStage" class="starter-stage">
         <div id="starterChestClick" class="starter-chest royal-chest">
           <div class="chest-glow"></div>
-          <div class="starter-chest-lid">
-            <div class="chest-trim"></div>
-          </div>
-          <div class="starter-chest-body">
-            <div class="chest-lock">✦</div>
-          </div>
+          <div class="starter-chest-lid"><div class="chest-trim"></div></div>
+          <div class="starter-chest-body"><div class="chest-lock">✦</div></div>
         </div>
         <p class="tap-hint">NHẤN VÀO RƯƠNG ĐỂ MỞ</p>
       </div>
-
       <div id="packStage" class="starter-stage hidden">
         <div id="starterPackClick" class="foil-pack starter-foil tearable-pack">
-          <div class="foil-crimp top"></div>
-          <div class="foil-shine"></div>
-          <span class="foil-badge">STARTER</span>
-          <div class="foil-emblem">✦</div>
-          <div class="foil-title">MEME<br>CARD</div>
-          <div class="foil-sub">STARTER PACK</div>
-          <div class="foil-crimp bottom"></div>
-          <div class="tear-line"></div>
+          <div class="foil-crimp top"></div><div class="foil-shine"></div>
+          <span class="foil-badge">STARTER</span><div class="foil-emblem">✦</div>
+          <div class="foil-title">MEME<br>CARD</div><div class="foil-sub">STARTER PACK</div><div class="foil-crimp bottom"></div>
         </div>
         <p class="tap-hint">NHẤN VÀO PACK ĐỂ XÉ GÓI</p>
       </div>
-
       <div id="starterResultStage" class="starter-stage hidden">
         <div class="starter-result-card">
-          <img id="starterResultImage" src="" alt="Thẻ bài nhận được">
-          <div id="starterResultName"></div>
-          <div id="starterResultRarity"></div>
-          <div id="starterResultCategory">CHARACTER</div>
+          <img id="starterResultImage" src="" alt="Card">
+          <div id="starterResultName"></div><div id="starterResultRarity"></div><div id="starterResultCategory"></div>
         </div>
-
-        <button id="starterFinish" class="primary-btn">
-          NHẬN THẺ BÀI
-        </button>
+        <button id="starterFinish" class="primary-btn">NHẬN THẺ BÀI</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL XÉ PACK TỪ BALO -->
   <div id="packOpenOverlay" class="starter-overlay hidden">
     <div class="starter-dialog pack-zoom-dialog">
       <button id="closePackOverlay" class="close-btn">×</button>
       <p class="eyebrow" id="packOverlayEyebrow">UNBOXING</p>
       <h2 id="packOverlayTitle">GÓI THẺ BÀI</h2>
       <p id="packOverlayDesc">Nhấn vào gói bài để xé mở!</p>
-
       <div id="zoomPackStage" class="starter-stage">
         <div id="zoomedPackElement" class="foil-pack basic-foil zoomed-pack tearable-pack">
-          <div class="foil-crimp top"></div>
-          <div class="foil-shine"></div>
-          <span class="foil-badge" id="zoomPackBadge">STANDARD</span>
-          <div class="foil-emblem" id="zoomPackEmblem">✦</div>
-          <div class="foil-title" id="zoomPackTitle">BASIC<br>PACK</div>
-          <div class="foil-sub">MEME ARENA</div>
-          <div class="foil-crimp bottom"></div>
-          <div class="tear-line"></div>
+          <div class="foil-crimp top"></div><div class="foil-shine"></div>
+          <span class="foil-badge" id="zoomPackBadge">STANDARD</span><div class="foil-emblem" id="zoomPackEmblem">✦</div>
+          <div class="foil-title" id="zoomPackTitle">BASIC<br>PACK</div><div class="foil-sub">MEME ARENA</div><div class="foil-crimp bottom"></div>
         </div>
         <p class="tap-hint">CHẠM LẦN NỮA ĐỂ XÉ PACK ✦</p>
       </div>
-
       <div id="zoomResultStage" class="starter-stage hidden">
         <div class="starter-result-card">
-          <img id="zoomResultImage" src="" alt="Thẻ bài">
-          <div id="zoomResultName"></div>
-          <div id="zoomResultRarity"></div>
-          <div id="zoomResultCategory"></div>
+          <img id="zoomResultImage" src="" alt="Card">
+          <div id="zoomResultName"></div><div id="zoomResultRarity"></div><div id="zoomResultCategory"></div>
         </div>
         <button id="zoomFinishBtn" class="primary-btn">CẤT VÀO ALBUM</button>
       </div>
@@ -615,7 +528,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-
   <script src="script.js"></script>
 </body>
 </html>
