@@ -28,7 +28,7 @@ const cards = {
   },
   muaQuat: {
     name: "Múa Quạt",
-    file: "múa quạt skill.png",
+    file: "mua quat skill.png",
     rarity: "RARE",
     category: "SKILL"
   }
