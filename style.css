@@ -881,6 +881,14 @@ body.logged-in .coin-pill { display: inline-flex; }
   box-shadow: 0 2px 8px #ff5ea899;
 }
 
+/* ADMIN BACKUP BAR */
+.admin-backup-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
 /* ADMIN CHECK SCREEN & USER MANAGEMENT */
 .admin-user-mgmt-grid {
   display: grid;
