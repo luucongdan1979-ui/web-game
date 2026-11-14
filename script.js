@@ -193,7 +193,6 @@ function enterGame(displayName) {
   $("adminTag").classList.toggle("hidden", !isAdmin);
   $("adminCheckNavBtn").classList.toggle("hidden", !isAdmin);
   $("adminSendMailNavBtn").classList.toggle("hidden", !isAdmin);
-  if ($("userExportBtn")) $("userExportBtn").classList.remove("hidden");
 
   renderProfile();
   showScreen("gameScreen");
@@ -236,7 +235,6 @@ $("logoutBtn").addEventListener("click", () => {
   $("packOpenOverlay").classList.add("hidden");
   $("cardDetailModal").classList.add("hidden");
   $("adminGiftModal").classList.add("hidden");
-  if ($("userExportBtn")) $("userExportBtn").classList.add("hidden");
 
   $("arenaCopyChest").classList.remove("hidden");
   $("chibiClownHome").classList.add("hidden");
