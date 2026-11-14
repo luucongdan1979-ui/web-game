@@ -507,7 +507,7 @@ body.logged-in .coin-pill {
 .deco-right { right: 9%; bottom: 17%; }
 
 /* ========================================================================== */
-/* 4. CHÚ HỀ CHIBI TÓC XOAY & ẢO THUẬT (TRANG CHỦ)                           */
+/* 4. CHÚ HỀ CHIBI TÓC XOAY & ẢO THUẬT (TRANG CHỦ) & BỐ CỤC PVE                */
 /* ========================================================================== */
 .chibi-clown-home {
   position: relative;
@@ -519,6 +519,35 @@ body.logged-in .coin-pill {
   padding: 20px;
   text-align: center;
   width: 100%;
+}
+
+.arena-layout-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 30px;
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.arena-action-column {
+  flex: 1;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .arena-layout-flex {
+    flex-direction: column;
+    text-align: center;
+  }
+  .arena-action-column {
+    align-items: center;
+    text-align: center;
+  }
 }
 
 .chibi-clown-stage {
@@ -1757,33 +1786,4 @@ body.starter-active .bottom-nav {
   padding: 2px 6px;
   border-radius: 20px;
   box-shadow: 0 2px 8px #ff5ea899;
-}
-/* Bổ sung bố cục trang chủ: Chú hề bên trái + Nút PvE bên phải */
-.arena-layout-flex {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  gap: 30px;
-  width: 100%;
-  max-width: 880px;
-  margin: 0 auto;
-}
-
-.arena-action-column {
-  flex: 1;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-@media (max-width: 768px) {
-  .arena-layout-flex {
-    flex-direction: column;
-    text-align: center;
-  }
-  .arena-action-column {
-    align-items: center;
-    text-align: center;
-  }
 }
