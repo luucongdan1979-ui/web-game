@@ -280,6 +280,15 @@
         </div>
       </div>
 
+      <!-- Nút Sao lưu / Khôi phục dữ liệu giữa các máy -->
+      <div class="admin-backup-bar">
+        <button class="primary-btn" onclick="exportDataBackup()" style="font-size: 11px; padding: 10px 16px;">📥 Xuất File Backup (Tải dữ liệu)</button>
+        <label class="primary-btn" style="font-size: 11px; padding: 10px 16px; cursor: pointer; display: inline-flex; align-items: center; margin: 0;">
+          📤 Nhập File Backup (Đồng bộ máy khác)
+          <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importDataBackup(event)">
+        </label>
+      </div>
+
       <div id="adminUserManagementList" class="admin-user-mgmt-grid"></div>
     </section>
   </main>
@@ -314,7 +323,6 @@
       Album
     </button>
 
-    <!-- NÚT CHECK ACCOUNT CHỈ HIỆN VỚI ADMIN -->
     <button id="adminCheckNavBtn" class="nav-item admin-only-nav hidden" data-screen="adminCheckScreen">
       <span class="nav-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -330,7 +338,7 @@
     </button>
   </nav>
 
-  <!-- MODAL TẶNG THẺ BÀI CHO TÀI KHOẢN (ADMIN) -->
+  <!-- MODAL TẶNG THẺ BÀI (ADMIN) -->
   <div id="adminGiftModal" class="starter-overlay hidden">
     <div class="starter-dialog admin-gift-dialog">
       <button id="closeAdminGiftModal" class="close-btn">×</button>
