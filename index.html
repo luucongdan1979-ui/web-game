@@ -146,24 +146,32 @@
           </p>
         </div>
 
-        <!-- Chú hề Chibi tóc 7 sắc cầu vồng -->
+        <!-- Chú hề Chibi tóc xoăn đứng nép bên trái, 2 tay làm ảo thuật -->
         <div class="chibi-clown-home hidden" id="chibiClownHome">
           <div class="chibi-clown-stage">
             <div class="clown-speech-bubble">Hãy mua pack ở mục shop nhé !</div>
-            <div class="magic-wand-hand">🪄</div>
+
             <div class="chibi-clown">
-              <div class="clown-hair-puffs">
-                <span class="puff"></span>
-                <span class="puff"></span>
-                <span class="puff"></span>
-                <span class="puff"></span>
-                <span class="puff"></span>
-                <span class="puff"></span>
-                <span class="puff"></span>
-              </div>
+              <!-- Mũ chóp -->
               <div class="clown-hat">
                 <div class="hat-pom">⭐</div>
               </div>
+
+              <!-- Tóc xoăn xù 2 bên đầu -->
+              <div class="clown-curly-hair left-curls">
+                <span class="curl c1"></span>
+                <span class="curl c2"></span>
+                <span class="curl c3"></span>
+                <span class="curl c4"></span>
+              </div>
+              <div class="clown-curly-hair right-curls">
+                <span class="curl c5"></span>
+                <span class="curl c6"></span>
+                <span class="curl c7"></span>
+                <span class="curl c1"></span>
+              </div>
+
+              <!-- Đầu chú hề -->
               <div class="clown-head">
                 <div class="blush left"></div>
                 <div class="blush right"></div>
@@ -172,16 +180,45 @@
                 <div class="nose"></div>
                 <div class="smile"></div>
               </div>
+
+              <!-- Thân áo -->
               <div class="clown-body">
                 <div class="collar"></div>
                 <div class="bowtie">🎀</div>
+                <div class="body-button b1"></div>
+                <div class="body-button b2"></div>
+              </div>
+
+              <!-- 2 Tay đang làm ảo thuật -->
+              <div class="clown-arm left-arm">
+                <div class="clown-glove"></div>
+              </div>
+              <div class="clown-arm right-arm">
+                <div class="clown-glove">
+                  <span class="magic-wand">🪄</span>
+                </div>
+              </div>
+
+              <!-- 2 Chân đứng nhún -->
+              <div class="clown-legs">
+                <div class="clown-leg left-leg">
+                  <div class="clown-shoe"></div>
+                </div>
+                <div class="clown-leg right-leg">
+                  <div class="clown-shoe"></div>
+                </div>
               </div>
             </div>
-            <div class="flying-card card-alpha">🃏</div>
-            <div class="flying-card card-beta">🎴</div>
-            <div class="flying-card card-gamma">✨</div>
-            <div class="magic-sparkle s1">✦</div>
-            <div class="magic-sparkle s2">✧</div>
+
+            <!-- Hiệu ứng thẻ bài bay ảo thuật phía trước -->
+            <div class="magic-orbit-zone">
+              <div class="flying-card card-alpha">🃏</div>
+              <div class="flying-card card-beta">🎴</div>
+              <div class="flying-card card-gamma">✨</div>
+              <div class="magic-sparkle s1">✦</div>
+              <div class="magic-sparkle s2">✧</div>
+              <div class="magic-sparkle s3">✦</div>
+            </div>
           </div>
         </div>
 
@@ -361,8 +398,8 @@
       <div class="admin-backup-bar">
         <button class="primary-btn" onclick="exportDataBackup()" style="font-size: 11px; padding: 10px 16px;">📥 Xuất File Backup (Tải dữ liệu)</button>
         <label class="primary-btn" style="font-size: 11px; padding: 10px 16px; cursor: pointer; display: inline-flex; align-items: center; margin: 0;">
-          📤 Nhập File Backup (Đồng bộ máy khác)
-          <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importDataBackup(event)">
+          📤 Nhập File Backup (Chọn nhiều file để gộp)
+          <input type="file" id="importFile" accept=".json" multiple style="display: none;" onchange="importDataBackup(event)">
         </label>
       </div>
 
