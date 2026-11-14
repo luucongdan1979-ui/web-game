@@ -271,6 +271,84 @@
       </p>
     </section>
 
+    <!-- HÒM THƯ (DÀNH CHO TẤT CẢ TÀI KHOẢN) -->
+    <section id="mailScreen" class="content-screen hidden">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">INBOX & REWARDS</p>
+          <h2>Hòm thư <span>hệ thống</span></h2>
+        </div>
+        <button id="claimAllMailBtn" class="primary-btn hidden" style="padding: 10px 16px; font-size: 11px;">
+          NHẬN TẤT CẢ ✦
+        </button>
+      </div>
+
+      <div id="mailList" class="mail-list"></div>
+
+      <p id="emptyMail" class="empty-state">
+        Hòm thư của bạn hiện đang trống!
+      </p>
+    </section>
+
+    <!-- GỬI THƯ (DÀNH RIÊNG CHO ADMIN MODE) -->
+    <section id="adminSendMailScreen" class="content-screen hidden">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ADMIN DISPATCH</p>
+          <h2>Gửi thư <span>& Quà tặng</span></h2>
+        </div>
+      </div>
+
+      <form id="adminSendMailForm" class="admin-mail-composer">
+        <div class="composer-group">
+          <label>1. Chọn người nhận</label>
+          <div class="recipient-mode-tabs">
+            <label class="radio-pill">
+              <input type="radio" name="recipientMode" value="all" checked>
+              <span>📢 Tất cả tài khoản</span>
+            </label>
+            <label class="radio-pill">
+              <input type="radio" name="recipientMode" value="selected">
+              <span>🎯 Chọn tài khoản cụ thể</span>
+            </label>
+          </div>
+
+          <div id="recipientChecklistBox" class="recipient-checklist hidden"></div>
+        </div>
+
+        <div class="composer-group">
+          <label>2. Nội dung thư</label>
+          <input id="mailSubjectInput" placeholder="Tiêu đề thư (VD: Quà đền bù bảo trì, Quà sự kiện...)" required>
+          <textarea id="mailBodyInput" rows="3" placeholder="Nhập lời nhắn gửi tới người chơi..." required></textarea>
+        </div>
+
+        <div class="composer-group">
+          <label>3. Đính kèm quà tặng (Không bắt buộc)</label>
+          <div class="attach-rewards-grid">
+            <div class="attach-box">
+              <span>🪙 Tặng Xu</span>
+              <input id="mailAttachCoins" type="number" min="0" value="0">
+            </div>
+            <div class="attach-box">
+              <span>📦 Basic Pack</span>
+              <input id="mailAttachBasic" type="number" min="0" value="0">
+            </div>
+            <div class="attach-box">
+              <span>👑 Premium Pack</span>
+              <input id="mailAttachPremium" type="number" min="0" value="0">
+            </div>
+          </div>
+
+          <label style="margin-top: 12px; display: block;">🃏 Đính kèm Thẻ bài (Bấm để chọn):</label>
+          <div id="mailAttachCardsGrid" class="gift-cards-grid"></div>
+        </div>
+
+        <button type="submit" class="primary-btn" style="width: 100%; margin-top: 10px;">
+          GỬI THƯ NGAY ✉
+        </button>
+      </form>
+    </section>
+
     <!-- CHECK ACCOUNT (DÀNH RIÊNG CHO ADMIN) -->
     <section id="adminCheckScreen" class="content-screen hidden">
       <div class="section-heading">
@@ -280,7 +358,6 @@
         </div>
       </div>
 
-      <!-- Nút Sao lưu / Khôi phục dữ liệu giữa các máy -->
       <div class="admin-backup-bar">
         <button class="primary-btn" onclick="exportDataBackup()" style="font-size: 11px; padding: 10px 16px;">📥 Xuất File Backup (Tải dữ liệu)</button>
         <label class="primary-btn" style="font-size: 11px; padding: 10px 16px; cursor: pointer; display: inline-flex; align-items: center; margin: 0;">
@@ -323,6 +400,23 @@
       Album
     </button>
 
+    <!-- ICON THƯ (CHO TẤT CẢ TÀI KHOẢN) -->
+    <button id="mailNavBtn" class="nav-item" data-screen="mailScreen">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+      </span>
+      Thư <em id="navMailBadge" class="nav-badge hidden">0</em>
+    </button>
+
+    <!-- ICON GỬI THƯ (CHỈ DÀNH RIÊNG CHO ADMIN MODE) -->
+    <button id="adminSendMailNavBtn" class="nav-item admin-only-nav hidden" data-screen="adminSendMailScreen">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+      </span>
+      Gửi thư
+    </button>
+
+    <!-- ICON CHECK TK (CHỈ DÀNH RIÊNG CHO ADMIN MODE) -->
     <button id="adminCheckNavBtn" class="nav-item admin-only-nav hidden" data-screen="adminCheckScreen">
       <span class="nav-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -338,18 +432,32 @@
     </button>
   </nav>
 
-  <!-- MODAL TẶNG THẺ BÀI (ADMIN) -->
+  <!-- MODAL TẶNG QUÀ (THẺ & PACK) GỬI VÀO THƯ NGƯỜI CHƠI (ADMIN) -->
   <div id="adminGiftModal" class="starter-overlay hidden">
     <div class="starter-dialog admin-gift-dialog">
       <button id="closeAdminGiftModal" class="close-btn">×</button>
-      <p class="eyebrow">ADMIN GIFT</p>
-      <h2 id="giftModalTitle">Tặng thẻ bài</h2>
-      <p>Chọn các thẻ bài chưa sở hữu để tặng cho người chơi này:</p>
+      <p class="eyebrow">ADMIN GIFT MAIL</p>
+      <h2 id="giftModalTitle">Tặng quà qua hòm thư</h2>
+      <p>Quà sẽ được gửi vào mục <b>Thư</b> của người chơi để nhận:</p>
 
+      <div class="attach-rewards-grid" style="margin-top: 12px;">
+        <div class="attach-box">
+          <span>📦 Basic Pack</span>
+          <input id="giftBasicPackQty" type="number" min="0" value="0">
+        </div>
+        <div class="attach-box">
+          <span>👑 Premium Pack</span>
+          <input id="giftPremiumPackQty" type="number" min="0" value="0">
+        </div>
+      </div>
+
+      <p style="font-size: 11px; color: var(--cyan); margin: 14px 0 4px; font-weight: 700;">
+        Chọn thẻ bài người chơi chưa sở hữu:
+      </p>
       <div id="giftCardsContainer" class="gift-cards-grid"></div>
 
-      <button id="confirmGiftBtn" class="primary-btn" style="margin-top: 20px;">
-        XÁC NHẬN TẶNG THẺ ✦
+      <button id="confirmGiftBtn" class="primary-btn" style="margin-top: 18px;">
+        GỬI QUÀ VÀO THƯ ✉
       </button>
     </div>
   </div>
