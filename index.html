@@ -148,7 +148,7 @@
           </p>
         </div>
 
-        <!-- Giao diện Chú Hề Chibi bên trái & Nút Chiến Đấu PvE bên phải -->
+        <!-- Giao diện Chú Hề Chibi bên trái & Nút PvE kèm Nút Hướng Dẫn bên phải -->
         <div class="chibi-clown-home hidden" id="chibiClownHome">
           <div class="arena-layout-flex">
             
@@ -226,17 +226,22 @@
               </div>
             </div>
 
-            <!-- Cột bên phải: Khu vực Nút Chiến Đấu PvE -->
+            <!-- Cột bên phải: Nút Chiến Đấu PvE & Nút Hướng Dẫn & Luyện Tập -->
             <div class="arena-action-column">
               <p class="eyebrow">PVE ARENA BATTLE</p>
-              <h2 style="font-size: 26px; margin: 5px 0 10px;">Thách đấu <span>Bot</span></h2>
-              <p class="muted" style="margin-bottom: 20px;">
-                Đem bộ bài meme mạnh nhất của bạn ra để so tài với các bot thông minh và giành lấy phần thưởng hấp dẫn!
-              </p>
-              <button id="startPveBtn" class="primary-btn" style="display: flex; align-items: center; gap: 12px; padding: 15px 24px; font-size: 14px; background: linear-gradient(135deg, #ff5ea8 0%, #9b78ff 50%, #69e4ff 100%); box-shadow: 0 10px 30px rgba(155, 120, 255, 0.4); width: fit-content;">
-                <span style="font-size: 20px;">⚔️</span>
-                <span>CHIẾN ĐẤU (PVE) NGAY</span>
-              </button>
+              <h2 style="font-size: 26px; margin: 5px 0 15px;">Thách đấu <span>Bot</span></h2>
+              
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button id="startPveBtn" class="primary-btn" style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 24px; font-size: 14px; background: linear-gradient(135deg, #ff5ea8 0%, #9b78ff 50%, #69e4ff 100%); box-shadow: 0 10px 30px rgba(155, 120, 255, 0.4);">
+                  <span style="font-size: 20px;">⚔️</span>
+                  <span>CHIẾN ĐẤU (PVE) NGAY</span>
+                </button>
+
+                <button id="guidePracticeBtn" class="primary-btn" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 24px; font-size: 13px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.25); color: #fff; box-shadow: none;">
+                  <span style="font-size: 18px;">📖</span>
+                  <span>Hướng dẫn & Luyện Tập</span>
+                </button>
+              </div>
             </div>
 
           </div>
