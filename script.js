@@ -31,6 +31,12 @@ const cards = {
     file: "mua quat skill.png",
     rarity: "RARE",
     category: "SKILL"
+  },
+  chuCap5Cu: {
+    name: "Chu Cấp 5 Củ",
+    file: "chu cap 5 cu.png",
+    rarity: "LEGENDARY",
+    category: "SKILL"
   }
 };
 
@@ -615,6 +621,7 @@ function openCardDetail(cardId) {
   img.onerror = function() { this.style.display = "none"; };
 
   $("detailStatsBox").classList.toggle("hidden", !isCharacter);
+  $("detailSituationNote").classList.toggle("hidden", isCharacter);
 
   if (isCharacter) {
     $("detailAtkValue").textContent = card.atk ?? 0;
@@ -729,7 +736,7 @@ $("claimAllMailBtn").addEventListener("click", () => {
   if (!profile || !profile.mailbox) return;
 
   let claimedCount = 0;
-  profile.mailbox.forEach((mail) => {
+  profile.mailbox.forEach((mail, idx) => {
     if (!mail.claimed) {
       if (!isAdmin && mail.coins > 0) profile.coins += mail.coins;
       if (Array.isArray(mail.packs)) profile.bag.push(...mail.packs);
