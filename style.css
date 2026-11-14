@@ -1758,3 +1758,32 @@ body.starter-active .bottom-nav {
   border-radius: 20px;
   box-shadow: 0 2px 8px #ff5ea899;
 }
+/* Bổ sung bố cục trang chủ: Chú hề bên trái + Nút PvE bên phải */
+.arena-layout-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 30px;
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.arena-action-column {
+  flex: 1;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .arena-layout-flex {
+    flex-direction: column;
+    text-align: center;
+  }
+  .arena-action-column {
+    align-items: center;
+    text-align: center;
+  }
+}
