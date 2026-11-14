@@ -111,11 +111,9 @@ function switchPanel(panelId) {
   document.querySelectorAll(".auth-form").forEach(form => {
     form.classList.toggle("hidden", form.id !== panelId);
   });
-
   document.querySelectorAll(".tab").forEach(tab => {
     tab.classList.toggle("active", tab.dataset.panel === panelId);
   });
-
   showAuthMessage("");
 }
 
@@ -143,23 +141,14 @@ function createProfile(username, email, password) {
 
 $("registerPanel").addEventListener("submit", event => {
   event.preventDefault();
-
   const username = $("registerUsername").value.trim();
   const email = $("registerEmail").value.trim().toLowerCase();
   const password = $("registerPassword").value;
   const key = username.toLowerCase();
 
-  if (state.users[key]) {
-    return showAuthMessage("Tên tài khoản đã tồn tại!");
-  }
-
-  if (!/^[a-zA-Z0-9_]{3,18}$/.test(username)) {
-    return showAuthMessage("Tên tài khoản cần 3–18 ký tự chữ, số hoặc dấu gạch dưới.");
-  }
-
-  if (password.length < 6) {
-    return showAuthMessage("Mật khẩu cần ít nhất 6 ký tự!");
-  }
+  if (state.users[key]) return showAuthMessage("Tên tài khoản đã tồn tại!");
+  if (!/^[a-zA-Z0-9_]{3,18}$/.test(username)) return showAuthMessage("Tên tài khoản cần 3–18 ký tự.");
+  if (password.length < 6) return showAuthMessage("Mật khẩu cần ít nhất 6 ký tự!");
 
   state.users[key] = createProfile(username, email, password);
   saveState();
@@ -168,29 +157,19 @@ $("registerPanel").addEventListener("submit", event => {
 
 $("loginPanel").addEventListener("submit", event => {
   event.preventDefault();
-
   const username = $("loginUsername").value.trim().toLowerCase();
   const password = $("loginPassword").value;
   const profile = state.users[username];
 
-  if (!profile || profile.password !== password) {
-    return showAuthMessage("Tên tài khoản hoặc mật khẩu không đúng!");
-  }
-
-  if (profile.banned) {
-    return showAuthMessage("Tài khoản này đã bị BAN (Khóa) bởi Admin!");
-  }
+  if (!profile || profile.password !== password) return showAuthMessage("Tên tài khoản hoặc mật khẩu không đúng!");
+  if (profile.banned) return showAuthMessage("Tài khoản này đã bị khóa bởi Admin!");
 
   loginAs(username);
 });
 
 $("adminPanel").addEventListener("submit", event => {
   event.preventDefault();
-
-  if ($("adminCode").value !== ADMIN_CODE) {
-    return showAuthMessage("Mã Admin không chính xác!");
-  }
-
+  if ($("adminCode").value !== ADMIN_CODE) return showAuthMessage("Mã Admin không chính xác!");
   currentUser = null;
   isAdmin = true;
   enterGame("ADMIN");
@@ -210,13 +189,11 @@ function enterGame(displayName) {
   $("bottomNav").classList.remove("hidden");
   document.body.classList.add("logged-in");
 
-  $("welcomeUser").textContent = isAdmin
-    ? "Xin chào, Admin!"
-    : `Xin chào, ${displayName}!`;
-
+  $("welcomeUser").textContent = isAdmin ? "Xin chào, Admin!" : `Xin chào, ${displayName}!`;
   $("adminTag").classList.toggle("hidden", !isAdmin);
   $("adminCheckNavBtn").classList.toggle("hidden", !isAdmin);
   $("adminSendMailNavBtn").classList.toggle("hidden", !isAdmin);
+  if ($("userExportBtn")) $("userExportBtn").classList.remove("hidden");
 
   renderProfile();
   showScreen("gameScreen");
@@ -232,7 +209,6 @@ function showScreen(screenId) {
   ["gameScreen", "shopScreen", "backpackScreen", "albumScreen", "mailScreen", "adminSendMailScreen", "adminCheckScreen"].forEach(id => {
     $(id).classList.toggle("hidden", id !== screenId);
   });
-
   document.querySelectorAll(".nav-item[data-screen]").forEach(btn => {
     btn.classList.toggle("active", btn.dataset.screen === screenId);
   });
@@ -252,7 +228,6 @@ $("logoutBtn").addEventListener("click", () => {
   currentUser = null;
   isAdmin = false;
   pendingCard = null;
-
   state.active = null;
   saveState();
 
@@ -261,6 +236,7 @@ $("logoutBtn").addEventListener("click", () => {
   $("packOpenOverlay").classList.add("hidden");
   $("cardDetailModal").classList.add("hidden");
   $("adminGiftModal").classList.add("hidden");
+  if ($("userExportBtn")) $("userExportBtn").classList.add("hidden");
 
   $("arenaCopyChest").classList.remove("hidden");
   $("chibiClownHome").classList.add("hidden");
@@ -279,14 +255,12 @@ $("logoutBtn").addEventListener("click", () => {
   $("welcomeUser").textContent = "Chào mừng đến đấu trường!";
   $("loginPassword").value = "";
   $("adminCode").value = "";
-
   switchPanel("loginPanel");
 });
 
 function renderProfile() {
   const profile = getProfile();
   if (!profile) return;
-
   $("coinCount").textContent = isAdmin ? "∞" : profile.coins;
 
   const bagCount = profile.bag ? profile.bag.length : 0;
@@ -308,7 +282,6 @@ function hideOldStarterChest() {
   const arena = $("mainArena");
   const chestCopy = $("arenaCopyChest");
   const clownHome = $("chibiClownHome");
-
   if (arena && chestCopy && clownHome) {
     chestCopy.classList.add("hidden");
     clownHome.classList.remove("hidden");
@@ -325,22 +298,17 @@ function getRandomCardByRarity(rareChance) {
 
 $("openStarterBtn").addEventListener("click", () => {
   const profile = getProfile();
-  if (!isAdmin && !profile?.starterOpened) {
-    showStarterOverlay();
-  }
+  if (!isAdmin && !profile?.starterOpened) showStarterOverlay();
 });
 
 function showStarterOverlay() {
   $("starterOverlay").classList.remove("hidden");
   document.body.classList.add("starter-active");
-
   $("chestStage").classList.remove("hidden");
   $("packStage").classList.add("hidden");
   $("starterResultStage").classList.add("hidden");
-
   $("starterTitle").textContent = "RƯƠNG TÂN THỦ";
   $("starterDescription").textContent = "Bạn nhận được một rương tân thủ miễn phí!";
-
   $("starterChestClick").classList.remove("opening");
   $("starterPackClick").classList.remove("tearing");
   pendingCard = null;
@@ -349,7 +317,6 @@ function showStarterOverlay() {
 $("starterChestClick").addEventListener("click", () => {
   $("starterChestClick").classList.add("opening");
   showToast("Rương đang mở...");
-
   setTimeout(() => {
     $("chestStage").classList.add("hidden");
     $("packStage").classList.remove("hidden");
@@ -360,28 +327,23 @@ $("starterChestClick").addEventListener("click", () => {
 
 $("starterPackClick").addEventListener("click", () => {
   if (pendingCard) return;
-
   $("starterPackClick").classList.add("tearing");
   $("starterTitle").textContent = "ĐANG XÉ PACK...";
   $("starterDescription").textContent = "Ánh sáng đang lóe lên!";
-
   setTimeout(openStarterPack, 850);
 });
 
 function openStarterPack() {
   const profile = getProfile();
   if (!profile || profile.starterOpened) return;
-
   pendingCard = getRandomCardByRarity(0.60);
   const card = cards[pendingCard];
-
   profile.cards.push(pendingCard);
   profile.starterOpened = true;
   saveState();
 
   $("packStage").classList.add("hidden");
   $("starterResultStage").classList.remove("hidden");
-
   $("starterTitle").textContent = "CHÚC MỪNG!";
   $("starterDescription").textContent = "Bạn đã nhận được một thẻ bài mới!";
 
@@ -389,22 +351,17 @@ function openStarterPack() {
   img.style.display = "block";
   img.src = card.file;
   img.alt = card.name;
-  img.onerror = function() { this.style.display = "none"; };
-
   $("starterResultName").textContent = card.name;
   $("starterResultRarity").textContent = card.rarity;
   $("starterResultCategory").textContent = CATEGORY_LABELS[card.category] || card.category;
-
   renderProfile();
 }
 
 $("starterFinish").addEventListener("click", () => {
   if (!pendingCard) return;
-
   $("starterOverlay").classList.add("hidden");
   document.body.classList.remove("starter-active");
   hideOldStarterChest();
-
   pendingCard = null;
   renderProfile();
   renderAlbum();
@@ -416,41 +373,31 @@ document.querySelectorAll(".buy-btn").forEach(btn => {
     const packType = btn.dataset.pack;
     const price = packType === "basic" ? 10 : 20;
     const profile = getProfile();
-
     if (!isAdmin) {
-      if (!profile || profile.coins < price) {
-        return showToast("Bạn không đủ xu để mua pack!");
-      }
+      if (!profile || profile.coins < price) return showToast("Bạn không đủ xu để mua pack!");
       profile.coins -= price;
     }
-
     profile.bag.push(packType);
     saveState();
     renderProfile();
-
-    const packName = packType === "basic" ? "Basic Pack" : "Premium Pack";
-    showToast(`Đã mua ${packName} và cất vào Balo!`);
+    showToast(`Đã mua gói bài và cất vào Balo!`);
   });
 });
 
 function renderBackpack() {
   const profile = getProfile();
   const bag = profile?.bag || [];
-
   $("emptyBackpack").classList.toggle("hidden", bag.length > 0);
-
   $("backpackGrid").innerHTML = bag.map((type, index) => {
     const isPremium = type === "premium";
     return `
       <div class="bag-item" data-index="${index}" data-type="${type}">
         <div class="foil-pack ${isPremium ? "premium-foil" : "basic-foil"}">
-          <div class="foil-crimp top"></div>
-          <div class="foil-shine"></div>
+          <div class="foil-crimp top"></div><div class="foil-shine"></div>
           <span class="foil-badge">${isPremium ? "GOLD EDITION" : "STANDARD"}</span>
           <div class="foil-emblem">${isPremium ? "✧" : "✦"}</div>
           <div class="foil-title">${isPremium ? "PREMIUM<br>PACK" : "BASIC<br>PACK"}</div>
-          <div class="foil-sub">MEME ARENA</div>
-          <div class="foil-crimp bottom"></div>
+          <div class="foil-sub">MEME ARENA</div><div class="foil-crimp bottom"></div>
         </div>
         <h4>${isPremium ? "Premium Pack" : "Basic Pack"}</h4>
         <span>Nhấn để xem & mở</span>
@@ -460,9 +407,7 @@ function renderBackpack() {
 
   document.querySelectorAll(".bag-item").forEach(item => {
     item.addEventListener("click", () => {
-      const idx = Number(item.dataset.index);
-      const type = item.dataset.type;
-      openPackZoomModal(idx, type);
+      openPackZoomModal(Number(item.dataset.index), item.dataset.type);
     });
   });
 }
@@ -471,68 +416,45 @@ function openPackZoomModal(index, type) {
   activePackIndex = index;
   activePackType = type;
   isTearingPack = false;
-
   const isPremium = type === "premium";
   const zoomedEl = $("zoomedPackElement");
-
   zoomedEl.className = `foil-pack ${isPremium ? "premium-foil" : "basic-foil"} zoomed-pack tearable-pack`;
   $("zoomPackBadge").textContent = isPremium ? "GOLD EDITION" : "STANDARD";
   $("zoomPackEmblem").textContent = isPremium ? "✧" : "✦";
   $("zoomPackTitle").innerHTML = isPremium ? "PREMIUM<br>PACK" : "BASIC<br>PACK";
 
-  $("packOverlayEyebrow").textContent = "UNBOXING";
-  $("packOverlayTitle").textContent = isPremium ? "PREMIUM PACK" : "BASIC PACK";
-  $("packOverlayDesc").textContent = "Nhấn thêm lần nữa vào gói bài để xé!";
-
   $("zoomPackStage").classList.remove("hidden");
   $("zoomResultStage").classList.add("hidden");
   $("closePackOverlay").classList.remove("hidden");
-
   $("packOpenOverlay").classList.remove("hidden");
 }
 
 $("zoomedPackElement").addEventListener("click", () => {
   if (isTearingPack || activePackIndex === null) return;
   isTearingPack = true;
-
   $("closePackOverlay").classList.add("hidden");
   $("zoomedPackElement").classList.add("tearing");
-  $("packOverlayTitle").textContent = "ĐANG XÉ PACK...";
-  $("packOverlayDesc").textContent = "Thẻ bài bên trong đang lộ diện!";
 
   setTimeout(() => {
     const profile = getProfile();
     profile.bag.splice(activePackIndex, 1);
-
     const rareChance = (activePackType === "premium") ? 0.40 : 0.60;
     const cardId = getRandomCardByRarity(rareChance);
     const card = cards[cardId];
-
-    if (!isAdmin) {
-      profile.cards.push(cardId);
-    }
-
+    if (!isAdmin) profile.cards.push(cardId);
     saveState();
     renderProfile();
     renderBackpack();
 
     $("zoomPackStage").classList.add("hidden");
     $("zoomResultStage").classList.remove("hidden");
-
-    $("packOverlayEyebrow").textContent = "CONGRATULATIONS!";
-    $("packOverlayTitle").textContent = "NHẬN THẺ THÀNH CÔNG";
-    $("packOverlayDesc").textContent = "Thẻ bài đã được chuyển vào Album!";
-
     const img = $("zoomResultImage");
     img.style.display = "block";
     img.src = card.file;
     img.alt = card.name;
-    img.onerror = function() { this.style.display = "none"; };
-
     $("zoomResultName").textContent = card.name;
     $("zoomResultRarity").textContent = card.rarity;
     $("zoomResultCategory").textContent = CATEGORY_LABELS[card.category] || card.category;
-
     activePackIndex = null;
     isTearingPack = false;
   }, 850);
@@ -559,7 +481,6 @@ document.querySelectorAll(".album-tab").forEach(tab => {
 function renderAlbum() {
   const profile = getProfile();
   const owned = isAdmin ? Object.keys(cards) : (profile?.cards || []);
-
   const filtered = owned.filter(id => {
     const card = cards[id];
     if (!card) return false;
@@ -568,71 +489,49 @@ function renderAlbum() {
   });
 
   $("emptyAlbum").classList.toggle("hidden", filtered.length > 0);
-
   $("albumGrid").innerHTML = filtered.map(id => {
     const card = cards[id];
-    const catLabel = CATEGORY_LABELS[card.category] || card.category;
     return `
       <article class="owned-card" data-card-id="${id}">
         <img src="${card.file}" alt="${card.name}">
         <h3>${card.name}</h3>
-        <small>${card.rarity} · ${catLabel}</small>
+        <small>${card.rarity} · ${CATEGORY_LABELS[card.category]}</small>
       </article>
     `;
   }).join("");
 
-  document.querySelectorAll(".owned-card").forEach(cardEl => {
-    cardEl.addEventListener("click", () => {
-      const cardId = cardEl.dataset.cardId;
-      openCardDetail(cardId);
-    });
+  document.querySelectorAll(".owned-card").forEach(el => {
+    el.addEventListener("click", () => openCardDetail(el.dataset.cardId));
   });
 }
 
 function openCardDetail(cardId) {
   const card = cards[cardId];
   if (!card) return;
-
   const isCharacter = card.category === "CHARACTER";
-  const catLabel = CATEGORY_LABELS[card.category] || card.category;
-
-  $("detailCategoryBadge").textContent = catLabel;
+  $("detailCategoryBadge").textContent = CATEGORY_LABELS[card.category];
   $("detailCardName").textContent = card.name;
   $("detailRarity").textContent = card.rarity;
 
   const img = $("detailCardImage");
   img.style.display = "block";
   img.src = card.file;
-  img.alt = card.name;
-  img.onerror = function() { this.style.display = "none"; };
-
   $("detailStatsBox").classList.toggle("hidden", !isCharacter);
-  $("detailSituationNote").classList.toggle("hidden", isCharacter);
-
   if (isCharacter) {
     $("detailAtkValue").textContent = card.atk ?? 0;
     $("detailDefValue").textContent = card.def ?? 0;
   }
-
   $("cardDetailModal").classList.remove("hidden");
 }
 
-$("closeCardDetail").addEventListener("click", () => {
-  $("cardDetailModal").classList.add("hidden");
-});
-
-$("cardDetailModal").addEventListener("click", event => {
-  if (event.target === $("cardDetailModal")) {
-    $("cardDetailModal").classList.add("hidden");
-  }
-});
+$("closeCardDetail").addEventListener("click", () => $("cardDetailModal").classList.add("hidden"));
 
 function sendMailToUser(userObj, mailData) {
   if (!Array.isArray(userObj.mailbox)) userObj.mailbox = [];
-  const hasRewards = (mailData.coins > 0) || (mailData.packs && mailData.packs.length > 0) || (mailData.cards && mailData.cards.length > 0);
+  const hasRewards = (mailData.coins > 0) || (mailData.packs?.length > 0) || (mailData.cards?.length > 0);
   userObj.mailbox.unshift({
     id: "mail_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
-    title: mailData.title || "Thư từ Hệ Thống",
+    title: mailData.title || "Thư hệ thống",
     body: mailData.body || "",
     date: new Date().toLocaleString("vi-VN"),
     coins: mailData.coins || 0,
@@ -645,44 +544,31 @@ function sendMailToUser(userObj, mailData) {
 function renderMailbox() {
   const profile = getProfile();
   const mailbox = profile?.mailbox || [];
-  const listEl = $("mailList");
-
   $("emptyMail").classList.toggle("hidden", mailbox.length > 0);
-
   const hasUnclaimed = mailbox.some(m => !m.claimed);
   $("claimAllMailBtn").classList.toggle("hidden", !hasUnclaimed);
 
-  listEl.innerHTML = mailbox.map((mail, idx) => {
+  $("mailList").innerHTML = mailbox.map((mail, idx) => {
     const basicCount = (mail.packs || []).filter(p => p === "basic").length;
     const premCount = (mail.packs || []).filter(p => p === "premium").length;
-    const cardNames = (mail.cards || []).map(cid => cards[cid]?.name || cid);
-
     let rewardsHtml = "";
     if (mail.coins > 0) rewardsHtml += `<span class="reward-chip">🪙 +${mail.coins} Xu</span>`;
-    if (basicCount > 0) rewardsHtml += `<span class="reward-chip">📦 ${basicCount}x Basic Pack</span>`;
-    if (premCount > 0) rewardsHtml += `<span class="reward-chip">👑 ${premCount}x Premium Pack</span>`;
-    cardNames.forEach(name => {
-      rewardsHtml += `<span class="reward-chip">🃏 Thẻ: ${name}</span>`;
+    if (basicCount > 0) rewardsHtml += `<span class="reward-chip">📦 ${basicCount}x Basic</span>`;
+    if (premCount > 0) rewardsHtml += `<span class="reward-chip">👑 ${premCount}x Premium</span>`;
+    (mail.cards || []).forEach(cid => {
+      rewardsHtml += `<span class="reward-chip">🃏 Thẻ: ${cards[cid]?.name || cid}</span>`;
     });
-
-    const hasAnyReward = rewardsHtml !== "";
 
     return `
       <div class="mail-card ${!mail.claimed ? 'unclaimed' : ''}">
         <div class="mail-card-top">
-          <div>
-            <h3>${!mail.claimed ? '📩' : '📨'} ${mail.title}</h3>
-            <span class="mail-date">${mail.date}</span>
-          </div>
-          ${!mail.claimed ? `<span class="mgmt-status-badge">CÓ QUÀ MỚI</span>` : ''}
+          <div><h3>${!mail.claimed ? '📩' : '📨'} ${mail.title}</h3><span class="mail-date">${mail.date}</span></div>
+          ${!mail.claimed ? `<span class="mgmt-status-badge">MỚI</span>` : ''}
         </div>
         <p class="mail-body-text">${mail.body}</p>
-        ${hasAnyReward ? `<div class="mail-attachments">${rewardsHtml}</div>` : ''}
+        ${rewardsHtml ? `<div class="mail-attachments">${rewardsHtml}</div>` : ''}
         <div class="mail-card-footer">
-          ${!mail.claimed 
-            ? `<button class="claim-mail-btn" onclick="claimSingleMail(${idx})">NHẬN QUÀ ✦</button>`
-            : (hasAnyReward ? `<span class="claimed-tag">✓ Đã nhận quà</span>` : `<span class="claimed-tag">Đã đọc</span>`)
-          }
+          ${!mail.claimed ? `<button class="claim-mail-btn" onclick="claimSingleMail(${idx})">NHẬN QUÀ ✦</button>` : `<span class="claimed-tag">✓ Đã nhận</span>`}
         </div>
       </div>
     `;
@@ -694,72 +580,55 @@ window.claimSingleMail = function(index) {
   const mail = profile?.mailbox?.[index];
   if (!mail || mail.claimed) return;
 
-  if (!isAdmin && mail.coins > 0) {
-    profile.coins += mail.coins;
-  }
-
-  if (Array.isArray(mail.packs) && mail.packs.length > 0) {
-    profile.bag.push(...mail.packs);
-  }
-
-  if (Array.isArray(mail.cards) && mail.cards.length > 0 && !isAdmin) {
+  if (!isAdmin && mail.coins > 0) profile.coins += mail.coins;
+  if (mail.packs?.length > 0) profile.bag.push(...mail.packs);
+  if (mail.cards?.length > 0 && !isAdmin) {
     mail.cards.forEach(cid => {
-      if (!profile.cards.includes(cid)) {
-        profile.cards.push(cid);
-      }
+      if (!profile.cards.includes(cid)) profile.cards.push(cid);
     });
   }
-
   mail.claimed = true;
   saveState();
   renderProfile();
   renderMailbox();
-  showToast("Đã nhận quà và lưu vào Balo / Album!");
+  showToast("Đã nhận quà thành công!");
 };
 
 $("claimAllMailBtn").addEventListener("click", () => {
   const profile = getProfile();
-  if (!profile || !profile.mailbox) return;
-
-  let claimedCount = 0;
-  profile.mailbox.forEach((mail, idx) => {
+  if (!profile?.mailbox) return;
+  profile.mailbox.forEach((mail) => {
     if (!mail.claimed) {
       if (!isAdmin && mail.coins > 0) profile.coins += mail.coins;
-      if (Array.isArray(mail.packs)) profile.bag.push(...mail.packs);
-      if (Array.isArray(mail.cards) && !isAdmin) {
+      if (mail.packs?.length > 0) profile.bag.push(...mail.packs);
+      if (mail.cards?.length > 0 && !isAdmin) {
         mail.cards.forEach(cid => {
           if (!profile.cards.includes(cid)) profile.cards.push(cid);
         });
       }
       mail.claimed = true;
-      claimedCount++;
     }
   });
-
-  if (claimedCount > 0) {
-    saveState();
-    renderProfile();
-    renderMailbox();
-    showToast(`Đã nhận toàn bộ quà từ ${claimedCount} thư!`);
-  }
+  saveState();
+  renderProfile();
+  renderMailbox();
+  showToast("Đã nhận toàn bộ quà trong hòm thư!");
 });
 
 document.querySelectorAll('input[name="recipientMode"]').forEach(radio => {
   radio.addEventListener("change", () => {
-    const isSelectedMode = radio.value === "selected" && radio.checked;
-    $("recipientChecklistBox").classList.toggle("hidden", !isSelectedMode);
+    $("recipientChecklistBox").classList.toggle("hidden", radio.value !== "selected");
   });
 });
 
 function renderAdminSendMailScreen() {
   if (!isAdmin) return;
-
   const usersObj = state.users || {};
   const keys = Object.keys(usersObj);
   const checklistBox = $("recipientChecklistBox");
 
   if (keys.length === 0) {
-    checklistBox.innerHTML = `<small style="color: var(--muted);">Chưa có tài khoản người chơi nào.</small>`;
+    checklistBox.innerHTML = `<small style="color: var(--muted);">Chưa có người chơi nào.</small>`;
   } else {
     checklistBox.innerHTML = keys.map(k => `
       <label class="recipient-check-item">
@@ -774,10 +643,7 @@ function renderAdminSendMailScreen() {
     return `
       <div class="gift-card-item" data-card-id="${id}" onclick="toggleGiftCardSelect(this)">
         <img src="${c.file}" alt="${c.name}">
-        <div class="gift-card-info">
-          <strong>${c.name}</strong>
-          <small>${c.rarity}</small>
-        </div>
+        <div class="gift-card-info"><strong>${c.name}</strong><small>${c.rarity}</small></div>
       </div>
     `;
   }).join("");
@@ -786,58 +652,35 @@ function renderAdminSendMailScreen() {
 $("adminSendMailForm").addEventListener("submit", e => {
   e.preventDefault();
   if (!isAdmin) return;
-
   const mode = document.querySelector('input[name="recipientMode"]:checked').value;
-  let targetKeys = [];
+  let targetKeys = mode === "all" ? Object.keys(state.users || {}) : Array.from(document.querySelectorAll('input[name="selectedRecipients"]:checked')).map(cb => cb.value);
 
-  if (mode === "all") {
-    targetKeys = Object.keys(state.users || {});
-    if (targetKeys.length === 0) {
-      return showToast("Hiện chưa có tài khoản người chơi nào để gửi!");
-    }
-  } else {
-    targetKeys = Array.from(document.querySelectorAll('input[name="selectedRecipients"]:checked')).map(cb => cb.value);
-    if (targetKeys.length === 0) {
-      return showToast("Vui lòng tích chọn ít nhất 1 tài khoản nhận thư!");
-    }
-  }
+  if (targetKeys.length === 0) return showToast("Vui lòng chọn người nhận!");
 
   const title = $("mailSubjectInput").value.trim();
   const body = $("mailBodyInput").value.trim();
   const coins = Math.max(0, parseInt($("mailAttachCoins").value) || 0);
   const basicQty = Math.max(0, parseInt($("mailAttachBasic").value) || 0);
   const premQty = Math.max(0, parseInt($("mailAttachPremium").value) || 0);
-
   const packs = [];
   for (let i = 0; i < basicQty; i++) packs.push("basic");
   for (let i = 0; i < premQty; i++) packs.push("premium");
-
-  const selectedCardIds = Array.from(document.querySelectorAll("#mailAttachCardsGrid .gift-card-item.selected"))
-    .map(el => el.dataset.cardId);
+  const selectedCardIds = Array.from(document.querySelectorAll("#mailAttachCardsGrid .gift-card-item.selected")).map(el => el.dataset.cardId);
 
   targetKeys.forEach(k => {
-    const userObj = state.users[k];
-    if (userObj) {
-      sendMailToUser(userObj, {
-        title,
-        body,
-        coins,
-        packs,
-        cards: selectedCardIds
-      });
+    if (state.users[k]) {
+      sendMailToUser(state.users[k], { title, body, coins, packs, cards: selectedCardIds });
     }
   });
 
   saveState();
-
   $("mailSubjectInput").value = "";
   $("mailBodyInput").value = "";
   $("mailAttachCoins").value = "0";
   $("mailAttachBasic").value = "0";
   $("mailAttachPremium").value = "0";
   document.querySelectorAll("#mailAttachCardsGrid .gift-card-item.selected").forEach(el => el.classList.remove("selected"));
-
-  showToast(`Đã gửi thư thành công cho ${targetKeys.length} tài khoản!`);
+  showToast(`Đã gửi thư cho ${targetKeys.length} tài khoản!`);
 });
 
 function renderAdminUserManagement() {
@@ -847,43 +690,33 @@ function renderAdminUserManagement() {
   const container = $("adminUserManagementList");
 
   if (keys.length === 0) {
-    container.innerHTML = `<p class="empty-state">Chưa có người chơi nào đăng ký tài khoản.</p>`;
+    container.innerHTML = `<p class="empty-state">Chưa có người chơi nào.</p>`;
     return;
   }
 
   container.innerHTML = keys.map(key => {
     const u = usersObj[key];
     const isBanned = !!u.banned;
-    const cardCount = u.cards ? u.cards.length : 0;
-    const packCount = u.bag ? u.bag.length : 0;
-
     return `
       <div class="admin-mgmt-card ${isBanned ? 'banned-card' : ''}">
         <div class="mgmt-header">
           <strong>👤 ${u.username}</strong>
-          <span class="mgmt-status-badge ${isBanned ? 'banned' : ''}">
-            ${isBanned ? 'ĐÃ BỊ BAN' : 'HOẠT ĐỘNG'}
-          </span>
+          <span class="mgmt-status-badge ${isBanned ? 'banned' : ''}">${isBanned ? 'BANNED' : 'ACTIVE'}</span>
         </div>
-        <small style="color: var(--muted); font-size: 11px;">📧 ${u.email || 'Không có email'}</small>
-
+        <small style="color: var(--muted); font-size: 11px;">📧 ${u.email || 'N/A'}</small>
         <div class="mgmt-stats">
           <span>🪙 Xu: <b>${u.coins}</b></span>
-          <span>🃏 Thẻ: <b>${cardCount}</b></span>
-          <span>🎒 Pack: <b>${packCount}</b></span>
+          <span>🃏 Thẻ: <b>${u.cards?.length || 0}</b></span>
+          <span>🎒 Pack: <b>${u.bag?.length || 0}</b></span>
         </div>
-
         <div class="mgmt-actions">
           <div class="mgmt-btn-row">
             <button class="mgmt-btn" onclick="adminAdjustCoins('${key}', 10)">+10 Xu</button>
             <button class="mgmt-btn" onclick="adminAdjustCoins('${key}', -10)">-10 Xu</button>
-            <button class="mgmt-btn gift-btn" onclick="openAdminGiftModal('${key}')">🎁 Tặng Quà</button>
+            <button class="mgmt-btn gift-btn" onclick="openAdminGiftModal('${key}')">🎁 Tặng</button>
           </div>
           <div class="mgmt-btn-row">
-            ${isBanned 
-              ? `<button class="mgmt-btn unban-btn" onclick="adminToggleBan('${key}')">Gỡ Ban</button>`
-              : `<button class="mgmt-btn ban-btn" onclick="adminToggleBan('${key}')">Ban TK</button>`
-            }
+            ${isBanned ? `<button class="mgmt-btn unban-btn" onclick="adminToggleBan('${key}')">Gỡ Ban</button>` : `<button class="mgmt-btn ban-btn" onclick="adminToggleBan('${key}')">Ban TK</button>`}
           </div>
         </div>
       </div>
@@ -906,127 +739,96 @@ window.adminToggleBan = function(userKey) {
   u.banned = !u.banned;
   saveState();
   renderAdminUserManagement();
-  showToast(u.banned ? `Đã ban tài khoản ${u.username}!` : `Đã mở khóa cho ${u.username}!`);
+  showToast(u.banned ? `Đã ban tài khoản ${u.username}!` : `Đã gỡ ban ${u.username}!`);
 };
 
 window.openAdminGiftModal = function(userKey) {
   targetGiftUserKey = userKey;
   const u = state.users[userKey];
   if (!u) return;
-
   $("giftModalTitle").textContent = `Tặng quà cho: ${u.username}`;
   $("giftBasicPackQty").value = "0";
   $("giftPremiumPackQty").value = "0";
 
-  const ownedCards = u.cards || [];
-  const unownedKeys = Object.keys(cards).filter(id => !ownedCards.includes(id));
+  const owned = u.cards || [];
+  const unowned = Object.keys(cards).filter(id => !owned.includes(id));
   const container = $("giftCardsContainer");
 
-  if (unownedKeys.length === 0) {
-    container.innerHTML = `<p class="empty-state" style="grid-column: span 2; padding: 20px;">Người chơi đã sở hữu tất cả thẻ bài!</p>`;
-  } else {
-    container.innerHTML = unownedKeys.map(id => {
-      const card = cards[id];
-      return `
-        <div class="gift-card-item" data-card-id="${id}" onclick="toggleGiftCardSelect(this)">
-          <img src="${card.file}" alt="${card.name}">
-          <div class="gift-card-info">
-            <strong>${card.name}</strong>
-            <small>${card.rarity}</small>
-          </div>
-        </div>
-      `;
-    }).join("");
-  }
-
+  container.innerHTML = unowned.length === 0 ? `<p class="empty-state" style="grid-column: span 2;">Đã sở hữu mọi thẻ bài!</p>` : unowned.map(id => {
+    const c = cards[id];
+    return `
+      <div class="gift-card-item" data-card-id="${id}" onclick="toggleGiftCardSelect(this)">
+        <img src="${c.file}" alt="${c.name}">
+        <div class="gift-card-info"><strong>${c.name}</strong><small>${c.rarity}</small></div>
+      </div>
+    `;
+  }).join("");
   $("adminGiftModal").classList.remove("hidden");
 };
 
-window.toggleGiftCardSelect = function(el) {
-  el.classList.toggle("selected");
-};
-
-$("closeAdminGiftModal").addEventListener("click", () => {
-  $("adminGiftModal").classList.add("hidden");
-  targetGiftUserKey = null;
-});
+window.toggleGiftCardSelect = function(el) { el.classList.toggle("selected"); };
+$("closeAdminGiftModal").addEventListener("click", () => { $("adminGiftModal").classList.add("hidden"); targetGiftUserKey = null; });
 
 $("confirmGiftBtn").addEventListener("click", () => {
   if (!targetGiftUserKey) return;
   const u = state.users[targetGiftUserKey];
   if (!u) return;
-
   const basicQty = Math.max(0, parseInt($("giftBasicPackQty").value) || 0);
   const premQty = Math.max(0, parseInt($("giftPremiumPackQty").value) || 0);
-
   const packs = [];
   for (let i = 0; i < basicQty; i++) packs.push("basic");
   for (let i = 0; i < premQty; i++) packs.push("premium");
+  const selectedCardIds = Array.from(document.querySelectorAll("#giftCardsContainer .gift-card-item.selected")).map(el => el.dataset.cardId);
 
-  const selectedCardIds = Array.from(document.querySelectorAll("#giftCardsContainer .gift-card-item.selected"))
-    .map(el => el.dataset.cardId);
+  if (packs.length === 0 && selectedCardIds.length === 0) return showToast("Vui lòng chọn quà để tặng!");
 
-  if (packs.length === 0 && selectedCardIds.length === 0) {
-    return showToast("Vui lòng chọn ít nhất 1 Pack hoặc Thẻ bài để tặng!");
-  }
-
-  sendMailToUser(u, {
-    title: "🎁 Quà tặng đặc biệt từ Admin",
-    body: "Admin đã gửi tặng bạn phần quà đặc biệt. Hãy nhấn Nhận Quà để cất vào Balo và Album nhé!",
-    coins: 0,
-    packs,
-    cards: selectedCardIds
-  });
-
+  sendMailToUser(u, { title: "🎁 Quà tặng từ Admin", body: "Bạn có quà tặng mới trong hòm thư!", coins: 0, packs, cards: selectedCardIds });
   saveState();
   $("adminGiftModal").classList.add("hidden");
   renderAdminUserManagement();
-  showToast(`Đã gửi quà vào hòm thư của ${u.username}!`);
+  showToast(`Đã gửi quà vào hòm thư ${u.username}!`);
   targetGiftUserKey = null;
 });
 
 window.exportDataBackup = function() {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+  const exportPayload = isAdmin ? state : {
+    users: currentUser && state.users[currentUser] ? { [currentUser]: state.users[currentUser] } : {},
+    active: null,
+    adminMailbox: []
+  };
+  const fileName = isAdmin ? "meme_card_arena_backup.json" : `meme_card_arena_${currentUser || "player"}_backup.json`;
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", "meme_card_arena_backup.json");
+  downloadAnchor.setAttribute("download", fileName);
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
   showToast("Đã xuất file backup thành công!");
 };
 
-// HÀM GỢP NHIỀU FILE BACKUP TỰ ĐỘNG
 window.importDataBackup = async function(event) {
   const files = event.target.files;
   if (!files || files.length === 0) return;
-
   try {
     let mergedUsers = { ...(state.users || {}) };
     let mergedMailbox = [ ...(state.adminMailbox || []) ];
-
     for (let file of files) {
       const text = await file.text();
       const importedState = JSON.parse(text);
-      
       if (importedState && importedState.users) {
         mergedUsers = { ...mergedUsers, ...importedState.users };
-        if (Array.isArray(importedState.adminMailbox)) {
-          mergedMailbox = [...mergedMailbox, ...importedState.adminMailbox];
-        }
+        if (Array.isArray(importedState.adminMailbox)) mergedMailbox = [...mergedMailbox, ...importedState.adminMailbox];
       }
     }
-
     state.users = mergedUsers;
     state.adminMailbox = mergedMailbox;
     saveState();
-    
     renderAdminUserManagement();
     showToast(`Đã gộp và nhập thành công ${files.length} file backup!`);
   } catch (err) {
     showToast("Lỗi đọc file JSON!");
   }
-
   event.target.value = "";
 };
 
