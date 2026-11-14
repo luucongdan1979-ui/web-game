@@ -1,6 +1,7 @@
 const $ = id => document.getElementById(id);
 
-const STORAGE_KEY = "memeCardArenaDemo_v7";
+// Cố định STORAGE_KEY để không bị mất tài khoản khi update code, kèm cơ chế tự động gom dữ liệu cũ
+const STORAGE_KEY = "memeCardArena_permanent_database";
 const ADMIN_CODE = "171113";
 
 const cards = {
@@ -47,10 +48,23 @@ let toastTimer;
 
 function loadState() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-      users: {},
-      active: null
-    };
+    // 1. Kiểm tra key chính hiện tại
+    let data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (data && data.users && Object.keys(data.users).length > 0) {
+      return data;
+    }
+
+    // 2. Tự động gom dữ liệu từ các key cũ (v7, v6, v5...) để không bao giờ bị mất tài khoản khi update
+    const oldKeys = ["memeCardArenaDemo_v7", "memeCardArenaDemo_v6", "memeCardArenaDemo_v5", "memeCardArenaDemo_v4"];
+    for (let k of oldKeys) {
+      const oldData = JSON.parse(localStorage.getItem(k));
+      if (oldData && oldData.users && Object.keys(oldData.users).length > 0) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(oldData));
+        return oldData;
+      }
+    }
+
+    return { users: {}, active: null };
   } catch {
     return { users: {}, active: null };
   }
@@ -603,7 +617,7 @@ $("cardDetailModal").addEventListener("click", event => {
 });
 
 // ==========================================
-// ADMIN: CHECK ACCOUNT & QUẢN LÝ NGƯỜI CHƠI
+// ADMIN: CHECK ACCOUNT & BACKUP / SYNC DATA
 // ==========================================
 function renderAdminUserManagement() {
   if (!isAdmin) return;
@@ -674,7 +688,6 @@ window.adminToggleBan = function(userKey) {
   showToast(u.banned ? `Đã ban tài khoản ${u.username}!` : `Đã mở khóa cho ${u.username}!`);
 };
 
-// TẶNG THẺ CHO TÀI KHOẢN CHƯA CÓ
 window.openAdminGiftModal = function(userKey) {
   targetGiftUserKey = userKey;
   const u = state.users[userKey];
@@ -682,8 +695,6 @@ window.openAdminGiftModal = function(userKey) {
 
   $("giftModalTitle").textContent = `Tặng thẻ cho: ${u.username}`;
   const ownedCards = u.cards || [];
-  
-  // Lọc các thẻ người chơi CHƯA CÓ
   const unownedKeys = Object.keys(cards).filter(id => !ownedCards.includes(id));
   const container = $("giftCardsContainer");
 
@@ -741,6 +752,42 @@ $("confirmGiftBtn").addEventListener("click", () => {
   showToast(`Đã tặng thẻ thành công cho ${u.username}!`);
   targetGiftUserKey = null;
 });
+
+// ==========================================
+// XUẤT / NHẬP FILE BACKUP ĐỂ SANG MÁY KHÁC KHÔNG BỊ MẤT TK
+// ==========================================
+window.exportDataBackup = function() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", "meme_card_arena_backup.json");
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  showToast("Đã xuất file backup thành công!");
+};
+
+window.importDataBackup = function(event) {
+  const fileReader = new FileReader();
+  if (event.target.files[0]) {
+    fileReader.readAsText(event.target.files[0], "UTF-8");
+    fileReader.onload = function(e) {
+      try {
+        const importedState = JSON.parse(e.target.result);
+        if (importedState && importedState.users) {
+          state = importedState;
+          saveState();
+          renderAdminUserManagement();
+          showToast("Đã khôi phục dữ liệu thành công!");
+        } else {
+          showToast("File backup không hợp lệ!");
+        }
+      } catch (err) {
+        showToast("Lỗi đọc file JSON!");
+      }
+    };
+  }
+};
 
 // KHÔI PHỤC ĐĂNG NHẬP
 if (state.active && state.users[state.active]) {
