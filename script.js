@@ -1057,6 +1057,13 @@ window.importDataBackup = async function(event) {
   event.target.value = "";
 };
 
+// Thêm sự kiện bấm nút Chiến Đấu (PvE) ở trang chủ
+document.addEventListener("click", event => {
+  if (event.target.closest("#startPveBtn")) {
+    showToast("⚔️ Chế độ Đấu Bot (PvE) đang được phát triển!");
+  }
+});
+
 if (state.active && state.users[state.active]) {
   loginAs(state.active);
 } else {
