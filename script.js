@@ -610,25 +610,33 @@ function openCardDetail(cardId) {
   const isCharacter = card.category === "CHARACTER";
   const catLabel = CATEGORY_LABELS[card.category] || card.category;
 
-  $("detailCategoryBadge").textContent = catLabel;
-  $("detailCardName").textContent = card.name;
-  $("detailRarity").textContent = card.rarity;
+  if ($("detailCategoryBadge")) $("detailCategoryBadge").textContent = catLabel;
+  if ($("detailCardName")) $("detailCardName").textContent = card.name;
+  if ($("detailRarity")) $("detailRarity").textContent = card.rarity;
 
   const img = $("detailCardImage");
-  img.style.display = "block";
-  img.src = card.file;
-  img.alt = card.name;
-  img.onerror = function() { this.style.display = "none"; };
-
-  $("detailStatsBox").classList.toggle("hidden", !isCharacter);
-  $("detailSituationNote").classList.toggle("hidden", isCharacter);
-
-  if (isCharacter) {
-    $("detailAtkValue").textContent = card.atk ?? 0;
-    $("detailDefValue").textContent = card.def ?? 0;
+  if (img) {
+    img.style.display = "block";
+    img.src = card.file;
+    img.alt = card.name;
+    img.onerror = function() { this.style.display = "none"; };
   }
 
-  $("cardDetailModal").classList.remove("hidden");
+  if ($("detailStatsBox")) {
+    $("detailStatsBox").classList.toggle("hidden", !isCharacter);
+  }
+  if ($("detailSituationNote")) {
+    $("detailSituationNote").classList.toggle("hidden", isCharacter);
+  }
+
+  if (isCharacter) {
+    if ($("detailAtkValue")) $("detailAtkValue").textContent = card.atk ?? 0;
+    if ($("detailDefValue")) $("detailDefValue").textContent = card.def ?? 0;
+  }
+
+  if ($("cardDetailModal")) {
+    $("cardDetailModal").classList.remove("hidden");
+  }
 }
 
 $("closeCardDetail").addEventListener("click", () => {
@@ -736,7 +744,7 @@ $("claimAllMailBtn").addEventListener("click", () => {
   if (!profile || !profile.mailbox) return;
 
   let claimedCount = 0;
-  profile.mailbox.forEach((mail, idx) => {
+  profile.mailbox.forEach((mail) => {
     if (!mail.claimed) {
       if (!isAdmin && mail.coins > 0) profile.coins += mail.coins;
       if (Array.isArray(mail.packs)) profile.bag.push(...mail.packs);
