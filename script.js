@@ -289,13 +289,11 @@ function renderProfile() {
 
   $("coinCount").textContent = isAdmin ? "∞" : profile.coins;
 
-  // Badge số lượng Pack trong Balo
   const bagCount = profile.bag ? profile.bag.length : 0;
   const badge = $("navPackBadge");
   badge.textContent = bagCount;
   badge.classList.toggle("hidden", bagCount === 0);
 
-  // Badge số lượng Thư chưa nhận quà
   const unclaimedMailCount = (profile.mailbox || []).filter(m => !m.claimed).length;
   const mailBadge = $("navMailBadge");
   mailBadge.textContent = unclaimedMailCount;
@@ -325,7 +323,6 @@ function getRandomCardByRarity(rareChance) {
   return matchingKeys[Math.floor(Math.random() * matchingKeys.length)];
 }
 
-// RƯƠNG TÂN THỦ
 $("openStarterBtn").addEventListener("click", () => {
   const profile = getProfile();
   if (!isAdmin && !profile?.starterOpened) {
@@ -414,7 +411,6 @@ $("starterFinish").addEventListener("click", () => {
   showToast("Đã thêm thẻ bài vào Album!");
 });
 
-// SHOP
 document.querySelectorAll(".buy-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     const packType = btn.dataset.pack;
@@ -437,7 +433,6 @@ document.querySelectorAll(".buy-btn").forEach(btn => {
   });
 });
 
-// BALO
 function renderBackpack() {
   const profile = getProfile();
   const bag = profile?.bag || [];
@@ -552,7 +547,6 @@ function closePackZoom() {
 $("closePackOverlay").addEventListener("click", closePackZoom);
 $("zoomFinishBtn").addEventListener("click", closePackZoom);
 
-// ALBUM
 document.querySelectorAll(".album-tab").forEach(tab => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".album-tab").forEach(t => t.classList.remove("active"));
@@ -633,9 +627,6 @@ $("cardDetailModal").addEventListener("click", event => {
   }
 });
 
-// ==========================================
-// HÒM THƯ (MAILBOX) CHO TẤT CẢ TÀI KHOẢN
-// ==========================================
 function sendMailToUser(userObj, mailData) {
   if (!Array.isArray(userObj.mailbox)) userObj.mailbox = [];
   const hasRewards = (mailData.coins > 0) || (mailData.packs && mailData.packs.length > 0) || (mailData.cards && mailData.cards.length > 0);
@@ -753,9 +744,6 @@ $("claimAllMailBtn").addEventListener("click", () => {
   }
 });
 
-// ==========================================
-// ADMIN: MÀN HÌNH GỬI THƯ (ADMIN SEND MAIL)
-// ==========================================
 document.querySelectorAll('input[name="recipientMode"]').forEach(radio => {
   radio.addEventListener("change", () => {
     const isSelectedMode = radio.value === "selected" && radio.checked;
@@ -766,7 +754,6 @@ document.querySelectorAll('input[name="recipientMode"]').forEach(radio => {
 function renderAdminSendMailScreen() {
   if (!isAdmin) return;
 
-  // Render danh sách tài khoản để chọn gửi
   const usersObj = state.users || {};
   const keys = Object.keys(usersObj);
   const checklistBox = $("recipientChecklistBox");
@@ -782,7 +769,6 @@ function renderAdminSendMailScreen() {
     `).join("");
   }
 
-  // Render toàn bộ thẻ bài để Admin đính kèm nếu muốn
   $("mailAttachCardsGrid").innerHTML = Object.keys(cards).map(id => {
     const c = cards[id];
     return `
@@ -844,7 +830,6 @@ $("adminSendMailForm").addEventListener("submit", e => {
 
   saveState();
 
-  // Reset form
   $("mailSubjectInput").value = "";
   $("mailBodyInput").value = "";
   $("mailAttachCoins").value = "0";
@@ -855,9 +840,6 @@ $("adminSendMailForm").addEventListener("submit", e => {
   showToast(`Đã gửi thư thành công cho ${targetKeys.length} tài khoản!`);
 });
 
-// ==========================================
-// ADMIN: CHECK ACCOUNT & TẶNG PACK/THẺ VÀO THƯ
-// ==========================================
 function renderAdminUserManagement() {
   if (!isAdmin) return;
   const usersObj = state.users || {};
@@ -988,7 +970,6 @@ $("confirmGiftBtn").addEventListener("click", () => {
     return showToast("Vui lòng chọn ít nhất 1 Pack hoặc Thẻ bài để tặng!");
   }
 
-  // Gửi toàn bộ quà tặng vào mục Thư của người chơi
   sendMailToUser(u, {
     title: "🎁 Quà tặng đặc biệt từ Admin",
     body: "Admin đã gửi tặng bạn phần quà đặc biệt. Hãy nhấn Nhận Quà để cất vào Balo và Album nhé!",
@@ -1004,9 +985,6 @@ $("confirmGiftBtn").addEventListener("click", () => {
   targetGiftUserKey = null;
 });
 
-// ==========================================
-// XUẤT / NHẬP FILE BACKUP
-// ==========================================
 window.exportDataBackup = function() {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
   const downloadAnchor = document.createElement('a');
@@ -1018,29 +996,40 @@ window.exportDataBackup = function() {
   showToast("Đã xuất file backup thành công!");
 };
 
-window.importDataBackup = function(event) {
-  const fileReader = new FileReader();
-  if (event.target.files[0]) {
-    fileReader.readAsText(event.target.files[0], "UTF-8");
-    fileReader.onload = function(e) {
-      try {
-        const importedState = JSON.parse(e.target.result);
-        if (importedState && importedState.users) {
-          state = importedState;
-          saveState();
-          renderAdminUserManagement();
-          showToast("Đã khôi phục dữ liệu thành công!");
-        } else {
-          showToast("File backup không hợp lệ!");
+// HÀM GỢP NHIỀU FILE BACKUP TỰ ĐỘNG
+window.importDataBackup = async function(event) {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
+
+  try {
+    let mergedUsers = { ...(state.users || {}) };
+    let mergedMailbox = [ ...(state.adminMailbox || []) ];
+
+    for (let file of files) {
+      const text = await file.text();
+      const importedState = JSON.parse(text);
+      
+      if (importedState && importedState.users) {
+        mergedUsers = { ...mergedUsers, ...importedState.users };
+        if (Array.isArray(importedState.adminMailbox)) {
+          mergedMailbox = [...mergedMailbox, ...importedState.adminMailbox];
         }
-      } catch (err) {
-        showToast("Lỗi đọc file JSON!");
       }
-    };
+    }
+
+    state.users = mergedUsers;
+    state.adminMailbox = mergedMailbox;
+    saveState();
+    
+    renderAdminUserManagement();
+    showToast(`Đã gộp và nhập thành công ${files.length} file backup!`);
+  } catch (err) {
+    showToast("Lỗi đọc file JSON!");
   }
+
+  event.target.value = "";
 };
 
-// KHÔI PHỤC ĐĂNG NHẬP
 if (state.active && state.users[state.active]) {
   loginAs(state.active);
 } else {
