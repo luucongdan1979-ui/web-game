@@ -1,6 +1,5 @@
 const $ = id => document.getElementById(id);
 
-// Cố định STORAGE_KEY để không bị mất tài khoản khi update code, kèm cơ chế tự động gom dữ liệu cũ
 const STORAGE_KEY = "memeCardArena_permanent_database";
 const ADMIN_CODE = "171113";
 
@@ -48,25 +47,25 @@ let toastTimer;
 
 function loadState() {
   try {
-    // 1. Kiểm tra key chính hiện tại
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (data && data.users && Object.keys(data.users).length > 0) {
+    if (data && data.users) {
+      if (!Array.isArray(data.adminMailbox)) data.adminMailbox = [];
       return data;
     }
 
-    // 2. Tự động gom dữ liệu từ các key cũ (v7, v6, v5...) để không bao giờ bị mất tài khoản khi update
     const oldKeys = ["memeCardArenaDemo_v7", "memeCardArenaDemo_v6", "memeCardArenaDemo_v5", "memeCardArenaDemo_v4"];
     for (let k of oldKeys) {
       const oldData = JSON.parse(localStorage.getItem(k));
-      if (oldData && oldData.users && Object.keys(oldData.users).length > 0) {
+      if (oldData && oldData.users) {
+        if (!Array.isArray(oldData.adminMailbox)) oldData.adminMailbox = [];
         localStorage.setItem(STORAGE_KEY, JSON.stringify(oldData));
         return oldData;
       }
     }
 
-    return { users: {}, active: null };
+    return { users: {}, active: null, adminMailbox: [] };
   } catch {
-    return { users: {}, active: null };
+    return { users: {}, active: null, adminMailbox: [] };
   }
 }
 
@@ -77,15 +76,20 @@ function saveState() {
 function getProfile() {
   if (isAdmin) {
     if (!state.adminBag) state.adminBag = [];
+    if (!Array.isArray(state.adminMailbox)) state.adminMailbox = [];
     return {
       coins: Infinity,
       cards: Object.keys(cards),
       bag: state.adminBag,
+      mailbox: state.adminMailbox,
       starterOpened: true
     };
   }
   const p = currentUser ? state.users[currentUser] : null;
-  if (p && !Array.isArray(p.bag)) p.bag = [];
+  if (p) {
+    if (!Array.isArray(p.bag)) p.bag = [];
+    if (!Array.isArray(p.mailbox)) p.mailbox = [];
+  }
   return p;
 }
 
@@ -131,6 +135,7 @@ function createProfile(username, email, password) {
     coins: 20,
     cards: [],
     bag: [],
+    mailbox: [],
     starterOpened: false,
     banned: false
   };
@@ -211,6 +216,7 @@ function enterGame(displayName) {
 
   $("adminTag").classList.toggle("hidden", !isAdmin);
   $("adminCheckNavBtn").classList.toggle("hidden", !isAdmin);
+  $("adminSendMailNavBtn").classList.toggle("hidden", !isAdmin);
 
   renderProfile();
   showScreen("gameScreen");
@@ -223,7 +229,7 @@ function enterGame(displayName) {
 }
 
 function showScreen(screenId) {
-  ["gameScreen", "shopScreen", "backpackScreen", "albumScreen", "adminCheckScreen"].forEach(id => {
+  ["gameScreen", "shopScreen", "backpackScreen", "albumScreen", "mailScreen", "adminSendMailScreen", "adminCheckScreen"].forEach(id => {
     $(id).classList.toggle("hidden", id !== screenId);
   });
 
@@ -233,6 +239,8 @@ function showScreen(screenId) {
 
   if (screenId === "backpackScreen") renderBackpack();
   if (screenId === "albumScreen") renderAlbum();
+  if (screenId === "mailScreen") renderMailbox();
+  if (screenId === "adminSendMailScreen") renderAdminSendMailScreen();
   if (screenId === "adminCheckScreen") renderAdminUserManagement();
 }
 
@@ -263,6 +271,8 @@ $("logoutBtn").addEventListener("click", () => {
   $("shopScreen").classList.add("hidden");
   $("backpackScreen").classList.add("hidden");
   $("albumScreen").classList.add("hidden");
+  $("mailScreen").classList.add("hidden");
+  $("adminSendMailScreen").classList.add("hidden");
   $("adminCheckScreen").classList.add("hidden");
   $("bottomNav").classList.add("hidden");
 
@@ -279,10 +289,17 @@ function renderProfile() {
 
   $("coinCount").textContent = isAdmin ? "∞" : profile.coins;
 
+  // Badge số lượng Pack trong Balo
   const bagCount = profile.bag ? profile.bag.length : 0;
   const badge = $("navPackBadge");
   badge.textContent = bagCount;
   badge.classList.toggle("hidden", bagCount === 0);
+
+  // Badge số lượng Thư chưa nhận quà
+  const unclaimedMailCount = (profile.mailbox || []).filter(m => !m.claimed).length;
+  const mailBadge = $("navMailBadge");
+  mailBadge.textContent = unclaimedMailCount;
+  mailBadge.classList.toggle("hidden", unclaimedMailCount === 0);
 
   $("starterChest").classList.toggle("opened", !!profile.starterOpened);
   $("openStarterBtn").textContent = profile.starterOpened ? "ĐÃ MỞ RƯƠNG" : "MỞ RƯƠNG NGAY ✦";
@@ -617,7 +634,229 @@ $("cardDetailModal").addEventListener("click", event => {
 });
 
 // ==========================================
-// ADMIN: CHECK ACCOUNT & BACKUP / SYNC DATA
+// HÒM THƯ (MAILBOX) CHO TẤT CẢ TÀI KHOẢN
+// ==========================================
+function sendMailToUser(userObj, mailData) {
+  if (!Array.isArray(userObj.mailbox)) userObj.mailbox = [];
+  const hasRewards = (mailData.coins > 0) || (mailData.packs && mailData.packs.length > 0) || (mailData.cards && mailData.cards.length > 0);
+  userObj.mailbox.unshift({
+    id: "mail_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+    title: mailData.title || "Thư từ Hệ Thống",
+    body: mailData.body || "",
+    date: new Date().toLocaleString("vi-VN"),
+    coins: mailData.coins || 0,
+    packs: mailData.packs || [],
+    cards: mailData.cards || [],
+    claimed: !hasRewards
+  });
+}
+
+function renderMailbox() {
+  const profile = getProfile();
+  const mailbox = profile?.mailbox || [];
+  const listEl = $("mailList");
+
+  $("emptyMail").classList.toggle("hidden", mailbox.length > 0);
+
+  const hasUnclaimed = mailbox.some(m => !m.claimed);
+  $("claimAllMailBtn").classList.toggle("hidden", !hasUnclaimed);
+
+  listEl.innerHTML = mailbox.map((mail, idx) => {
+    const basicCount = (mail.packs || []).filter(p => p === "basic").length;
+    const premCount = (mail.packs || []).filter(p => p === "premium").length;
+    const cardNames = (mail.cards || []).map(cid => cards[cid]?.name || cid);
+
+    let rewardsHtml = "";
+    if (mail.coins > 0) rewardsHtml += `<span class="reward-chip">🪙 +${mail.coins} Xu</span>`;
+    if (basicCount > 0) rewardsHtml += `<span class="reward-chip">📦 ${basicCount}x Basic Pack</span>`;
+    if (premCount > 0) rewardsHtml += `<span class="reward-chip">👑 ${premCount}x Premium Pack</span>`;
+    cardNames.forEach(name => {
+      rewardsHtml += `<span class="reward-chip">🃏 Thẻ: ${name}</span>`;
+    });
+
+    const hasAnyReward = rewardsHtml !== "";
+
+    return `
+      <div class="mail-card ${!mail.claimed ? 'unclaimed' : ''}">
+        <div class="mail-card-top">
+          <div>
+            <h3>${!mail.claimed ? '📩' : '📨'} ${mail.title}</h3>
+            <span class="mail-date">${mail.date}</span>
+          </div>
+          ${!mail.claimed ? `<span class="mgmt-status-badge">CÓ QUÀ MỚI</span>` : ''}
+        </div>
+        <p class="mail-body-text">${mail.body}</p>
+        ${hasAnyReward ? `<div class="mail-attachments">${rewardsHtml}</div>` : ''}
+        <div class="mail-card-footer">
+          ${!mail.claimed 
+            ? `<button class="claim-mail-btn" onclick="claimSingleMail(${idx})">NHẬN QUÀ ✦</button>`
+            : (hasAnyReward ? `<span class="claimed-tag">✓ Đã nhận quà</span>` : `<span class="claimed-tag">Đã đọc</span>`)
+          }
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+window.claimSingleMail = function(index) {
+  const profile = getProfile();
+  const mail = profile?.mailbox?.[index];
+  if (!mail || mail.claimed) return;
+
+  if (!isAdmin && mail.coins > 0) {
+    profile.coins += mail.coins;
+  }
+
+  if (Array.isArray(mail.packs) && mail.packs.length > 0) {
+    profile.bag.push(...mail.packs);
+  }
+
+  if (Array.isArray(mail.cards) && mail.cards.length > 0 && !isAdmin) {
+    mail.cards.forEach(cid => {
+      if (!profile.cards.includes(cid)) {
+        profile.cards.push(cid);
+      }
+    });
+  }
+
+  mail.claimed = true;
+  saveState();
+  renderProfile();
+  renderMailbox();
+  showToast("Đã nhận quà và lưu vào Balo / Album!");
+};
+
+$("claimAllMailBtn").addEventListener("click", () => {
+  const profile = getProfile();
+  if (!profile || !profile.mailbox) return;
+
+  let claimedCount = 0;
+  profile.mailbox.forEach((mail, idx) => {
+    if (!mail.claimed) {
+      if (!isAdmin && mail.coins > 0) profile.coins += mail.coins;
+      if (Array.isArray(mail.packs)) profile.bag.push(...mail.packs);
+      if (Array.isArray(mail.cards) && !isAdmin) {
+        mail.cards.forEach(cid => {
+          if (!profile.cards.includes(cid)) profile.cards.push(cid);
+        });
+      }
+      mail.claimed = true;
+      claimedCount++;
+    }
+  });
+
+  if (claimedCount > 0) {
+    saveState();
+    renderProfile();
+    renderMailbox();
+    showToast(`Đã nhận toàn bộ quà từ ${claimedCount} thư!`);
+  }
+});
+
+// ==========================================
+// ADMIN: MÀN HÌNH GỬI THƯ (ADMIN SEND MAIL)
+// ==========================================
+document.querySelectorAll('input[name="recipientMode"]').forEach(radio => {
+  radio.addEventListener("change", () => {
+    const isSelectedMode = radio.value === "selected" && radio.checked;
+    $("recipientChecklistBox").classList.toggle("hidden", !isSelectedMode);
+  });
+});
+
+function renderAdminSendMailScreen() {
+  if (!isAdmin) return;
+
+  // Render danh sách tài khoản để chọn gửi
+  const usersObj = state.users || {};
+  const keys = Object.keys(usersObj);
+  const checklistBox = $("recipientChecklistBox");
+
+  if (keys.length === 0) {
+    checklistBox.innerHTML = `<small style="color: var(--muted);">Chưa có tài khoản người chơi nào.</small>`;
+  } else {
+    checklistBox.innerHTML = keys.map(k => `
+      <label class="recipient-check-item">
+        <input type="checkbox" name="selectedRecipients" value="${k}">
+        <span>👤 ${usersObj[k].username}</span>
+      </label>
+    `).join("");
+  }
+
+  // Render toàn bộ thẻ bài để Admin đính kèm nếu muốn
+  $("mailAttachCardsGrid").innerHTML = Object.keys(cards).map(id => {
+    const c = cards[id];
+    return `
+      <div class="gift-card-item" data-card-id="${id}" onclick="toggleGiftCardSelect(this)">
+        <img src="${c.file}" alt="${c.name}">
+        <div class="gift-card-info">
+          <strong>${c.name}</strong>
+          <small>${c.rarity}</small>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+$("adminSendMailForm").addEventListener("submit", e => {
+  e.preventDefault();
+  if (!isAdmin) return;
+
+  const mode = document.querySelector('input[name="recipientMode"]:checked').value;
+  let targetKeys = [];
+
+  if (mode === "all") {
+    targetKeys = Object.keys(state.users || {});
+    if (targetKeys.length === 0) {
+      return showToast("Hiện chưa có tài khoản người chơi nào để gửi!");
+    }
+  } else {
+    targetKeys = Array.from(document.querySelectorAll('input[name="selectedRecipients"]:checked')).map(cb => cb.value);
+    if (targetKeys.length === 0) {
+      return showToast("Vui lòng tích chọn ít nhất 1 tài khoản nhận thư!");
+    }
+  }
+
+  const title = $("mailSubjectInput").value.trim();
+  const body = $("mailBodyInput").value.trim();
+  const coins = Math.max(0, parseInt($("mailAttachCoins").value) || 0);
+  const basicQty = Math.max(0, parseInt($("mailAttachBasic").value) || 0);
+  const premQty = Math.max(0, parseInt($("mailAttachPremium").value) || 0);
+
+  const packs = [];
+  for (let i = 0; i < basicQty; i++) packs.push("basic");
+  for (let i = 0; i < premQty; i++) packs.push("premium");
+
+  const selectedCardIds = Array.from(document.querySelectorAll("#mailAttachCardsGrid .gift-card-item.selected"))
+    .map(el => el.dataset.cardId);
+
+  targetKeys.forEach(k => {
+    const userObj = state.users[k];
+    if (userObj) {
+      sendMailToUser(userObj, {
+        title,
+        body,
+        coins,
+        packs,
+        cards: selectedCardIds
+      });
+    }
+  });
+
+  saveState();
+
+  // Reset form
+  $("mailSubjectInput").value = "";
+  $("mailBodyInput").value = "";
+  $("mailAttachCoins").value = "0";
+  $("mailAttachBasic").value = "0";
+  $("mailAttachPremium").value = "0";
+  document.querySelectorAll("#mailAttachCardsGrid .gift-card-item.selected").forEach(el => el.classList.remove("selected"));
+
+  showToast(`Đã gửi thư thành công cho ${targetKeys.length} tài khoản!`);
+});
+
+// ==========================================
+// ADMIN: CHECK ACCOUNT & TẶNG PACK/THẺ VÀO THƯ
 // ==========================================
 function renderAdminUserManagement() {
   if (!isAdmin) return;
@@ -656,7 +895,7 @@ function renderAdminUserManagement() {
           <div class="mgmt-btn-row">
             <button class="mgmt-btn" onclick="adminAdjustCoins('${key}', 10)">+10 Xu</button>
             <button class="mgmt-btn" onclick="adminAdjustCoins('${key}', -10)">-10 Xu</button>
-            <button class="mgmt-btn gift-btn" onclick="openAdminGiftModal('${key}')">🎁 Tặng thẻ</button>
+            <button class="mgmt-btn gift-btn" onclick="openAdminGiftModal('${key}')">🎁 Tặng Quà</button>
           </div>
           <div class="mgmt-btn-row">
             ${isBanned 
@@ -693,13 +932,16 @@ window.openAdminGiftModal = function(userKey) {
   const u = state.users[userKey];
   if (!u) return;
 
-  $("giftModalTitle").textContent = `Tặng thẻ cho: ${u.username}`;
+  $("giftModalTitle").textContent = `Tặng quà cho: ${u.username}`;
+  $("giftBasicPackQty").value = "0";
+  $("giftPremiumPackQty").value = "0";
+
   const ownedCards = u.cards || [];
   const unownedKeys = Object.keys(cards).filter(id => !ownedCards.includes(id));
   const container = $("giftCardsContainer");
 
   if (unownedKeys.length === 0) {
-    container.innerHTML = `<p class="empty-state" style="grid-column: span 2;">Người chơi này đã sở hữu toàn bộ thẻ bài trong game!</p>`;
+    container.innerHTML = `<p class="empty-state" style="grid-column: span 2; padding: 20px;">Người chơi đã sở hữu tất cả thẻ bài!</p>`;
   } else {
     container.innerHTML = unownedKeys.map(id => {
       const card = cards[id];
@@ -732,29 +974,38 @@ $("confirmGiftBtn").addEventListener("click", () => {
   const u = state.users[targetGiftUserKey];
   if (!u) return;
 
-  const selectedEls = document.querySelectorAll(".gift-card-item.selected");
-  if (selectedEls.length === 0) {
-    return showToast("Vui lòng chọn ít nhất một thẻ bài để tặng!");
+  const basicQty = Math.max(0, parseInt($("giftBasicPackQty").value) || 0);
+  const premQty = Math.max(0, parseInt($("giftPremiumPackQty").value) || 0);
+
+  const packs = [];
+  for (let i = 0; i < basicQty; i++) packs.push("basic");
+  for (let i = 0; i < premQty; i++) packs.push("premium");
+
+  const selectedCardIds = Array.from(document.querySelectorAll("#giftCardsContainer .gift-card-item.selected"))
+    .map(el => el.dataset.cardId);
+
+  if (packs.length === 0 && selectedCardIds.length === 0) {
+    return showToast("Vui lòng chọn ít nhất 1 Pack hoặc Thẻ bài để tặng!");
   }
 
-  if (!Array.isArray(u.cards)) u.cards = [];
-
-  selectedEls.forEach(el => {
-    const cardId = el.dataset.cardId;
-    if (!u.cards.includes(cardId)) {
-      u.cards.push(cardId);
-    }
+  // Gửi toàn bộ quà tặng vào mục Thư của người chơi
+  sendMailToUser(u, {
+    title: "🎁 Quà tặng đặc biệt từ Admin",
+    body: "Admin đã gửi tặng bạn phần quà đặc biệt. Hãy nhấn Nhận Quà để cất vào Balo và Album nhé!",
+    coins: 0,
+    packs,
+    cards: selectedCardIds
   });
 
   saveState();
   $("adminGiftModal").classList.add("hidden");
   renderAdminUserManagement();
-  showToast(`Đã tặng thẻ thành công cho ${u.username}!`);
+  showToast(`Đã gửi quà vào hòm thư của ${u.username}!`);
   targetGiftUserKey = null;
 });
 
 // ==========================================
-// XUẤT / NHẬP FILE BACKUP ĐỂ SANG MÁY KHÁC KHÔNG BỊ MẤT TK
+// XUẤT / NHẬP FILE BACKUP
 // ==========================================
 window.exportDataBackup = function() {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
