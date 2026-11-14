@@ -1,6 +1,22 @@
 const $ = id => document.getElementById(id);
 
-const STORAGE_KEY = "memeCardArena_permanent_database";
+// ==========================================
+// CẤU HÌNH FIREBASE (Dán cấu hình từ dự án Firebase của bạn vào đây)
+// ==========================================
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  databaseURL: "YOUR_DATABASE_URL",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+// Khởi tạo Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 const ADMIN_CODE = "171113";
 
 const cards = {
@@ -34,7 +50,7 @@ const CATEGORY_LABELS = {
   SITUATION: "TÌNH HUỐNG"
 };
 
-let state = loadState();
+let state = { users: {}, active: null, adminMailbox: [] };
 let currentUser = null;
 let isAdmin = false;
 let pendingCard = null;
@@ -45,32 +61,28 @@ let currentAlbumFilter = "ALL";
 let targetGiftUserKey = null;
 let toastTimer;
 
-function loadState() {
-  try {
-    let data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (data && data.users) {
-      if (!Array.isArray(data.adminMailbox)) data.adminMailbox = [];
-      return data;
-    }
+// LẮNG NGHE DỮ LIỆU REALTIME TỪ FIREBASE CLOUD
+db.ref("gameData").on("value", snapshot => {
+  const data = snapshot.val();
+  if (data) {
+    state = data;
+    if (!state.users) state.users = {};
+    if (!Array.isArray(state.adminMailbox)) state.adminMailbox = [];
 
-    const oldKeys = ["memeCardArenaDemo_v7", "memeCardArenaDemo_v6", "memeCardArenaDemo_v5", "memeCardArenaDemo_v4"];
-    for (let k of oldKeys) {
-      const oldData = JSON.parse(localStorage.getItem(k));
-      if (oldData && oldData.users) {
-        if (!Array.isArray(oldData.adminMailbox)) oldData.adminMailbox = [];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(oldData));
-        return oldData;
-      }
+    if (currentUser && state.users[currentUser]) {
+      renderProfile();
+      if ($("backpackScreen") && !$("backpackScreen").classList.contains("hidden")) renderBackpack();
+      if ($("albumScreen") && !$("albumScreen").classList.contains("hidden")) renderAlbum();
+      if ($("mailScreen") && !$("mailScreen").classList.contains("hidden")) renderMailbox();
     }
-
-    return { users: {}, active: null, adminMailbox: [] };
-  } catch {
-    return { users: {}, active: null, adminMailbox: [] };
+    if (isAdmin && $("adminCheckScreen") && !$("adminCheckScreen").classList.contains("hidden")) {
+      renderAdminUserManagement();
+    }
   }
-}
+});
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  db.ref("gameData").set(state);
 }
 
 function getProfile() {
@@ -111,11 +123,9 @@ function switchPanel(panelId) {
   document.querySelectorAll(".auth-form").forEach(form => {
     form.classList.toggle("hidden", form.id !== panelId);
   });
-
   document.querySelectorAll(".tab").forEach(tab => {
     tab.classList.toggle("active", tab.dataset.panel === panelId);
   });
-
   showAuthMessage("");
 }
 
@@ -984,51 +994,6 @@ $("confirmGiftBtn").addEventListener("click", () => {
   showToast(`Đã gửi quà vào hòm thư của ${u.username}!`);
   targetGiftUserKey = null;
 });
-
-window.exportDataBackup = function() {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
-  const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", "meme_card_arena_backup.json");
-  document.body.appendChild(downloadAnchor);
-  downloadAnchor.click();
-  downloadAnchor.remove();
-  showToast("Đã xuất file backup thành công!");
-};
-
-// HÀM GỢP NHIỀU FILE BACKUP TỰ ĐỘNG
-window.importDataBackup = async function(event) {
-  const files = event.target.files;
-  if (!files || files.length === 0) return;
-
-  try {
-    let mergedUsers = { ...(state.users || {}) };
-    let mergedMailbox = [ ...(state.adminMailbox || []) ];
-
-    for (let file of files) {
-      const text = await file.text();
-      const importedState = JSON.parse(text);
-      
-      if (importedState && importedState.users) {
-        mergedUsers = { ...mergedUsers, ...importedState.users };
-        if (Array.isArray(importedState.adminMailbox)) {
-          mergedMailbox = [...mergedMailbox, ...importedState.adminMailbox];
-        }
-      }
-    }
-
-    state.users = mergedUsers;
-    state.adminMailbox = mergedMailbox;
-    saveState();
-    
-    renderAdminUserManagement();
-    showToast(`Đã gộp và nhập thành công ${files.length} file backup!`);
-  } catch (err) {
-    showToast("Lỗi đọc file JSON!");
-  }
-
-  event.target.value = "";
-};
 
 if (state.active && state.users[state.active]) {
   loginAs(state.active);
