@@ -113,6 +113,8 @@ function getProfile() {
     if (!state.adminBag) state.adminBag = [];
     if (!Array.isArray(state.adminMailbox)) state.adminMailbox = [];
     return {
+      username: "Admin",
+      avatar: "avt1.png",
       coins: Infinity,
       cards: Object.keys(cards),
       bag: state.adminBag,
@@ -122,6 +124,7 @@ function getProfile() {
   }
   const p = currentUser ? state.users[currentUser] : null;
   if (p) {
+    if (!p.avatar) p.avatar = "avt1.png";
     if (!Array.isArray(p.bag)) p.bag = [];
     if (!Array.isArray(p.mailbox)) p.mailbox = [];
   }
@@ -167,6 +170,7 @@ function createProfile(username, email, password) {
     username,
     email,
     password,
+    avatar: "avt1.png", // Gán sẵn avatar mặc định là avt1.png khi tạo tài khoản
     coins: 20,
     cards: [],
     bag: [],
@@ -263,9 +267,16 @@ function enterGame(displayName) {
   $("bottomNav").classList.remove("hidden");
   document.body.classList.add("logged-in");
 
-  $("welcomeUser").textContent = isAdmin
-    ? "Xin chào, Admin!"
-    : `Xin chào, ${displayName}!`;
+  const profile = getProfile();
+  
+  // Hiển thị khung Avatar và Tên người dùng trên topbar
+  if ($("userProfileBadge")) {
+    $("userProfileBadge").classList.remove("hidden");
+  }
+  if ($("userAvatarImg")) {
+    $("userAvatarImg").src = profile?.avatar || "avt1.png";
+  }
+  $("welcomeUser").textContent = isAdmin ? "Admin" : displayName;
 
   $("adminTag").classList.toggle("hidden", !isAdmin);
   $("adminCheckNavBtn").classList.toggle("hidden", !isAdmin);
@@ -275,7 +286,7 @@ function enterGame(displayName) {
   renderProfile();
   showScreen("gameScreen");
 
-  if (isAdmin || getProfile().starterOpened) {
+  if (isAdmin || profile?.starterOpened) {
     hideOldStarterChest();
   } else {
     showStarterOverlay();
@@ -317,6 +328,7 @@ $("logoutBtn").addEventListener("click", () => {
   $("adminGiftModal").classList.add("hidden");
   if ($("trainingGuideModal")) $("trainingGuideModal").classList.add("hidden");
   if ($("userExportBtn")) $("userExportBtn").classList.add("hidden");
+  if ($("userProfileBadge")) $("userProfileBadge").classList.add("hidden");
 
   $("arenaCopyChest").classList.remove("hidden");
   $("chibiClownHome").classList.add("hidden");
