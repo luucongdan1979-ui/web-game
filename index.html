@@ -17,7 +17,13 @@
 
     <div class="top-actions">
       <button id="userExportBtn" class="primary-btn hidden" onclick="exportDataBackup()" style="padding: 8px 14px; font-size: 11px;">📥 Xuất Backup</button>
-      <span id="welcomeUser" class="welcome-user">Chào mừng đến đấu trường!</span>
+      
+      <!-- KHUNG HIỂN THỊ AVATAR VÀ TÊN NGƯỜI CHƠI -->
+      <div id="userProfileBadge" class="user-profile-badge hidden" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+        <img id="userAvatarImg" src="avt1.png" alt="Avatar" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 2px solid #8ef0c1;" onerror="this.src='avt1.png'">
+        <span id="welcomeUser" class="welcome-user" style="font-size: 13px; font-weight: 600;">Chào mừng!</span>
+      </div>
+
       <span class="coin-pill">✦ <b id="coinCount">0</b></span>
     </div>
   </header>
@@ -105,7 +111,6 @@
           <p class="form-note">Chỉ sử dụng mã quản trị được cấp.</p>
         </form>
 
-        <!-- Dòng thông báo trạng thái đăng nhập/đăng ký hiển thị ở đây -->
         <p id="authMessage" class="message"></p>
       </div>
     </section>
@@ -566,7 +571,7 @@
           </div>
         </div>
         <div class="guide-step-card">
-          <span class="guide-step-badge-badge">2</span>
+          <span class="guide-step-badge">2</span>
           <div>
             <strong>Thẻ Kỹ Năng (Skill)</strong>
             <p>Kích hoạt hiệu ứng đặc biệt (như <i>Múa Quạt</i>, <i>Chu Cấp 5 Củ</i>) để cường hóa nhân vật hoặc gây bất lợi cho đối thủ.</p>
@@ -590,7 +595,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <!-- Thẻ gọi script dạng module để tương thích với script.js -->
   <script type="module" src="script.js"></script>
 </body>
 </html>
