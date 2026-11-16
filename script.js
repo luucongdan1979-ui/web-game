@@ -176,7 +176,6 @@ function createProfile(username, email, password) {
   };
 }
 
-// ĐĂNG KÝ KẾT HỢP FIREBASE AUTH & GỬI GMAIL XÁC THỰC
 $("registerPanel").addEventListener("submit", async event => {
   event.preventDefault();
 
@@ -201,12 +200,12 @@ $("registerPanel").addEventListener("submit", async event => {
     const userCredential = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
     await window.sendEmailVerification(userCredential.user);
 
-    showAuthMessage("Đăng ký thành công! Hãy kiểm tra Gmail để bấm link xác thực.", true);
+    showAuthMessage("Link xác thực đã gửi về email, hãy vào email để xác thực!", true);
 
     state.users[key] = createProfile(username, email, password);
     saveState();
 
-    setTimeout(() => switchPanel("loginPanel"), 3500);
+    setTimeout(() => switchPanel("loginPanel"), 4000);
   } catch (error) {
     let msg = "Đăng ký thất bại!";
     if (error.code === 'auth/email-already-in-use') {
