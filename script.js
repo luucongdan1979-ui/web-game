@@ -21,7 +21,6 @@ window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
 window.signInWithEmailAndPassword = signInWithEmailAndPassword;
 window.sendEmailVerification = sendEmailVerification;
 
-// Avatar mặc định nền đen dấu hỏi
 const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='130' viewBox='0 0 100 130'><rect width='100' height='130' fill='%23111'/><text x='50' y='75' font-size='60' fill='%238ef0c1' text-anchor='middle' dominant-baseline='central'>?</text></svg>";
 
 const $ = id => document.getElementById(id);
@@ -443,7 +442,6 @@ function openStarterPack() {
   profile.cards.push(pendingCard);
   profile.starterOpened = true;
   
-  // Tặng thêm avatar avt1.png khi mở rương tân thủ
   if (!profile.unlockedAvatars) profile.unlockedAvatars = [DEFAULT_AVATAR, "avt1.png"];
   if (!profile.unlockedAvatars.includes("avt1.png")) {
     profile.unlockedAvatars.push("avt1.png");
@@ -456,7 +454,7 @@ function openStarterPack() {
   $("starterResultStage").classList.remove("hidden");
 
   $("starterTitle").textContent = "CHÚC MỪNG!";
-  $("starterDescription").textContent = "Bạn đã nhận được một thẻ bài mới và Avatar avt1.png!";
+  $("starterDescription").textContent = "Bạn đã nhận được một thẻ bài mới!";
 
   const img = $("starterResultImage");
   img.style.display = "block";
@@ -481,7 +479,7 @@ $("starterFinish").addEventListener("click", () => {
   pendingCard = null;
   renderProfile();
   renderAlbum();
-  showToast("Đã thêm thẻ bài và mở khóa Avatar avt1.png!");
+  showToast("Đã thêm thẻ bài vào Album!");
 });
 
 document.querySelectorAll(".buy-btn").forEach(btn => {
@@ -1149,6 +1147,7 @@ if (state.active && state.users[state.active]) {
   switchPanel("loginPanel");
 }
 
+
 window.openProfileModal = function() {
   const profile = getProfile();
   if (!profile && !isAdmin) return;
@@ -1209,5 +1208,48 @@ window.saveProfileInfo = function() {
   $("welcomeUser").textContent = newName;
   $("modalUsername").textContent = newName;
   showToast("Đã lưu thông tin cá nhân thành công!");
+  closeProfileModal();
+};
+
+window.switchProfileTab = function(tabId, btn) {
+  document.querySelectorAll('.profile-tab-pane').forEach(pane => {
+    pane.classList.toggle('hidden', pane.id !== tabId);
+  });
+  document.querySelectorAll('.profile-tab').forEach(b => {
+    b.style.background = 'transparent';
+    b.style.color = 'var(--muted)';
+  });
+  btn.style.background = 'var(--panel-border)';
+  btn.style.color = 'var(--text)';
+};
+
+window.redeemGiftCode = function() {
+  if (isAdmin) {
+    return showToast("Admin không cần nhập code nhận quà!");
+  }
+  const input = $("redeemCodeInput");
+  const code = input ? input.value.trim().toUpperCase() : "";
+
+  if (code !== "HAPPYBIRTHDAY") {
+    return showToast("Mã code không chính xác hoặc đã hết hạn!");
+  }
+
+  const profile = getProfile();
+  if (!profile) return;
+
+  if (!profile.redeemedCodes) profile.redeemedCodes = [];
+  if (profile.redeemedCodes.includes("HAPPYBIRTHDAY")) {
+    return showToast("Bạn đã nhập mã code này rồi!");
+  }
+
+  profile.redeemedCodes.push("HAPPYBIRTHDAY");
+  
+  // Tặng 2 pack premium và 2 pack basic vào balo
+  profile.bag.push("premium", "premium", "basic", "basic");
+  saveState();
+  renderProfile();
+
+  input.value = "";
+  showToast("🎁 Nhập code thành công! Đã nhận 2 Premium Pack & 2 Basic Pack vào Balo!");
   closeProfileModal();
 };
