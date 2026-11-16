@@ -114,12 +114,15 @@ function getProfile() {
   if (isAdmin) {
     if (!state.adminBag) state.adminBag = [];
     if (!Array.isArray(state.adminMailbox)) state.adminMailbox = [];
+    if (!state.adminAvatar) state.adminAvatar = DEFAULT_AVATAR;
     return {
       coins: Infinity,
       cards: Object.keys(cards),
       bag: state.adminBag,
       mailbox: state.adminMailbox,
-      starterOpened: true
+      starterOpened: true,
+      avatar: state.adminAvatar,
+      unlockedAvatars: [DEFAULT_AVATAR, "avt2.png", "avt3.png", "avt4.png"]
     };
   }
   const p = currentUser ? state.users[currentUser] : null;
@@ -268,7 +271,7 @@ function enterGame(displayName) {
   document.body.classList.add("logged-in");
 
   const profile = getProfile();
-  const currentAvatar = isAdmin ? DEFAULT_AVATAR : (profile?.avatar || DEFAULT_AVATAR);
+  const currentAvatar = isAdmin ? (state.adminAvatar || DEFAULT_AVATAR) : (profile?.avatar || DEFAULT_AVATAR);
 
   if ($("userProfileBadge")) $("userProfileBadge").classList.remove("hidden");
   if ($("userAvatarImg")) $("userAvatarImg").src = currentAvatar;
@@ -1153,11 +1156,19 @@ window.openProfileModal = function() {
   if (!profile && !isAdmin) return;
 
   const currentName = isAdmin ? "Admin" : profile.username;
-  const currentAvatar = isAdmin ? DEFAULT_AVATAR : (profile.avatar || DEFAULT_AVATAR);
+  const currentAvatar = isAdmin ? (state.adminAvatar || DEFAULT_AVATAR) : (profile.avatar || DEFAULT_AVATAR);
 
   $("modalUsername").textContent = currentName;
-  $("editUsernameInput").value = isAdmin ? "" : currentName;
-  $("modalAvatarImg").src = currentAvatar;
+  if ($("editUsernameInput")) $("editUsernameInput").value = isAdmin ? "" : currentName;
+  if ($("modalAvatarImg")) $("modalAvatarImg").src = currentAvatar;
+
+  const avatars = isAdmin ? [DEFAULT_AVATAR, "avt2.png", "avt3.png", "avt4.png"] : (profile.unlockedAvatars || [DEFAULT_AVATAR, "avt1.png"]);
+  const container = $("avatarPresetsContainer");
+  if (container) {
+    container.innerHTML = avatars.map(avt => {
+      return `<img src="${avt}" class="preset-avt" onclick="changeAvatar('${avt}')" title="Avatar" style="width: 50px; height: 65px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid var(--panel-border);">`;
+    }).join("");
+  }
 
   $("profileModal").classList.remove("hidden");
 };
@@ -1168,15 +1179,17 @@ window.closeProfileModal = function() {
 
 window.changeAvatar = function(avatarSrc) {
   const profile = getProfile();
+  if (!profile && !isAdmin) return;
+  
   if (isAdmin) {
-    showToast("Admin không cần đổi avatar!");
-    return;
+    state.adminAvatar = avatarSrc;
+  } else {
+    profile.avatar = avatarSrc;
   }
-  profile.avatar = avatarSrc;
   saveState();
 
-  $("userAvatarImg").src = avatarSrc;
-  $("modalAvatarImg").src = avatarSrc;
+  if ($("userAvatarImg")) $("userAvatarImg").src = avatarSrc;
+  if ($("modalAvatarImg")) $("modalAvatarImg").src = avatarSrc;
   showToast("Đã đổi avatar thành công!");
 };
 
