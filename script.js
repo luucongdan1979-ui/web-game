@@ -442,13 +442,21 @@ function openStarterPack() {
 
   profile.cards.push(pendingCard);
   profile.starterOpened = true;
+  
+  // Tặng thêm avatar avt1.png khi mở rương tân thủ
+  if (!profile.unlockedAvatars) profile.unlockedAvatars = [DEFAULT_AVATAR, "avt1.png"];
+  if (!profile.unlockedAvatars.includes("avt1.png")) {
+    profile.unlockedAvatars.push("avt1.png");
+  }
+  profile.avatar = "avt1.png";
+
   saveState();
 
   $("packStage").classList.add("hidden");
   $("starterResultStage").classList.remove("hidden");
 
   $("starterTitle").textContent = "CHÚC MỪNG!";
-  $("starterDescription").textContent = "Bạn đã nhận được một thẻ bài mới!";
+  $("starterDescription").textContent = "Bạn đã nhận được một thẻ bài mới và Avatar avt1.png!";
 
   const img = $("starterResultImage");
   img.style.display = "block";
@@ -473,7 +481,7 @@ $("starterFinish").addEventListener("click", () => {
   pendingCard = null;
   renderProfile();
   renderAlbum();
-  showToast("Đã thêm thẻ bài vào Album!");
+  showToast("Đã thêm thẻ bài và mở khóa Avatar avt1.png!");
 });
 
 document.querySelectorAll(".buy-btn").forEach(btn => {
