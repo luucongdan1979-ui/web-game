@@ -148,7 +148,7 @@
           </p>
         </div>
 
-        <!-- Giao diện Chú Hề Chibi bên trái & Nút PvE kèm Nút Hướng Dẫn bên phải -->
+        <!-- Chú hề Chibi tóc xoăn đứng nép bên trái, 2 tay làm ảo thuật -->
         <div class="chibi-clown-home hidden" id="chibiClownHome">
           <div class="arena-layout-flex">
             
@@ -226,20 +226,28 @@
               </div>
             </div>
 
-            <!-- Cột bên phải: Nút Chiến Đấu PvE & Nút Hướng Dẫn & Luyện Tập -->
+            <!-- Cột bên phải: Khu vực Nút Chiến Đấu PvE & Nút Hướng Dẫn và Tập Luyện -->
             <div class="arena-action-column">
               <p class="eyebrow">PVE ARENA BATTLE</p>
-              <h2 style="font-size: 26px; margin: 5px 0 15px;">Thách đấu <span>Bot</span></h2>
-              
-              <div style="display: flex; flex-direction: column; gap: 12px;">
-                <button id="startPveBtn" class="primary-btn" style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 24px; font-size: 14px; background: linear-gradient(135deg, #ff5ea8 0%, #9b78ff 50%, #69e4ff 100%); box-shadow: 0 10px 30px rgba(155, 120, 255, 0.4);">
-                  <span style="font-size: 20px;">⚔️</span>
-                  <span>CHIẾN ĐẤU (PVE) NGAY</span>
+              <h2 style="font-size: 26px; margin: 5px 0 10px;">Thách đấu <span>Bot</span></h2>
+              <p class="muted" style="margin-bottom: 18px;">
+                Đem bộ bài meme mạnh nhất của bạn ra để so tài với các bot thông minh hoặc luyện tập làm quen luật chơi!
+              </p>
+              <div class="arena-btn-stack">
+                <button id="startPveBtn" class="primary-btn arena-mode-btn pve-btn">
+                  <span class="mode-btn-icon">⚔️</span>
+                  <span class="mode-btn-text">
+                    <strong>CHIẾN ĐẤU (PVE)</strong>
+                    <small>Thách đấu Bot nhận thưởng</small>
+                  </span>
                 </button>
 
-                <button id="guidePracticeBtn" class="primary-btn" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 24px; font-size: 13px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.25); color: #fff; box-shadow: none;">
-                  <span style="font-size: 18px;">📖</span>
-                  <span>Hướng dẫn & Luyện Tập</span>
+                <button id="startTrainingBtn" class="primary-btn arena-mode-btn training-btn">
+                  <span class="mode-btn-icon">📖</span>
+                  <span class="mode-btn-text">
+                    <strong>HƯỚNG DẪN & TẬP LUYỆN</strong>
+                    <small>Làm quen luật chơi và thử nghiệm bộ bài</small>
+                  </span>
                 </button>
               </div>
             </div>
@@ -546,6 +554,46 @@
           <div id="zoomResultName"></div><div id="zoomResultRarity"></div><div id="zoomResultCategory"></div>
         </div>
         <button id="zoomFinishBtn" class="primary-btn">CẤT VÀO ALBUM</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL HƯỚNG DẪN & TẬP LUYỆN -->
+  <div id="trainingGuideModal" class="starter-overlay hidden">
+    <div class="starter-dialog training-guide-dialog">
+      <button id="closeTrainingGuideModal" class="close-btn">×</button>
+      <p class="eyebrow">TRAINING & TUTORIAL</p>
+      <h2>Hướng Dẫn & Tập Luyện</h2>
+      <p>Nắm vững cơ chế thẻ bài meme trước khi bước vào đấu trường thực chiến!</p>
+
+      <div class="guide-steps-list">
+        <div class="guide-step-card">
+          <span class="guide-step-badge">1</span>
+          <div>
+            <strong>Thẻ Nhân Vật (Character)</strong>
+            <p>Sở hữu chỉ số <b>⚔️ ATK</b> (Tấn công) và <b>🛡️ DEF</b> (Phòng thủ) để đối đầu trực diện trên bàn đấu.</p>
+          </div>
+        </div>
+        <div class="guide-step-card">
+          <span class="guide-step-badge">2</span>
+          <div>
+            <strong>Thẻ Kỹ Năng (Skill)</strong>
+            <p>Kích hoạt hiệu ứng đặc biệt (như <i>Múa Quạt</i>, <i>Chu Cấp 5 Củ</i>) để cường hóa nhân vật hoặc gây bất lợi cho đối thủ.</p>
+          </div>
+        </div>
+        <div class="guide-step-card">
+          <span class="guide-step-badge">3</span>
+          <div>
+            <strong>Thẻ Tình Huống (Situation)</strong>
+            <p>Tạo biến cố bất ngờ xoay chuyển cục diện trận đấu (như <i>Vào Tù</i>).</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+        <button id="launchPracticeMatchBtn" class="primary-btn" style="flex: 1;">
+          🎯 VÀO TRẬN TẬP LUYỆN
+        </button>
       </div>
     </div>
   </div>
