@@ -527,7 +527,7 @@
           <img id="starterResultImage" src="" alt="Card">
           <div id="starterResultName"></div><div id="starterResultRarity"></div><div id="starterResultCategory"></div>
         </div>
-        <button id="starterFinish" class="primary-btn">NHẬN THẺ BÀI & AVATAR</button>
+        <button id="starterFinish" class="primary-btn">NHẬN THẺ BÀI</button>
       </div>
     </div>
   </div>
@@ -596,32 +596,57 @@
     </div>
   </div>
 
-  <!-- MODAL THÔNG TIN CÁ NHÂN & ĐỔI AVATAR (HÌNH CHỮ NHẬT DỌC) -->
+  <!-- MODAL THÔNG TIN CÁ NHÂN & ĐỔI AVATAR / NHẬP CODE (3 MỤC CHUYỂN TAB) -->
   <div id="profileModal" class="starter-overlay hidden">
     <div class="starter-dialog profile-modal-dialog">
       <button id="closeProfileModal" class="close-btn" onclick="closeProfileModal()">×</button>
       <p class="eyebrow">USER PROFILE</p>
-      <h2>Thông Tin Cá Nhân</h2>
+      <h2>Tài khoản của bạn</h2>
       
       <div class="profile-avatar-box">
         <img id="modalAvatarImg" src="" alt="Avatar" class="profile-avatar-preview">
         <h3 id="modalUsername" style="margin-top: 10px; font-size: 18px;">Tên tài khoản</h3>
       </div>
 
+      <!-- 3 MỤC CHUYỂN TAB -->
+      <div class="profile-tabs" style="display: flex; gap: 8px; margin: 16px 0 12px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 10px;">
+        <button class="profile-tab active" onclick="switchProfileTab('infoTab', this)" style="flex:1; background:var(--panel-border); border:none; color:var(--text); padding:8px; border-radius:8px; font-weight:600; cursor:pointer; font-size:12px;">Thông tin</button>
+        <button class="profile-tab" onclick="switchProfileTab('avatarTab', this)" style="flex:1; background:transparent; border:none; color:var(--muted); padding:8px; border-radius:8px; font-weight:600; cursor:pointer; font-size:12px;">Avatar</button>
+        <button class="profile-tab" onclick="switchProfileTab('codeTab', this)" style="flex:1; background:transparent; border:none; color:var(--muted); padding:8px; border-radius:8px; font-weight:600; cursor:pointer; font-size:12px;">Mã Code</button>
+      </div>
+
       <div class="profile-sections">
-        <div class="profile-section-item">
-          <label>Đổi thông tin cá nhân (Tên hiển thị)</label>
-          <div style="display: flex; gap: 8px; margin-top: 6px;">
-            <input id="editUsernameInput" placeholder="Nhập tên mới..." style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; color: var(--text);">
-            <button id="saveProfileInfoBtn" class="primary-btn" onclick="saveProfileInfo()" style="padding: 10px 16px; font-size: 12px;">LƯU</button>
+        <!-- Tab 1: Thông tin -->
+        <div id="infoTab" class="profile-tab-pane">
+          <div class="profile-section-item">
+            <label>Đổi thông tin cá nhân (Tên hiển thị)</label>
+            <div style="display: flex; gap: 8px; margin-top: 6px;">
+              <input id="editUsernameInput" placeholder="Nhập tên mới..." style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; color: var(--text);">
+              <button id="saveProfileInfoBtn" class="primary-btn" onclick="saveProfileInfo()" style="padding: 10px 16px; font-size: 12px;">LƯU</button>
+            </div>
           </div>
         </div>
 
-        <div class="profile-section-item" style="margin-top: 16px;">
-          <label>Chọn Avatar</label>
-          <div class="avatar-presets" style="display: flex; gap: 10px; margin: 8px 0;">
-            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='130' viewBox='0 0 100 130'><rect width='100' height='130' fill='%23111'/><text x='50' y='75' font-size='60' fill='%238ef0c1' text-anchor='middle' dominant-baseline='central'>?</text></svg>" class="preset-avt" onclick="changeAvatar(this.src)" title="Avatar Mặc Định">
-            <img src="avt1.png" class="preset-avt" onclick="changeAvatar('avt1.png')" title="Avatar 1">
+        <!-- Tab 2: Avatar -->
+        <div id="avatarTab" class="profile-tab-pane hidden">
+          <div class="profile-section-item">
+            <label>Chọn Avatar</label>
+            <div class="avatar-presets" style="display: flex; gap: 10px; margin: 8px 0;">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='130' viewBox='0 0 100 130'><rect width='100' height='130' fill='%23111'/><text x='50' y='75' font-size='60' fill='%238ef0c1' text-anchor='middle' dominant-baseline='central'>?</text></svg>" class="preset-avt" onclick="changeAvatar(this.src)" title="Avatar Mặc Định">
+              <img src="avt1.png" class="preset-avt" onclick="changeAvatar('avt1.png')" title="Avatar 1">
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Mã Code -->
+        <div id="codeTab" class="profile-tab-pane hidden">
+          <div class="profile-section-item">
+            <label>Nhập mã quà tặng</label>
+            <div style="display: flex; gap: 8px; margin-top: 6px;">
+              <input id="redeemCodeInput" placeholder="Nhập mã code..." style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; color: var(--text); text-transform: uppercase;">
+              <button class="primary-btn" onclick="redeemGiftCode()" style="padding: 10px 16px; font-size: 12px;">ĐỔI QUÀ</button>
+            </div>
+            <small style="color: var(--muted); display: block; margin-top: 6px;">Nhập mã HAPPYBIRTHDAY để nhận 2 Pack Premium & 2 Pack Basic!</small>
           </div>
         </div>
       </div>
