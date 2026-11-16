@@ -1932,3 +1932,106 @@ body.starter-active .bottom-nav {
   color: #ffffff;
   letter-spacing: 0.3px;
 }
+/* --- Avatar & Profile Modal Styles --- */
+.user-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 6px 14px 6px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.user-profile-badge:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.user-profile-badge img {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px; /* Hình vuông bo góc nhẹ */
+  object-fit: cover;
+  border: 2px solid var(--success);
+  box-shadow: 0 0 10px rgba(142, 240, 193, 0.3);
+}
+
+.user-profile-badge .welcome-user {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.3px;
+}
+
+/* Modal thông tin cá nhân (Hình chữ nhật dọc) */
+.profile-modal-dialog {
+  width: 100%;
+  max-width: 400px;
+  min-height: 560px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 20px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+  position: relative;
+}
+
+.profile-avatar-box {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.profile-avatar-preview {
+  width: 130px;
+  height: 170px; /* Hình chữ nhật dọc phóng to */
+  border-radius: 12px;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 20px var(--accent-glow);
+  margin: 0 auto;
+  display: block;
+}
+
+.profile-sections {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-section-item label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.avatar-presets {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.preset-avt {
+  width: 50px;
+  height: 64px; /* Hình chữ nhật dọc cho preset */
+  border-radius: 8px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid var(--panel-border);
+  transition: all 0.2s;
+}
+
+.preset-avt:hover, .preset-avt.active {
+  border-color: var(--success);
+  transform: scale(1.05);
+}
