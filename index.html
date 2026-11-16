@@ -16,7 +16,6 @@
     </a>
 
     <div class="top-actions">
-      <!-- Nút xuất backup dành riêng cho tài khoản thường hiển thị ở đây -->
       <button id="userExportBtn" class="primary-btn hidden" onclick="exportDataBackup()" style="padding: 8px 14px; font-size: 11px;">📥 Xuất Backup</button>
       <span id="welcomeUser" class="welcome-user">Chào mừng đến đấu trường!</span>
       <span class="coin-pill">✦ <b id="coinCount">0</b></span>
@@ -148,21 +147,18 @@
           </p>
         </div>
 
-        <!-- Chú hề Chibi tóc xoăn đứng nép bên trái, 2 tay làm ảo thuật -->
+        <!-- Chú hề Chibi tóc xoăn -->
         <div class="chibi-clown-home hidden" id="chibiClownHome">
           <div class="arena-layout-flex">
             
-            <!-- Chú hề Chibi tóc xoăn đứng nép bên trái, 2 tay làm ảo thuật -->
             <div class="chibi-clown-stage">
               <div class="clown-speech-bubble">Đấu trường sẵn sàng rồi!</div>
 
               <div class="chibi-clown">
-                <!-- Mũ chóp -->
                 <div class="clown-hat">
                   <div class="hat-pom">⭐</div>
                 </div>
 
-                <!-- Tóc xoăn xù 2 bên đầu -->
                 <div class="clown-curly-hair left-curls">
                   <span class="curl c1"></span>
                   <span class="curl c2"></span>
@@ -176,7 +172,6 @@
                   <span class="curl c1"></span>
                 </div>
 
-                <!-- Đầu chú hề -->
                 <div class="clown-head">
                   <div class="blush left"></div>
                   <div class="blush right"></div>
@@ -186,7 +181,6 @@
                   <div class="smile"></div>
                 </div>
 
-                <!-- Thân áo -->
                 <div class="clown-body">
                   <div class="collar"></div>
                   <div class="bowtie">🎀</div>
@@ -194,7 +188,6 @@
                   <div class="body-button b2"></div>
                 </div>
 
-                <!-- 2 Tay đang làm ảo thuật -->
                 <div class="clown-arm left-arm">
                   <div class="clown-glove"></div>
                 </div>
@@ -204,7 +197,6 @@
                   </div>
                 </div>
 
-                <!-- 2 Chân đứng nhún -->
                 <div class="clown-legs">
                   <div class="clown-leg left-leg">
                     <div class="clown-shoe"></div>
@@ -215,7 +207,6 @@
                 </div>
               </div>
 
-              <!-- Hiệu ứng thẻ bài bay ảo thuật phía trước -->
               <div class="magic-orbit-zone">
                 <div class="flying-card card-alpha">🃏</div>
                 <div class="flying-card card-beta">🎴</div>
@@ -226,7 +217,6 @@
               </div>
             </div>
 
-            <!-- Cột bên phải: Khu vực Nút Chiến Đấu PvE & Nút Hướng Dẫn và Tập Luyện -->
             <div class="arena-action-column">
               <p class="eyebrow">PVE ARENA BATTLE</p>
               <h2 style="font-size: 26px; margin: 5px 0 10px;">Thách đấu <span>Bot</span></h2>
@@ -599,6 +589,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
