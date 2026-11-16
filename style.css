@@ -507,7 +507,7 @@ body.logged-in .coin-pill {
 .deco-right { right: 9%; bottom: 17%; }
 
 /* ========================================================================== */
-/* 4. CHÚ HỀ CHIBI TÓC XOAY & ẢO THUẬT (TRANG CHỦ) & BỐ CỤC PVE                */
+/* 4. CHÚ HỀ CHIBI TÓC XOAY & ẢO THUẬT (TRANG CHỦ)                           */
 /* ========================================================================== */
 .chibi-clown-home {
   position: relative;
@@ -519,35 +519,6 @@ body.logged-in .coin-pill {
   padding: 20px;
   text-align: center;
   width: 100%;
-}
-
-.arena-layout-flex {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  gap: 30px;
-  width: 100%;
-  max-width: 880px;
-  margin: 0 auto;
-}
-
-.arena-action-column {
-  flex: 1;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-@media (max-width: 768px) {
-  .arena-layout-flex {
-    flex-direction: column;
-    text-align: center;
-  }
-  .arena-action-column {
-    align-items: center;
-    text-align: center;
-  }
 }
 
 .chibi-clown-stage {
@@ -1786,4 +1757,151 @@ body.starter-active .bottom-nav {
   padding: 2px 6px;
   border-radius: 20px;
   box-shadow: 0 2px 8px #ff5ea899;
+}
+
+/* ========================================================================== */
+/* 11. BỐ CỤC TRANG CHỦ: CHÚ HỀ + NÚT CHIẾN ĐẤU & HƯỚNG DẪN TẬP LUYỆN          */
+/* ========================================================================== */
+.arena-layout-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 32px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.arena-action-column {
+  flex: 1;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.arena-btn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.arena-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  text-align: left;
+  border-radius: 14px;
+  width: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.arena-mode-btn .mode-btn-icon {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.arena-mode-btn .mode-btn-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.arena-mode-btn .mode-btn-text strong {
+  font-size: 13.5px;
+  letter-spacing: 0.6px;
+  color: #ffffff;
+}
+
+.arena-mode-btn .mode-btn-text small {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.pve-btn {
+  background: linear-gradient(135deg, #ff5ea8 0%, #9b78ff 50%, #69e4ff 100%);
+  box-shadow: 0 10px 28px rgba(155, 120, 255, 0.4);
+}
+
+.training-btn {
+  background: linear-gradient(135deg, #1b284d 0%, #243b6b 100%);
+  border: 1px solid rgba(105, 228, 255, 0.45);
+  box-shadow: 0 8px 22px rgba(18, 42, 61, 0.55);
+}
+
+.training-btn:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 10px 28px rgba(105, 228, 255, 0.25);
+}
+
+/* Modal Hướng Dẫn & Tập Luyện */
+.training-guide-dialog {
+  width: min(500px, 100%) !important;
+  min-height: auto;
+  padding: 32px 26px;
+}
+
+.guide-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+  text-align: left;
+}
+
+.guide-step-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #10142c;
+  border: 1px solid #ffffff1c;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.guide-step-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8c69f5, #c36be5);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.guide-step-card strong {
+  display: block;
+  font-size: 13px;
+  color: var(--cyan);
+  margin-bottom: 3px;
+}
+
+.guide-step-card p {
+  margin: 0;
+  font-size: 12px;
+  color: #d6d3ed;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .arena-layout-flex {
+    flex-direction: column;
+    text-align: center;
+  }
+  .arena-action-column {
+    align-items: center;
+    text-align: center;
+  }
+  .arena-btn-stack {
+    max-width: 100%;
+  }
 }
