@@ -274,6 +274,7 @@ $("logoutBtn").addEventListener("click", () => {
   $("packOpenOverlay").classList.add("hidden");
   $("cardDetailModal").classList.add("hidden");
   $("adminGiftModal").classList.add("hidden");
+  if ($("trainingGuideModal")) $("trainingGuideModal").classList.add("hidden");
   if ($("userExportBtn")) $("userExportBtn").classList.add("hidden");
 
   $("arenaCopyChest").classList.remove("hidden");
@@ -970,6 +971,7 @@ window.toggleGiftCardSelect = function(el) {
 
 $("closeAdminGiftModal").addEventListener("click", () => {
   $("adminGiftModal").classList.add("hidden");
+  if ($("trainingGuideModal")) $("trainingGuideModal").classList.add("hidden");
   targetGiftUserKey = null;
 });
 
@@ -1002,6 +1004,7 @@ $("confirmGiftBtn").addEventListener("click", () => {
 
   saveState();
   $("adminGiftModal").classList.add("hidden");
+  if ($("trainingGuideModal")) $("trainingGuideModal").classList.add("hidden");
   renderAdminUserManagement();
   showToast(`Đã gửi quà vào hòm thư của ${u.username}!`);
   targetGiftUserKey = null;
@@ -1057,10 +1060,29 @@ window.importDataBackup = async function(event) {
   event.target.value = "";
 };
 
-// Thêm sự kiện bấm nút Chiến Đấu (PvE) ở trang chủ
+// Sự kiện nút Chiến Đấu (PvE) và nút Hướng Dẫn & Tập Luyện ở trang chủ
 document.addEventListener("click", event => {
   if (event.target.closest("#startPveBtn")) {
-    showToast("⚔️ Chế độ Đấu Bot (PvE) đang được phát triển!");
+    showToast("⚔️ Chế độ Chiến Đấu (PvE) đang chuẩn bị sẵn sàng!");
+  }
+
+  if (event.target.closest("#startTrainingBtn")) {
+    if ($("trainingGuideModal")) {
+      $("trainingGuideModal").classList.remove("hidden");
+    }
+  }
+
+  if (event.target.closest("#closeTrainingGuideModal") || event.target === $("trainingGuideModal")) {
+    if ($("trainingGuideModal")) {
+      $("trainingGuideModal").classList.add("hidden");
+    }
+  }
+
+  if (event.target.closest("#launchPracticeMatchBtn")) {
+    if ($("trainingGuideModal")) {
+      $("trainingGuideModal").classList.add("hidden");
+    }
+    showToast("🎯 Đang khởi tạo trận Tập Luyện với Bot...");
   }
 });
 
