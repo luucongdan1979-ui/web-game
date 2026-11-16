@@ -1905,3 +1905,30 @@ body.starter-active .bottom-nav {
     max-width: 100%;
   }
 }
+/* --- Bổ sung CSS cho Avatar và Tên người chơi trên Topbar --- */
+.user-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 5px 12px 5px 6px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.user-profile-badge img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #8ef0c1;
+  box-shadow: 0 0 10px rgba(142, 240, 193, 0.3);
+}
+
+.user-profile-badge .welcome-user {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
