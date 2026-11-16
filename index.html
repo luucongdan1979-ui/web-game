@@ -13,8 +13,8 @@
     <div class="topbar-left" style="display: flex; align-items: center; gap: 16px;">
       <!-- KHUNG AVATAR HÌNH VUÔNG Ở GÓC TRÊN CÙNG BÊN TRÁI -->
       <div id="userProfileBadge" class="user-profile-badge hidden" onclick="openProfileModal()" title="Nhấn để xem thông tin cá nhân">
-        <img id="userAvatarImg" src="avt1.png" alt="Avatar" onerror="this.src='avt1.png'">
-        <span id="welcomeUser" class="welcome-user">Chào mừng!</span>
+        <img id="userAvatarImg" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='130' viewBox='0 0 100 130'><rect width='100' height='130' fill='%23111'/><text x='50' y='75' font-size='60' fill='%238ef0c1' text-anchor='middle' dominant-baseline='central'>?</text></svg>" alt="Avatar">
+        <span id="welcomeUser" class="welcome-user">Tài khoản</span>
       </div>
 
       <a class="brand" href="#">
@@ -465,42 +465,7 @@
     </button>
   </nav>
 
-  <!-- MODAL THÔNG TIN CÁ NHÂN & ĐỔI AVATAR (HÌNH CHỮ NHẬT DỌC) -->
-  <div id="profileModal" class="starter-overlay hidden">
-    <div class="starter-dialog profile-modal-dialog">
-      <button id="closeProfileModal" class="close-btn" onclick="closeProfileModal()">×</button>
-      <p class="eyebrow">USER PROFILE</p>
-      <h2>Thông Tin Cá Nhân</h2>
-      
-      <div class="profile-avatar-box">
-        <img id="modalAvatarImg" src="avt1.png" alt="Avatar" class="profile-avatar-preview">
-        <h3 id="modalUsername" style="margin-top: 10px; font-size: 18px;">Tên tài khoản</h3>
-      </div>
-
-      <div class="profile-sections">
-        <div class="profile-section-item">
-          <label>Đổi thông tin cá nhân (Tên hiển thị)</label>
-          <div style="display: flex; gap: 8px; margin-top: 6px;">
-            <input id="editUsernameInput" placeholder="Nhập tên mới..." style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; color: var(--text);">
-            <button id="saveProfileInfoBtn" class="primary-btn" onclick="saveProfileInfo()" style="padding: 10px 16px; font-size: 12px;">LƯU</button>
-          </div>
-        </div>
-
-        <div class="profile-section-item" style="margin-top: 16px;">
-          <label>Đổi Avatar</label>
-          <div class="avatar-presets" style="display: flex; gap: 10px; margin: 8px 0;">
-            <img src="avt1.png" class="preset-avt active" onclick="changeAvatar('avt1.png')">
-          </div>
-          <label class="primary-btn" style="display: block; text-align: center; cursor: pointer; font-size: 12px; padding: 10px;">
-            📁 Tải ảnh từ thiết bị của bạn
-            <input type="file" id="uploadAvatarInput" accept="image/*" style="display: none;" onchange="uploadCustomAvatar(event)">
-          </label>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODALS KHÁC -->
+  <!-- MODALS -->
   <div id="adminGiftModal" class="starter-overlay hidden">
     <div class="starter-dialog admin-gift-dialog">
       <button id="closeAdminGiftModal" class="close-btn">×</button>
@@ -626,6 +591,38 @@
         <button id="launchPracticeMatchBtn" class="primary-btn" style="flex: 1;">
           🎯 VÀO TRẬN TẬP LUYỆN
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL THÔNG TIN CÁ NHÂN & ĐỔI AVATAR (HÌNH CHỮ NHẬT DỌC - LƯỢC BỎ UPLOAD TỆP) -->
+  <div id="profileModal" class="starter-overlay hidden">
+    <div class="starter-dialog profile-modal-dialog">
+      <button id="closeProfileModal" class="close-btn" onclick="closeProfileModal()">×</button>
+      <p class="eyebrow">USER PROFILE</p>
+      <h2>Thông Tin Cá Nhân</h2>
+      
+      <div class="profile-avatar-box">
+        <img id="modalAvatarImg" src="" alt="Avatar" class="profile-avatar-preview">
+        <h3 id="modalUsername" style="margin-top: 10px; font-size: 18px;">Tên tài khoản</h3>
+      </div>
+
+      <div class="profile-sections">
+        <div class="profile-section-item">
+          <label>Đổi thông tin cá nhân (Tên hiển thị)</label>
+          <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <input id="editUsernameInput" placeholder="Nhập tên mới..." style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; color: var(--text);">
+            <button id="saveProfileInfoBtn" class="primary-btn" onclick="saveProfileInfo()" style="padding: 10px 16px; font-size: 12px;">LƯU</button>
+          </div>
+        </div>
+
+        <div class="profile-section-item" style="margin-top: 16px;">
+          <label>Chọn Avatar</label>
+          <div class="avatar-presets" style="display: flex; gap: 10px; margin: 8px 0;">
+            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='130' viewBox='0 0 100 130'><rect width='100' height='130' fill='%23111'/><text x='50' y='75' font-size='60' fill='%238ef0c1' text-anchor='middle' dominant-baseline='central'>?</text></svg>" class="preset-avt" onclick="changeAvatar(this.src)" title="Avatar Mặc Định">
+            <img src="avt1.png" class="preset-avt" onclick="changeAvatar('avt1.png')" title="Avatar 1">
+          </div>
+        </div>
       </div>
     </div>
   </div>
