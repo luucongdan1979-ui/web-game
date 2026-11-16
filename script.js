@@ -1,3 +1,26 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-analytics.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDly5plLAysmA-_tRrN4XRhBhCI1A6sgGs",
+  authDomain: "memchee-d1cae.firebaseapp.com",
+  projectId: "memchee-d1cae",
+  storageBucket: "memchee-d1cae.firebasestorage.app",
+  messagingSenderId: "638843455684",
+  appId: "1:638843455684:web:9e270109251e75de4ca191",
+  measurementId: "G-5YCXB2107"
+};
+
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const auth = getAuth(app);
+
+window.firebaseAuth = auth;
+window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+window.sendEmailVerification = sendEmailVerification;
+
 const $ = id => document.getElementById(id);
 
 const STORAGE_KEY = "memeCardArena_permanent_database";
@@ -153,7 +176,8 @@ function createProfile(username, email, password) {
   };
 }
 
-$("registerPanel").addEventListener("submit", event => {
+// ĐĂNG KÝ KẾT HỢP FIREBASE AUTH & GỬI GMAIL XÁC THỰC
+$("registerPanel").addEventListener("submit", async event => {
   event.preventDefault();
 
   const username = $("registerUsername").value.trim();
@@ -173,9 +197,27 @@ $("registerPanel").addEventListener("submit", event => {
     return showAuthMessage("Mật khẩu cần ít nhất 6 ký tự!");
   }
 
-  state.users[key] = createProfile(username, email, password);
-  saveState();
-  loginAs(key);
+  try {
+    const userCredential = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+    await window.sendEmailVerification(userCredential.user);
+
+    showAuthMessage("Đăng ký thành công! Hãy kiểm tra Gmail để bấm link xác thực.", true);
+
+    state.users[key] = createProfile(username, email, password);
+    saveState();
+
+    setTimeout(() => switchPanel("loginPanel"), 3500);
+  } catch (error) {
+    let msg = "Đăng ký thất bại!";
+    if (error.code === 'auth/email-already-in-use') {
+      msg = "Email này đã được sử dụng bởi tài khoản khác!";
+    } else if (error.code === 'auth/invalid-email') {
+      msg = "Địa chỉ email không hợp lệ!";
+    } else {
+      msg = error.message;
+    }
+    showAuthMessage(msg);
+  }
 });
 
 $("loginPanel").addEventListener("submit", event => {
@@ -1060,7 +1102,6 @@ window.importDataBackup = async function(event) {
   event.target.value = "";
 };
 
-// Sự kiện nút Chiến Đấu (PvE) và nút Hướng Dẫn & Tập Luyện ở trang chủ
 document.addEventListener("click", event => {
   if (event.target.closest("#startPveBtn")) {
     showToast("⚔️ Chế độ Chiến Đấu (PvE) đang chuẩn bị sẵn sàng!");
