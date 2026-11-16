@@ -527,7 +527,7 @@
           <img id="starterResultImage" src="" alt="Card">
           <div id="starterResultName"></div><div id="starterResultRarity"></div><div id="starterResultCategory"></div>
         </div>
-        <button id="starterFinish" class="primary-btn">NHẬN THẺ BÀI</button>
+        <button id="starterFinish" class="primary-btn">NHẬN THẺ BÀI & AVATAR</button>
       </div>
     </div>
   </div>
@@ -631,9 +631,7 @@
         <div id="avatarTab" class="profile-tab-pane hidden">
           <div class="profile-section-item">
             <label>Chọn Avatar</label>
-            <div class="avatar-presets" style="display: flex; gap: 10px; margin: 8px 0;">
-              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='130' viewBox='0 0 100 130'><rect width='100' height='130' fill='%23111'/><text x='50' y='75' font-size='60' fill='%238ef0c1' text-anchor='middle' dominant-baseline='central'>?</text></svg>" class="preset-avt" onclick="changeAvatar(this.src)" title="Avatar Mặc Định">
-              <img src="avt1.png" class="preset-avt" onclick="changeAvatar('avt1.png')" title="Avatar 1">
+            <div id="avatarPresetsContainer" class="avatar-presets" style="display: flex; gap: 10px; margin: 8px 0; flex-wrap: wrap;">
             </div>
           </div>
         </div>
@@ -646,7 +644,6 @@
               <input id="redeemCodeInput" placeholder="Nhập mã code..." style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; color: var(--text); text-transform: uppercase;">
               <button class="primary-btn" onclick="redeemGiftCode()" style="padding: 10px 16px; font-size: 12px;">ĐỔI QUÀ</button>
             </div>
-            <small style="color: var(--muted); display: block; margin-top: 6px;">Nhập mã HAPPYBIRTHDAY để nhận 2 Pack Premium & 2 Pack Basic!</small>
           </div>
         </div>
       </div>
