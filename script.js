@@ -1143,3 +1143,78 @@ if (state.active && state.users[state.active]) {
 } else {
   switchPanel("loginPanel");
 }
+window.openProfileModal = function() {
+  const profile = getProfile();
+  if (!profile && !isAdmin) return;
+
+  const currentName = isAdmin ? "Admin" : profile.username;
+  const currentAvatar = isAdmin ? "avt1.png" : (profile.avatar || "avt1.png");
+
+  $("modalUsername").textContent = currentName;
+  $("editUsernameInput").value = isAdmin ? "" : currentName;
+  $("modalAvatarImg").src = currentAvatar;
+
+  $("profileModal").classList.remove("hidden");
+};
+
+window.closeProfileModal = function() {
+  $("profileModal").classList.add("hidden");
+};
+
+window.changeAvatar = function(avatarSrc) {
+  const profile = getProfile();
+  if (isAdmin) {
+    showToast("Admin không cần đổi avatar!");
+    return;
+  }
+  profile.avatar = avatarSrc;
+  saveState();
+
+  $("userAvatarImg").src = avatarSrc;
+  $("modalAvatarImg").src = avatarSrc;
+  showToast("Đã đổi avatar thành công!");
+};
+
+window.uploadCustomAvatar = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64Image = e.target.result;
+    changeAvatar(base64Image);
+  };
+  reader.readAsDataURL(file);
+  event.target.value = "";
+};
+
+window.saveProfileInfo = function() {
+  if (isAdmin) {
+    showToast("Không thể sửa thông tin của Admin!");
+    return;
+  }
+  const newName = $("editUsernameInput").value.trim();
+  if (!/^[a-zA-Z0-9_]{3,18}$/.test(newName)) {
+    return showToast("Tên mới cần 3-18 ký tự chữ, số hoặc dấu gạch dưới!");
+  }
+
+  if (state.users[newName.toLowerCase()] && newName.toLowerCase() !== currentUser) {
+    return showToast("Tên tài khoản này đã được sử dụng!");
+  }
+
+  const profile = state.users[currentUser];
+  if (newName.toLowerCase() !== currentUser) {
+    state.users[newName.toLowerCase()] = profile;
+    delete state.users[currentUser];
+    currentUser = newName.toLowerCase();
+    state.active = currentUser;
+  }
+
+  profile.username = newName;
+  saveState();
+
+  $("welcomeUser").textContent = `Xin chào, ${newName}!`;
+  $("modalUsername").textContent = newName;
+  showToast("Đã lưu thông tin cá nhân thành công!");
+  closeProfileModal();
+};
