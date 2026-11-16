@@ -1218,3 +1218,112 @@ window.saveProfileInfo = function() {
   showToast("Đã lưu thông tin cá nhân thành công!");
   closeProfileModal();
 };
+// Avatar mặc định nền đen dấu hỏi
+const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='130' viewBox='0 0 100 130'><rect width='100' height='130' fill='%23111'/><text x='50' y='75' font-size='60' fill='%238ef0c1' text-anchor='middle' dominant-baseline='central'>?</text></svg>";
+
+function createProfile(username, email, password) {
+  return {
+    username,
+    email,
+    password,
+    coins: 20,
+    avatar: DEFAULT_AVATAR, // Avatar mặc định đen chấm hỏi
+    cards: [],
+    bag: [],
+    mailbox: [],
+    starterOpened: false, // Rương tân thủ chưa mở
+    banned: false
+  };
+}
+
+window.openProfileModal = function() {
+  const profile = getProfile();
+  if (!profile && !isAdmin) return;
+
+  const currentName = isAdmin ? "Admin" : profile.username;
+  const currentAvatar = isAdmin ? DEFAULT_AVATAR : (profile.avatar || DEFAULT_AVATAR);
+
+  $("modalUsername").textContent = currentName;
+  $("editUsernameInput").value = isAdmin ? "" : currentName;
+  $("modalAvatarImg").src = currentAvatar;
+
+  $("profileModal").classList.remove("hidden");
+};
+
+window.closeProfileModal = function() {
+  $("profileModal").classList.add("hidden");
+};
+
+window.changeAvatar = function(avatarSrc) {
+  const profile = getProfile();
+  if (isAdmin) {
+    showToast("Admin không cần đổi avatar!");
+    return;
+  }
+  profile.avatar = avatarSrc;
+  saveState();
+
+  $("userAvatarImg").src = avatarSrc;
+  $("modalAvatarImg").src = avatarSrc;
+  showToast("Đã đổi avatar thành công!");
+};
+
+window.saveProfileInfo = function() {
+  if (isAdmin) {
+    showToast("Không thể sửa thông tin của Admin!");
+    return;
+  }
+  const newName = $("editUsernameInput").value.trim();
+  if (!/^[a-zA-Z0-9_]{3,18}$/.test(newName)) {
+    return showToast("Tên mới cần 3-18 ký tự chữ, số hoặc dấu gạch dưới!");
+  }
+
+  if (state.users[newName.toLowerCase()] && newName.toLowerCase() !== currentUser) {
+    return showToast("Tên tài khoản này đã được sử dụng!");
+  }
+
+  const profile = state.users[currentUser];
+  if (newName.toLowerCase() !== currentUser) {
+    state.users[newName.toLowerCase()] = profile;
+    delete state.users[currentUser];
+    currentUser = newName.toLowerCase();
+    state.active = currentUser;
+  }
+
+  profile.username = newName;
+  saveState();
+
+  // Xóa chữ "Xin chào", chỉ hiển thị trực tiếp tên tài khoản
+  $("welcomeUser").textContent = newName;
+  $("modalUsername").textContent = newName;
+  showToast("Đã lưu thông tin cá nhân thành công!");
+  closeProfileModal();
+};
+
+// Cập nhật lại hàm enterGame để hiển thị tên trực tiếp (không kèm chữ Xin chào) và load Avatar
+function enterGame(displayName) {
+  $("authScreen").classList.add("hidden");
+  $("gameScreen").classList.remove("hidden");
+  $("bottomNav").classList.remove("hidden");
+  document.body.classList.add("logged-in");
+
+  const profile = getProfile();
+  const currentAvatar = isAdmin ? DEFAULT_AVATAR : (profile?.avatar || DEFAULT_AVATAR);
+
+  $("userAvatarImg").src = currentAvatar;
+  $("welcomeUser").textContent = isAdmin ? "Admin" : displayName;
+
+  $("adminTag").classList.toggle("hidden", !isAdmin);
+  $("adminCheckNavBtn").classList.toggle("hidden", !isAdmin);
+  $("adminSendMailNavBtn").classList.toggle("hidden", !isAdmin);
+  if ($("userExportBtn")) $("userExportBtn").classList.toggle("hidden", isAdmin);
+
+  renderProfile();
+  showScreen("gameScreen");
+
+  if (isAdmin || getProfile().starterOpened) {
+    hideOldStarterChest();
+  } else {
+    showStarterOverlay();
+  }
+}
