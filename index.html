@@ -173,14 +173,12 @@
             </div>
           </div>
 
-          <!-- 3 Ô đặt thẻ trên sân của Bot (Hình chữ nhật dọc giống người chơi) -->
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="botSlotsContainer">
             <div class="bot-slot" id="botSlotSkill" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: #ff5252; text-align: center;">Skill</div>
             <div class="bot-slot" id="botSlotChar" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: #ff5252; text-align: center;">NV</div>
             <div class="bot-slot" id="botSlotSit" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: #ff5252; text-align: center;">Tình huống</div>
           </div>
 
-          <!-- Chồng bài Bot -->
           <div style="background: #334155; border: 2px solid #ff5252; width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #ff5252; font-weight: bold;">BOT DECK</div>
         </div>
 
@@ -197,7 +195,6 @@
         <!-- BÊN DƯỚI: NGƯỜI CHƠI -->
         <div style="background: rgba(142, 240, 193, 0.08); border: 1px solid rgba(142, 240, 193, 0.3); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
           
-          <!-- 3 Ô đặt thẻ trên sân của người chơi (Hình chữ nhật dọc 55x75px chuẩn) -->
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
             <div onclick="clearSlot('SKILL')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #8ef0c1; border-radius: 8px; width: 55px; height: 75px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px; text-align: center; cursor: pointer;">
               <span style="font-size: 9px; color: #8ef0c1; font-weight: bold;">✨ SKILL</span>
@@ -215,7 +212,6 @@
             </div>
           </div>
 
-          <!-- Thông tin & Chồng bài bốc -->
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 10px;">
               <div id="playerDeckPile" onclick="openPlayerDeckPicker()" title="Nhấn để bốc bài từ Album" style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid var(--panel-border); width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
@@ -453,6 +449,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="script (6).js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
