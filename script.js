@@ -56,7 +56,7 @@ let battleState = {
   selectedSkill: null,
   selectedCharacter: null,
   selectedSituation: null,
-  playerStatType: "ATK", // 'ATK' hoặc 'DEF'
+  playerStatType: "ATK",
   playerSubmitted: false,
   timerInterval: null,
   timeLeft: 30
@@ -465,7 +465,7 @@ function startAdvancedPveBattle() {
 
   showScreen("pveBattleScreen");
   $("playerBattleName").textContent = isAdmin ? "Admin" : profile.username;
-  $("battleLogBox").innerHTML = "[Hệ thống] Trận đấu bắt đầu! Bạn có 30 giây để chọn bài và ấn Hoàn Thành.";
+  $("battleLogBox").innerHTML = `<div style="text-align: left; width: 100%;">[Hệ thống] Trận đấu bắt đầu! Bạn có 30 giây để chọn bài và ấn Hoàn Thành.</div>`;
   $("confirmTurnBtn").disabled = false;
 
   renderBattleSlots();
@@ -546,13 +546,13 @@ window.clearSlot = function(category) {
 
 function renderBattleSlots() {
   const skillBox = $("placedSkillContent");
-  skillBox.innerHTML = battleState.selectedSkill ? `<img src="${cards[battleState.selectedSkill].file}" style="width: 45px; height: 65px; object-fit: cover; border-radius: 4px;"><strong style="font-size: 9px; display: block;">${cards[battleState.selectedSkill].name}</strong>` : `<small style="color: var(--muted); font-size: 9px;">Trống</small>`;
+  skillBox.innerHTML = battleState.selectedSkill ? `<img src="${cards[battleState.selectedSkill].file}" style="width: 60px; height: 80px; object-fit: cover; border-radius: 6px;"><strong style="font-size: 9px; display: block; margin-top: 2px;">${cards[battleState.selectedSkill].name}</strong>` : `<small style="color: var(--muted); font-size: 9px;">Trống</small>`;
 
   const charBox = $("placedCharacterContent");
-  charBox.innerHTML = battleState.selectedCharacter ? `<img src="${cards[battleState.selectedCharacter].file}" style="width: 45px; height: 65px; object-fit: cover; border-radius: 4px;"><strong style="font-size: 9px; display: block;">${cards[battleState.selectedCharacter].name} (${battleState.playerStatType})</strong>` : `<small style="color: var(--muted); font-size: 9px;">Trống</small>`;
+  charBox.innerHTML = battleState.selectedCharacter ? `<img src="${cards[battleState.selectedCharacter].file}" style="width: 60px; height: 80px; object-fit: cover; border-radius: 6px;"><strong style="font-size: 9px; display: block; margin-top: 2px;">${cards[battleState.selectedCharacter].name} (${battleState.playerStatType})</strong>` : `<small style="color: var(--muted); font-size: 9px;">Trống</small>`;
 
   const sitBox = $("placedSituationContent");
-  sitBox.innerHTML = battleState.selectedSituation ? `<img src="${cards[battleState.selectedSituation].file}" style="width: 45px; height: 65px; object-fit: cover; border-radius: 4px;"><strong style="font-size: 9px; display: block;">${cards[battleState.selectedSituation].name}</strong>` : `<small style="color: var(--muted); font-size: 9px;">Trống</small>`;
+  sitBox.innerHTML = battleState.selectedSituation ? `<img src="${cards[battleState.selectedSituation].file}" style="width: 60px; height: 80px; object-fit: cover; border-radius: 6px;"><strong style="font-size: 9px; display: block; margin-top: 2px;">${cards[battleState.selectedSituation].name}</strong>` : `<small style="color: var(--muted); font-size: 9px;">Trống</small>`;
 
   $("botHpText").textContent = `${battleState.botHp} / ${battleState.maxBotHp}`;
   $("playerHpText").textContent = `${battleState.playerHp} / ${battleState.maxPlayerHp}`;
@@ -566,9 +566,9 @@ window.confirmPlayerTurn = function() {
   clearInterval(battleState.timerInterval);
   $("confirmTurnBtn").disabled = true;
 
-  $("placedSkillContent").innerHTML = `<div style="background:#334155; width:45px; height:65px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">🎴 ÚP</div>`;
-  $("placedCharacterContent").innerHTML = `<div style="background:#334155; width:45px; height:65px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">🎴 ÚP</div>`;
-  $("placedSituationContent").innerHTML = `<div style="background:#334155; width:45px; height:65px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">🎴 ÚP</div>`;
+  $("placedSkillContent").innerHTML = `<div style="background:#334155; width:60px; height:80px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px; font-weight:bold;">🎴 ÚP</div>`;
+  $("placedCharacterContent").innerHTML = `<div style="background:#334155; width:60px; height:80px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px; font-weight:bold;">🎴 ÚP</div>`;
+  $("placedSituationContent").innerHTML = `<div style="background:#334155; width:60px; height:80px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px; font-weight:bold;">🎴 ÚP</div>`;
 
   appendBattleLog("Bạn đã hoàn thành và úp bộ bài. Bot đang chuẩn bị...");
 
@@ -586,9 +586,9 @@ function botTurnProcess() {
   const botSit = sitKeys[Math.floor(Math.random() * sitKeys.length)];
   const botStat = Math.random() > 0.5 ? "ATK" : "DEF";
 
-  $("botSlotSkill").innerHTML = `<span style="font-size:10px; color:#ff5252;">🎴 ÚP</span>`;
-  $("botSlotChar").innerHTML = `<span style="font-size:10px; color:#ff5252;">🎴 ÚP</span>`;
-  $("botSlotSit").innerHTML = `<span style="font-size:10px; color:#ff5252;">🎴 ÚP</span>`;
+  $("botSlotSkill").innerHTML = `<span style="font-size:11px; color:#ff5252; font-weight:bold;">🎴 ÚP</span>`;
+  $("botSlotChar").innerHTML = `<span style="font-size:11px; color:#ff5252; font-weight:bold;">🎴 ÚP</span>`;
+  $("botSlotSit").innerHTML = `<span style="font-size:11px; color:#ff5252; font-weight:bold;">🎴 ÚP</span>`;
 
   appendBattleLog("Bot đã hoàn thành bộ bài và úp xuống.");
   setTimeout(() => resolveBattlePhase(botChar, botSkill, botSit, botStat), 1500);
@@ -715,7 +715,7 @@ function resolveBattlePhase(botCharKey, botSkillKey, botSitKey, botStat) {
 function appendBattleLog(msg) {
   const box = $("battleLogBox");
   if (!box) return;
-  box.innerHTML += `<br>${msg}`;
+  box.innerHTML += `<div style="text-align: left; width: 100%; margin-top: 4px;">${msg}</div>`;
   box.scrollTop = box.scrollHeight;
 }
 
@@ -797,6 +797,106 @@ window.redeemGiftCode = function() {
   closeProfileModal();
 };
 
+// ==========================================
+// TÍNH NĂNG GỬI THƯ & TẶNG QUÀ ADMIN
+// ==========================================
+
+window.toggleRecipientMode = function() {
+  const mode = document.querySelector('input[name="recipientMode"]:checked').value;
+  const checklistBox = $("recipientChecklistBox");
+  if (mode === "selected") {
+    checklistBox.classList.remove("hidden");
+    const usersObj = state.users || {};
+    checklistBox.innerHTML = Object.keys(usersObj).map(key => `
+      <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12px; cursor: pointer;">
+        <input type="checkbox" name="selectedUser" value="${key}"> 👤 ${usersObj[key].username}
+      </label>
+    `).join("");
+  } else {
+    checklistBox.classList.add("hidden");
+  }
+};
+
+$("adminSendMailForm")?.addEventListener("submit", event => {
+  event.preventDefault();
+  if (!isAdmin) return;
+
+  const mode = document.querySelector('input[name="recipientMode"]:checked').value;
+  const title = $("mailSubjectInput").value.trim();
+  const body = $("mailBodyInput").value.trim();
+  const coins = Number($("adminGiftCoins").value) || 0;
+  const pack = $("adminGiftPack").value;
+
+  const mailObj = {
+    title,
+    body,
+    coins,
+    packs: pack ? [pack] : [],
+    claimed: false
+  };
+
+  if (mode === "all") {
+    Object.keys(state.users).forEach(key => {
+      if (!Array.isArray(state.users[key].mailbox)) state.users[key].mailbox = [];
+      state.users[key].mailbox.push({ ...mailObj });
+    });
+    showToast("Đã gửi thư & tặng quà tới TẤT CẢ người chơi!");
+  } else {
+    const checkedUsers = Array.from(document.querySelectorAll('input[name="selectedUser"]:checked')).map(el => el.value);
+    if (checkedUsers.length === 0) return showToast("Vui lòng chọn ít nhất 1 người nhận!");
+    checkedUsers.forEach(key => {
+      if (state.users[key]) {
+        if (!Array.isArray(state.users[key].mailbox)) state.users[key].mailbox = [];
+        state.users[key].mailbox.push({ ...mailObj });
+      }
+    });
+    showToast(`Đã gửi thư & tặng quà tới ${checkedUsers.length} người chơi!`);
+  }
+
+  saveState();
+  $("adminSendMailForm").reset();
+  toggleRecipientMode();
+});
+
+let selectedUserForQuickGift = null;
+
+window.openAdminGiftModal = function(usernameKey) {
+  selectedUserForQuickGift = usernameKey;
+  const u = state.users[usernameKey];
+  if (!u) return;
+  $("targetGiftUsername").textContent = `Người nhận: ${u.username}`;
+  $("quickGiftCoins").value = 10;
+  $("quickGiftPack").value = "";
+  $("adminGiftModal").classList.remove("hidden");
+};
+
+window.submitQuickGift = function() {
+  if (!selectedUserForQuickGift || !state.users[selectedUserForQuickGift]) return;
+  const u = state.users[selectedUserForQuickGift];
+  const coins = Number($("quickGiftCoins").value) || 0;
+  const pack = $("quickGiftPack").value;
+
+  if (coins > 0) u.coins += coins;
+  if (pack) {
+    if (!Array.isArray(u.bag)) u.bag = [];
+    u.bag.push(pack);
+  }
+
+  if (!Array.isArray(u.mailbox)) u.mailbox = [];
+  u.mailbox.push({
+    title: "🎁 Quà từ Admin",
+    body: `Admin đã gửi tặng bạn ${coins} xu${pack ? ' và 1 ' + pack + ' pack' : ''}!`,
+    coins,
+    packs: pack ? [pack] : [],
+    claimed: true
+  });
+
+  saveState();
+  showToast(`Đã tặng quà thành công cho ${u.username}!`);
+  $("adminGiftModal").classList.add("hidden");
+  renderAdminUserManagement();
+};
+
 function renderAdminUserManagement() {
   if (!isAdmin) return;
   const usersObj = state.users || {};
@@ -811,20 +911,34 @@ function renderAdminUserManagement() {
     const u = usersObj[key];
     const isBanned = !!u.banned;
     return `
-      <div class="admin-mgmt-card ${isBanned ? 'banned-card' : ''}">
-        <div class="mgmt-header">
+      <div class="admin-mgmt-card ${isBanned ? 'banned-card' : ''}" style="background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 12px; border-radius: 10px; margin-bottom: 10px;">
+        <div class="mgmt-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
           <strong>👤 ${u.username}</strong>
-          <span class="mgmt-status-badge ${isBanned ? 'banned' : ''}">${isBanned ? 'BANNED' : 'ACTIVE'}</span>
+          <span class="mgmt-status-badge ${isBanned ? 'banned' : ''}" style="font-size: 10px; padding: 2px 8px; border-radius: 4px; background: ${isBanned ? '#ff5252' : '#8ef0c1'}; color: #000; font-weight: bold;">${isBanned ? 'BANNED' : 'ACTIVE'}</span>
         </div>
-        <small style="color: var(--muted); font-size: 11px;">📧 ${u.email || 'Không có'}</small>
-        <div class="mgmt-stats">
+        <small style="color: var(--muted); font-size: 11px; display: block; margin-bottom: 8px;">📧 ${u.email || 'Không có'}</small>
+        <div class="mgmt-stats" style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 10px;">
           <span>🪙 Xu: <b>${u.coins}</b></span>
           <span>🃏 Thẻ: <b>${u.cards ? u.cards.length : 0}</b></span>
+          <span>🎒 Pack: <b>${u.bag ? u.bag.length : 0}</b></span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="primary-btn" onclick="openAdminGiftModal('${key}')" style="flex: 1; padding: 6px; font-size: 11px; background: #00d2ff; color: #000; font-weight: bold;">🎁 Tặng quà</button>
+          <button class="primary-btn" onclick="toggleBanUser('${key}')" style="flex: 1; padding: 6px; font-size: 11px; background: ${isBanned ? '#8ef0c1' : '#ff5252'}; color: #000; font-weight: bold;">${isBanned ? 'Mở khóa' : 'Khóa TK'}</button>
         </div>
       </div>
     `;
   }).join("");
 }
+
+window.toggleBanUser = function(key) {
+  const u = state.users[key];
+  if (!u) return;
+  u.banned = !u.banned;
+  saveState();
+  renderAdminUserManagement();
+  showToast(`Đã ${u.banned ? 'khóa' : 'mở khóa'} tài khoản ${u.username}!`);
+};
 
 window.exportDataBackup = function() {
   const exportPayload = isAdmin ? state : {
