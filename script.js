@@ -47,6 +47,7 @@ let isTearingPack = false;
 let currentAlbumFilter = "ALL";
 let toastTimer;
 
+// Trạng thái trận đấu TCG 250 HP & 30s
 let battleState = {
   playerHp: 250,
   maxPlayerHp: 250,
@@ -55,7 +56,7 @@ let battleState = {
   selectedSkill: null,
   selectedCharacter: null,
   selectedSituation: null,
-  playerStatType: "ATK",
+  playerStatType: "ATK", // 'ATK' hoặc 'DEF'
   playerSubmitted: false,
   timerInterval: null,
   timeLeft: 30
@@ -445,7 +446,7 @@ window.claimSingleMail = function(idx) {
 };
 
 // ==========================================
-// LOGIC SÂN ĐẤU PVE TCG 250 HP & 30 GIÂY
+// LOGIC SÂN ĐẤU TCG 250 HP & 30 GIÂY
 // ==========================================
 
 function startAdvancedPveBattle() {
@@ -545,13 +546,13 @@ window.clearSlot = function(category) {
 
 function renderBattleSlots() {
   const skillBox = $("placedSkillContent");
-  skillBox.innerHTML = battleState.selectedSkill ? `<img src="${cards[battleState.selectedSkill].file}" style="width: 42px; height: 52px; object-fit: cover; border-radius: 4px;"><strong style="font-size: 9px; display: block;">${cards[battleState.selectedSkill].name}</strong>` : `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
+  skillBox.innerHTML = battleState.selectedSkill ? `<img src="${cards[battleState.selectedSkill].file}" style="width: 45px; height: 65px; object-fit: cover; border-radius: 4px;"><strong style="font-size: 9px; display: block;">${cards[battleState.selectedSkill].name}</strong>` : `<small style="color: var(--muted); font-size: 9px;">Trống</small>`;
 
   const charBox = $("placedCharacterContent");
-  charBox.innerHTML = battleState.selectedCharacter ? `<img src="${cards[battleState.selectedCharacter].file}" style="width: 42px; height: 52px; object-fit: cover; border-radius: 4px;"><strong style="font-size: 9px; display: block;">${cards[battleState.selectedCharacter].name} (${battleState.playerStatType})</strong>` : `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
+  charBox.innerHTML = battleState.selectedCharacter ? `<img src="${cards[battleState.selectedCharacter].file}" style="width: 45px; height: 65px; object-fit: cover; border-radius: 4px;"><strong style="font-size: 9px; display: block;">${cards[battleState.selectedCharacter].name} (${battleState.playerStatType})</strong>` : `<small style="color: var(--muted); font-size: 9px;">Trống</small>`;
 
   const sitBox = $("placedSituationContent");
-  sitBox.innerHTML = battleState.selectedSituation ? `<img src="${cards[battleState.selectedSituation].file}" style="width: 42px; height: 52px; object-fit: cover; border-radius: 4px;"><strong style="font-size: 9px; display: block;">${cards[battleState.selectedSituation].name}</strong>` : `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
+  sitBox.innerHTML = battleState.selectedSituation ? `<img src="${cards[battleState.selectedSituation].file}" style="width: 45px; height: 65px; object-fit: cover; border-radius: 4px;"><strong style="font-size: 9px; display: block;">${cards[battleState.selectedSituation].name}</strong>` : `<small style="color: var(--muted); font-size: 9px;">Trống</small>`;
 
   $("botHpText").textContent = `${battleState.botHp} / ${battleState.maxBotHp}`;
   $("playerHpText").textContent = `${battleState.playerHp} / ${battleState.maxPlayerHp}`;
@@ -565,9 +566,9 @@ window.confirmPlayerTurn = function() {
   clearInterval(battleState.timerInterval);
   $("confirmTurnBtn").disabled = true;
 
-  $("placedSkillContent").innerHTML = `<div style="background:#334155; width:42px; height:52px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">🎴 ÚP</div>`;
-  $("placedCharacterContent").innerHTML = `<div style="background:#334155; width:42px; height:52px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">🎴 ÚP</div>`;
-  $("placedSituationContent").innerHTML = `<div style="background:#334155; width:42px; height:52px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">🎴 ÚP</div>`;
+  $("placedSkillContent").innerHTML = `<div style="background:#334155; width:45px; height:65px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">🎴 ÚP</div>`;
+  $("placedCharacterContent").innerHTML = `<div style="background:#334155; width:45px; height:65px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">🎴 ÚP</div>`;
+  $("placedSituationContent").innerHTML = `<div style="background:#334155; width:45px; height:65px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">🎴 ÚP</div>`;
 
   appendBattleLog("Bạn đã hoàn thành và úp bộ bài. Bot đang chuẩn bị...");
 
@@ -585,6 +586,10 @@ function botTurnProcess() {
   const botSit = sitKeys[Math.floor(Math.random() * sitKeys.length)];
   const botStat = Math.random() > 0.5 ? "ATK" : "DEF";
 
+  $("botSlotSkill").innerHTML = `<span style="font-size:10px; color:#ff5252;">🎴 ÚP</span>`;
+  $("botSlotChar").innerHTML = `<span style="font-size:10px; color:#ff5252;">🎴 ÚP</span>`;
+  $("botSlotSit").innerHTML = `<span style="font-size:10px; color:#ff5252;">🎴 ÚP</span>`;
+
   appendBattleLog("Bot đã hoàn thành bộ bài và úp xuống.");
   setTimeout(() => resolveBattlePhase(botChar, botSkill, botSit, botStat), 1500);
 }
@@ -601,6 +606,7 @@ function resolveBattlePhase(botCharKey, botSkillKey, botSitKey, botStat) {
   let pLog = `Bạn lật [${pChar.name}] hệ ${battleState.playerStatType} (${pVal})`;
   let bLog = `Bot lật [${bChar.name}] hệ ${botStat} (${bVal})`;
 
+  // Xử lý Múa Quạt
   if (battleState.selectedSkill === "muaQuat") {
     if (pChar.name === "Khá Bảnh") {
       pVal *= 2;
@@ -611,10 +617,14 @@ function resolveBattlePhase(botCharKey, botSkillKey, botSitKey, botStat) {
     }
   }
   if (botSkillKey === "muaQuat") {
-    if (bChar.name === "Khá Bảnh") bVal *= 2;
-    else bVal += 20;
+    if (bChar.name === "Khá Bảnh") {
+      bVal *= 2;
+    } else {
+      bVal += 20;
+    }
   }
 
+  // Xử lý Chu Cấp 5 Củ
   if (battleState.selectedSkill === "chuCap5Cu") {
     if (pChar.name === "Jack") {
       pVal = (pChar.def || 13) * 5;
@@ -628,11 +638,29 @@ function resolveBattlePhase(botCharKey, botSkillKey, botSitKey, botStat) {
       bLog += " | Bị Chu Cấp 5 Củ trừ DEF về 0!";
     }
   }
+  if (botSkillKey === "chuCap5Cu") {
+    if (bChar.name === "Jack") {
+      bVal = (bChar.def || 13) * 5;
+    } else {
+      bVal = Math.round((bChar.def || 10) * 1.5);
+    }
+    if (battleState.playerStatType === "DEF") {
+      pVal = 0;
+      pLog += " | Bị Chu Cấp 5 Củ của Bot trừ DEF về 0!";
+    }
+  }
 
+  // Xử lý Vào Tù
   if (battleState.selectedSituation === "vaoTu") {
     if (bChar.name === "Khá Bảnh") {
       bVal = Math.max(0, bVal - 15);
-      bLog += " | Dính Vào Tù trừ 15 điểm!";
+      pLog += " | Vào Tù trừ 15 điểm Khá Bảnh đối thủ!";
+    }
+  }
+  if (botSitKey === "vaoTu") {
+    if (pChar.name === "Khá Bảnh") {
+      pVal = Math.max(0, pVal - 15);
+      bLog += " | Vào Tù trừ 15 điểm Khá Bảnh của bạn!";
     }
   }
 
@@ -643,16 +671,19 @@ function resolveBattlePhase(botCharKey, botSkillKey, botSitKey, botStat) {
   if (pVal > bVal) {
     diff = pVal - bVal;
     battleState.botHp = Math.max(0, battleState.botHp - diff);
-    appendBattleLog(`🎉 Bạn thắng lượt này! Bot mất ${diff} HP.`);
+    appendBattleLog(`🎉 Bạn thắng lượt này (${pVal} - ${bVal})! Bot mất ${diff} HP.`);
   } else if (bVal > pVal) {
     diff = bVal - pVal;
     battleState.playerHp = Math.max(0, battleState.playerHp - diff);
-    appendBattleLog(`💥 Bot thắng lượt này! Bạn mất ${diff} HP.`);
+    appendBattleLog(`💥 Bot thắng lượt này (${bVal} - ${pVal})! Bạn mất ${diff} HP.`);
   } else {
     appendBattleLog(`🤝 Hai bên hòa nhau! Không ai mất HP.`);
   }
 
   renderBattleSlots();
+  $("botSlotSkill").innerHTML = `Skill`;
+  $("botSlotChar").innerHTML = `NV`;
+  $("botSlotSit").innerHTML = `Tình huống`;
 
   if (battleState.botHp <= 0) {
     appendBattleLog("🏆 BẠN ĐÃ ĐÁNH BẠI BOT VÀ NHẬN 30 XU!");
@@ -796,20 +827,6 @@ function renderAdminUserManagement() {
       </div>
     `;
   }).join("");
-}
-
-function renderAdminSendMailScreen() {
-  if (!isAdmin) return;
-  const checklistBox = $("recipientChecklistBox");
-  if (!checklistBox) return;
-  const usersObj = state.users || {};
-  const keys = Object.keys(usersObj);
-  checklistBox.innerHTML = keys.map(k => `
-    <label class="recipient-check-item">
-      <input type="checkbox" name="selectedRecipients" value="${k}">
-      <span>👤 ${usersObj[k].username}</span>
-    </label>
-  `).join("");
 }
 
 window.exportDataBackup = function() {
