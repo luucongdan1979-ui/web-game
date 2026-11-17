@@ -1174,9 +1174,9 @@ function startAdvancedPveBattle() {
   const playerName = isAdmin ? "Admin" : profile.username;
   if ($("playerBattleName")) $("playerBattleName").textContent = playerName;
 
-  if ($("battleLogBox")) {
-    $("battleLogBoxinnerHTML"] = "[Hệ thống] Bắt đầu trận đấu (Mỗi người 250 HP)! Bạn có 30s để chọn bài và nhấn hoàn thành.";
-  }
+ if ($("battleLogBox")) {
+  $("battleLogBox").innerHTML = "[Hệ thống] Bắt đầu trận đấu (Mỗi người 250 HP)! Bạn có 30s để chọn bài và nhấn hoàn thành.";
+}
 
   // Bot tự động chọn bài ngẫu nhiên từ kho bài (úm xuống)
   const allCardIds = Object.keys(cards);
