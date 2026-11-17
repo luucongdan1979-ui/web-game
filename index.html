@@ -40,6 +40,9 @@
           <div class="hero-emoji">🃏</div>
           <div class="hero-caption">COLLECT YOUR MEMES</div>
         </div>
+        <span class="floating f1">LEGENDARY</span>
+        <span class="floating f2">50 / 50</span>
+        <span class="floating f3">✦ RARE ✦</span>
       </div>
 
       <div class="auth-panel">
@@ -126,7 +129,7 @@
             <div class="arena-action-column">
               <p class="eyebrow">PVE ARENA BATTLE</p>
               <h2 style="font-size: 26px; margin: 5px 0 10px;">Thách đấu <span>Bot</span></h2>
-              <p class="muted" style="margin-bottom: 18px;">Đem bộ bài meme mạnh nhất của bạn ra để so tài với các bot chiến thuật!</p>
+              <p class="muted" style="margin-bottom: 18px;">Đem bộ bài meme mạnh nhất của bạn ra để so tài với các bot chiến thuật 250 HP!</p>
               <div class="arena-btn-stack">
                 <button id="startPveBtn" class="primary-btn arena-mode-btn pve-btn">
                   <span class="mode-btn-icon">⚔️</span>
@@ -143,7 +146,7 @@
       </div>
     </section>
 
-    <!-- MÀN HÌNH SÂN ĐẤU TCG 2 BÊN (30S, ÚP BÀI, CHAT BÊN TRÁI, 250 HP) -->
+    <!-- MÀN HÌNH SÂN ĐẤU TCG 250 HP (30S, ÚP BÀI, CHAT TRÁI, Ô HÌNH CHỮ NHẬT DỌC) -->
     <section id="pveBattleScreen" class="content-screen hidden">
       <div class="section-heading" style="margin-bottom: 8px;">
         <div>
@@ -170,15 +173,15 @@
             </div>
           </div>
 
-          <!-- Sân đặt thẻ của Bot (Úp / Lật) -->
-          <div style="display: flex; gap: 6px;" id="botSlotsContainer">
-            <div class="bot-slot" id="botSlotSkill" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 45px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--muted);">Skill</div>
-            <div class="bot-slot" id="botSlotChar" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 45px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--muted);">NV</div>
-            <div class="bot-slot" id="botSlotSit" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 45px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--muted);">Tình huống</div>
+          <!-- 3 Ô đặt thẻ trên sân của Bot (Hình chữ nhật dọc, bằng kích thước người chơi) -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="botSlotsContainer">
+            <div class="bot-slot" id="botSlotSkill" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: #ff5252; text-align: center;">Skill</div>
+            <div class="bot-slot" id="botSlotChar" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: #ff5252; text-align: center;">NV</div>
+            <div class="bot-slot" id="botSlotSit" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: #ff5252; text-align: center;">Tình huống</div>
           </div>
 
           <!-- Chồng bài Bot -->
-          <div style="background: #334155; border: 2px solid #ff5252; width: 45px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #ff5252; font-weight: bold;">BOT DECK</div>
+          <div style="background: #334155; border: 2px solid #ff5252; width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #ff5252; font-weight: bold;">BOT DECK</div>
         </div>
 
         <!-- KHU VỰC TRUNG TÂM: CHAT HỆ THỐNG BÊN TRÁI -->
@@ -194,28 +197,28 @@
         <!-- BÊN DƯỚI: NGƯỜI CHƠI -->
         <div style="background: rgba(142, 240, 193, 0.08); border: 1px solid rgba(142, 240, 193, 0.3); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
           
-          <!-- 3 Ô đặt thẻ trên sân của người chơi -->
+          <!-- 3 Ô đặt thẻ trên sân của người chơi (Hình chữ nhật dọc chuẩn) -->
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-            <div onclick="clearSlot('SKILL')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #8ef0c1; border-radius: 8px; min-height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px; text-align: center; cursor: pointer;">
-              <span style="font-size: 10px; color: #8ef0c1; font-weight: bold;">✨ Ô SKILL</span>
-              <div id="placedSkillContent" style="margin-top: 4px;"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
+            <div onclick="clearSlot('SKILL')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #8ef0c1; border-radius: 8px; width: 55px; height: 75px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px; text-align: center; cursor: pointer;">
+              <span style="font-size: 9px; color: #8ef0c1; font-weight: bold;">✨ SKILL</span>
+              <div id="placedSkillContent" style="margin-top: 2px;"><small style="color: var(--muted); font-size: 9px;">Trống</small></div>
             </div>
 
-            <div onclick="clearSlot('CHARACTER')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #ffd700; border-radius: 8px; min-height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px; text-align: center; cursor: pointer;">
-              <span style="font-size: 10px; color: #ffd700; font-weight: bold;">👤 NHÂN VẬT</span>
-              <div id="placedCharacterContent" style="margin-top: 4px;"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
+            <div onclick="clearSlot('CHARACTER')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #ffd700; border-radius: 8px; width: 55px; height: 75px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px; text-align: center; cursor: pointer;">
+              <span style="font-size: 9px; color: #ffd700; font-weight: bold;">👤 NHÂN VẬT</span>
+              <div id="placedCharacterContent" style="margin-top: 2px;"><small style="color: var(--muted); font-size: 9px;">Trống</small></div>
             </div>
 
-            <div onclick="clearSlot('SITUATION')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #00d2ff; border-radius: 8px; min-height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px; text-align: center; cursor: pointer;">
-              <span style="font-size: 10px; color: #00d2ff; font-weight: bold;">📜 TÌNH HUỐNG</span>
-              <div id="placedSituationContent" style="margin-top: 4px;"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
+            <div onclick="clearSlot('SITUATION')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #00d2ff; border-radius: 8px; width: 55px; height: 75px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px; text-align: center; cursor: pointer;">
+              <span style="font-size: 9px; color: #00d2ff; font-weight: bold;">📜 TÌNH HUỐNG</span>
+              <div id="placedSituationContent" style="margin-top: 2px;"><small style="color: var(--muted); font-size: 9px;">Trống</small></div>
             </div>
           </div>
 
           <!-- Thông tin & Chồng bài bốc -->
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <div id="playerDeckPile" onclick="openPlayerDeckPicker()" title="Nhấn để bốc bài từ Album" style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid var(--panel-border); width: 50px; height: 68px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+              <div id="playerDeckPile" onclick="openPlayerDeckPicker()" title="Nhấn để bốc bài từ Album" style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid var(--panel-border); width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
                 <span style="font-size: 16px;">🎴</span>
                 <small style="font-size: 9px; color: var(--text); font-weight: bold; margin-top: 2px;">BỐC</small>
               </div>
@@ -450,6 +453,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="script.js"></script>
+  <script type="module" src="script (6).js"></script>
 </body>
 </html>
