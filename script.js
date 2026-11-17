@@ -82,6 +82,17 @@ let currentAlbumFilter = "ALL";
 let targetGiftUserKey = null;
 let toastTimer;
 
+// Trạng thái sân đấu PvE (3 ô Skill - Nhân vật - Tình huống)
+let battleDeckState = {
+  selectedSkill: null,
+  selectedCharacter: null,
+  selectedSituation: null,
+  botHp: 100,
+  maxBotHp: 100,
+  playerHp: 100,
+  maxPlayerHp: 100
+};
+
 function loadState() {
   try {
     let data = JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -293,8 +304,8 @@ function enterGame(displayName) {
 }
 
 function showScreen(screenId) {
-  ["gameScreen", "shopScreen", "backpackScreen", "albumScreen", "mailScreen", "adminSendMailScreen", "adminCheckScreen"].forEach(id => {
-    $(id).classList.toggle("hidden", id !== screenId);
+  ["gameScreen", "pveBattleScreen", "shopScreen", "backpackScreen", "albumScreen", "mailScreen", "adminSendMailScreen", "adminCheckScreen"].forEach(id => {
+    if ($(id)) $(id).classList.toggle("hidden", id !== screenId);
   });
 
   document.querySelectorAll(".nav-item[data-screen]").forEach(btn => {
@@ -334,6 +345,7 @@ $("logoutBtn").addEventListener("click", () => {
 
   $("authScreen").classList.remove("hidden");
   $("gameScreen").classList.add("hidden");
+  if ($("pveBattleScreen")) $("pveBattleScreen").classList.add("hidden");
   $("shopScreen").classList.add("hidden");
   $("backpackScreen").classList.add("hidden");
   $("albumScreen").classList.add("hidden");
@@ -1119,9 +1131,212 @@ window.importDataBackup = async function(event) {
   event.target.value = "";
 };
 
+// ==========================================
+// LOGIC SÂN ĐẤU PVE (3 Ô: SKILL - NHÂN VẬT - TÌNH HUỐNG)
+// ==========================================
+
+function startAdvancedPveBattle() {
+  const profile = getProfile();
+  const ownedCards = isAdmin ? Object.keys(cards) : (profile?.cards || []);
+
+  if (ownedCards.length === 0) {
+    return showToast("Bạn cần có ít nhất 1 thẻ bài trong Album để vào sân đấu!");
+  }
+
+  battleDeckState.botHp = 100;
+  battleDeckState.maxBotHp = 100;
+  battleDeckState.playerHp = 100;
+  battleDeckState.maxPlayerHp = 100;
+  battleDeckState.selectedSkill = null;
+  battleDeckState.selectedCharacter = null;
+  battleDeckState.selectedSituation = null;
+
+  showScreen("pveBattleScreen");
+
+  const playerName = isAdmin ? "Admin" : profile.username;
+  if ($("playerBattleName")) $("playerBattleName").textContent = `👤 ${playerName}`;
+
+  if ($("battleLogBox")) {
+    $("battleLogBox").innerHTML = "[Hệ thống] Vào sân đấu! Hãy chọn thẻ Skill, Nhân vật và Tình huống từ sấp bài bên dưới.";
+  }
+
+  renderBattleSlots();
+  renderBattleDeck();
+}
+
+function renderBattleDeck() {
+  const profile = getProfile();
+  const ownedCards = isAdmin ? Object.keys(cards) : (profile?.cards || []);
+  const deckGrid = $("battleDeckGrid");
+  if (!deckGrid) return;
+
+  deckGrid.innerHTML = ownedCards.map(cid => {
+    const card = cards[cid];
+    if (!card) return "";
+    const catLabel = CATEGORY_LABELS[card.category] || card.category;
+    return `
+      <div onclick="selectCardToSlot('${cid}')" style="min-width: 78px; max-width: 78px; background: rgba(0,0,0,0.6); border: 1px solid var(--panel-border); border-radius: 8px; padding: 6px; text-align: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s;">
+        <img src="${card.file}" alt="${card.name}" style="width: 54px; height: 70px; object-fit: cover; border-radius: 4px; display: block; margin: 0 auto;">
+        <strong style="font-size: 10px; display: block; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${card.name}</strong>
+        <small style="font-size: 9px; color: var(--muted); display: block;">${catLabel}</small>
+      </div>
+    `;
+  }).join("");
+}
+
+window.selectCardToSlot = function(cardId) {
+  const card = cards[cardId];
+  if (!card) return;
+
+  if (card.category === "SKILL") {
+    battleDeckState.selectedSkill = cardId;
+    showToast(`Đã đặt [${card.name}] vào ô Skill!`);
+  } else if (card.category === "CHARACTER") {
+    battleDeckState.selectedCharacter = cardId;
+    showToast(`Đã đặt [${card.name}] vào ô Nhân vật!`);
+  } else if (card.category === "SITUATION") {
+    battleDeckState.selectedSituation = cardId;
+    showToast(`Đã đặt [${card.name}] vào ô Tình huống!`);
+  }
+
+  renderBattleSlots();
+};
+
+window.clearSlot = function(category) {
+  if (category === "SKILL" && battleDeckState.selectedSkill) {
+    battleDeckState.selectedSkill = null;
+    showToast("Đã gỡ thẻ khỏi ô Skill!");
+  } else if (category === "CHARACTER" && battleDeckState.selectedCharacter) {
+    battleDeckState.selectedCharacter = null;
+    showToast("Đã gỡ thẻ khỏi ô Nhân vật!");
+  } else if (category === "SITUATION" && battleDeckState.selectedSituation) {
+    battleDeckState.selectedSituation = null;
+    showToast("Đã gỡ thẻ khỏi ô Tình huống!");
+  }
+  renderBattleSlots();
+};
+
+function renderBattleSlots() {
+  // Ô Skill
+  const skillBox = $("placedSkillContent");
+  if (skillBox) {
+    if (battleDeckState.selectedSkill) {
+      const c = cards[battleDeckState.selectedSkill];
+      skillBox.innerHTML = `
+        <img src="${c.file}" style="width: 54px; height: 70px; object-fit: cover; border-radius: 4px; margin-bottom: 4px;">
+        <strong style="font-size: 10px;">${c.name}</strong>
+      `;
+    } else {
+      skillBox.innerHTML = `<small style="color: var(--muted); font-size: 11px;">Trống</small>`;
+    }
+  }
+
+  // Ô Nhân vật
+  const charBox = $("placedCharacterContent");
+  if (charBox) {
+    if (battleDeckState.selectedCharacter) {
+      const c = cards[battleDeckState.selectedCharacter];
+      charBox.innerHTML = `
+        <img src="${c.file}" style="width: 54px; height: 70px; object-fit: cover; border-radius: 4px; margin-bottom: 4px;">
+        <strong style="font-size: 10px;">${c.name} (⚔️${c.atk})</strong>
+      `;
+    } else {
+      charBox.innerHTML = `<small style="color: var(--muted); font-size: 11px;">Trống</small>`;
+    }
+  }
+
+  // Ô Tình huống
+  const sitBox = $("placedSituationContent");
+  if (sitBox) {
+    if (battleDeckState.selectedSituation) {
+      const c = cards[battleDeckState.selectedSituation];
+      sitBox.innerHTML = `
+        <img src="${c.file}" style="width: 54px; height: 70px; object-fit: cover; border-radius: 4px; margin-bottom: 4px;">
+        <strong style="font-size: 10px;">${c.name}</strong>
+      `;
+    } else {
+      sitBox.innerHTML = `<small style="color: var(--muted); font-size: 11px;">Trống</small>`;
+    }
+  }
+
+  // Cập nhật thanh HP
+  if ($("botHpText")) $("botHpText").textContent = `${battleDeckState.botHp} / ${battleDeckState.maxBotHp}`;
+  if ($("botHpBar")) $("botHpBar").style.width = `${(battleDeckState.botHp / battleDeckState.maxBotHp) * 100}%`;
+
+  if ($("playerHpText")) $("playerHpText").textContent = `${battleDeckState.playerHp} / ${battleDeckState.maxPlayerHp}`;
+  if ($("playerHpBar")) $("playerHpBar").style.width = `${(battleDeckState.playerHp / battleDeckState.maxPlayerHp) * 100}%`;
+}
+
+window.executeBattleTurn = function() {
+  if (battleDeckState.botHp <= 0 || battleDeckState.playerHp <= 0) return;
+
+  if (!battleDeckState.selectedCharacter) {
+    return showToast("Bạn bắt buộc phải đặt thẻ Nhân vật vào sân trước khi tấn công!");
+  }
+
+  const charCard = cards[battleDeckState.selectedCharacter];
+  let totalDamage = charCard && charCard.atk ? charCard.atk : 20;
+  let bonusText = `⚔️ Nhân vật [${charCard.name}] ra đòn gây ${totalDamage} sát thương`;
+
+  if (battleDeckState.selectedSkill) {
+    const skillCard = cards[battleDeckState.selectedSkill];
+    totalDamage += 15;
+    bonusText += ` + Skill [${skillCard.name}] (+15)`;
+  }
+
+  if (battleDeckState.selectedSituation) {
+    const sitCard = cards[battleDeckState.selectedSituation];
+    totalDamage += 10;
+    bonusText += ` + Tình huống [${sitCard.name}] (+10)`;
+  }
+
+  bonusText += ` => Tổng: ${totalDamage} sát thương!`;
+
+  battleDeckState.botHp = Math.max(0, battleDeckState.botHp - totalDamage);
+  logAdvancedBattle(bonusText);
+  renderBattleSlots();
+
+  if (battleDeckState.botHp <= 0) {
+    logAdvancedBattle("🎉 CHIẾN THẮNG! Bạn đã hạ gục Bot và nhận thưởng 20 Xu!");
+    const profile = getProfile();
+    if (!isAdmin && profile) {
+      profile.coins += 20;
+      saveState();
+      renderProfile();
+    }
+    setTimeout(() => quitPveBattle(), 3000);
+    return;
+  }
+
+  // Lượt Bot phản công
+  setTimeout(() => {
+    if (battleDeckState.botHp <= 0) return;
+    const botDmg = Math.floor(Math.random() * 16) + 12;
+    battleDeckState.playerHp = Math.max(0, battleDeckState.playerHp - botDmg);
+    logAdvancedBattle(`🤖 Bot phản đòn và gây ra ${botDmg} sát thương cho bạn!`);
+    renderBattleSlots();
+
+    if (battleDeckState.playerHp <= 0) {
+      logAdvancedBattle("💥 THẤT BẠI! Bạn đã bị Bot đánh bại. Hãy thử lại nhé!");
+      setTimeout(() => quitPveBattle(), 3000);
+    }
+  }, 900);
+};
+
+function logAdvancedBattle(msg) {
+  const box = $("battleLogBox");
+  if (!box) return;
+  box.innerHTML += `<br>${msg}`;
+  box.scrollTop = box.scrollHeight;
+}
+
+window.quitPveBattle = function() {
+  showScreen("gameScreen");
+};
+
 document.addEventListener("click", event => {
   if (event.target.closest("#startPveBtn")) {
-    showToast("⚔️ Chế độ Chiến Đấu (PvE) đang chuẩn bị sẵn sàng!");
+    startAdvancedPveBattle();
   }
 
   if (event.target.closest("#startTrainingBtn")) {
@@ -1140,7 +1355,7 @@ document.addEventListener("click", event => {
     if ($("trainingGuideModal")) {
       $("trainingGuideModal").classList.add("hidden");
     }
-    showToast("🎯 Đang khởi tạo trận Tập Luyện với Bot...");
+    startAdvancedPveBattle();
   }
 });
 
