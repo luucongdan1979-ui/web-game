@@ -606,7 +606,6 @@ function resolveBattlePhase(botCharKey, botSkillKey, botSitKey, botStat) {
   let pLog = `Bạn lật [${pChar.name}] hệ ${battleState.playerStatType} (${pVal})`;
   let bLog = `Bot lật [${bChar.name}] hệ ${botStat} (${bVal})`;
 
-  // Xử lý Múa Quạt
   if (battleState.selectedSkill === "muaQuat") {
     if (pChar.name === "Khá Bảnh") {
       pVal *= 2;
@@ -624,7 +623,6 @@ function resolveBattlePhase(botCharKey, botSkillKey, botSitKey, botStat) {
     }
   }
 
-  // Xử lý Chu Cấp 5 Củ
   if (battleState.selectedSkill === "chuCap5Cu") {
     if (pChar.name === "Jack") {
       pVal = (pChar.def || 13) * 5;
@@ -650,7 +648,6 @@ function resolveBattlePhase(botCharKey, botSkillKey, botSitKey, botStat) {
     }
   }
 
-  // Xử lý Vào Tù
   if (battleState.selectedSituation === "vaoTu") {
     if (bChar.name === "Khá Bảnh") {
       bVal = Math.max(0, bVal - 15);
