@@ -258,6 +258,90 @@
       </div>
     </section>
 
+    <!-- MÀN HÌNH SÂN ĐẤU PVE (CÓ 3 Ô VÀ SẤP BÀI ALBUM) -->
+    <section id="pveBattleScreen" class="content-screen hidden">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ARENA BATTLE</p>
+          <h2>Sân đấu <span>Chiến thuật Meme</span></h2>
+        </div>
+        <button class="primary-btn" onclick="quitPveBattle()" style="padding: 8px 14px; font-size: 11px;">🚪 Rời trận</button>
+      </div>
+
+      <div class="battle-arena-layout" style="display: flex; flex-direction: column; gap: 16px; max-width: 680px; margin: 0 auto;">
+        
+        <!-- KHUNG 2 BÊN: ĐỐI THỦ (BOT) VÀ NGƯỜI CHƠI -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <!-- BÊN NGƯỜI CHƠI -->
+          <div style="background: rgba(142,240,193,0.1); border: 2px solid var(--panel-border); padding: 12px; border-radius: 12px;">
+            <h3 id="playerBattleName" style="color: var(--text); margin: 0 0 6px; font-size: 15px;">👤 Người chơi</h3>
+            <div style="font-size: 12px; margin-bottom: 4px;">HP: <b id="playerHpText">100 / 100</b></div>
+            <div style="background: rgba(0,0,0,0.5); height: 10px; border-radius: 5px; overflow: hidden;">
+              <div id="playerHpBar" style="background: var(--panel-border); width: 100%; height: 100%; transition: width 0.3s;"></div>
+            </div>
+          </div>
+
+          <!-- BÊN BOT -->
+          <div style="background: rgba(255,50,50,0.1); border: 2px solid #ff5252; padding: 12px; border-radius: 12px; text-align: right;">
+            <h3 style="color: #ff5252; margin: 0 0 6px; font-size: 15px;">🤖 Bot Đấu Sĩ</h3>
+            <div style="font-size: 12px; margin-bottom: 4px;">HP: <b id="botHpText">100 / 100</b></div>
+            <div style="background: rgba(0,0,0,0.5); height: 10px; border-radius: 5px; overflow: hidden;">
+              <div id="botHpBar" style="background: #ff5252; width: 100%; height: 100%; transition: width 0.3s;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KHUNG NHẬT KÝ DIỄN BIẾN -->
+        <div id="battleLogBox" style="background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); padding: 10px 14px; border-radius: 10px; height: 85px; overflow-y: auto; font-size: 12px; color: var(--muted); line-height: 1.5;">
+          [Hệ thống] Vào sân đấu! Hãy chọn thẻ bài từ sấp bài bên dưới để đặt vào 3 ô chiến thuật.
+        </div>
+
+        <!-- 3 Ô ĐẶT THẺ CỦA NGƯỜI CHƠI (THEO THỨ TỰ: SKILL - NHÂN VẬT - TÌNH HUỐNG) -->
+        <div style="background: rgba(0,0,0,0.3); border: 2px dashed var(--panel-border); padding: 16px; border-radius: 14px;">
+          <h4 style="font-size: 13px; margin-bottom: 12px; color: var(--text); text-align: center;">⚔️ BÀN ĐẤU CỦA BẠN (3 VỊ TRÍ CHIẾN THUẬT)</h4>
+          
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+            <!-- Ô 1: SKILL -->
+            <div class="slot-box" id="slotSkill" onclick="clearSlot('SKILL')" title="Nhấn để gỡ thẻ" style="background: rgba(0,0,0,0.4); border: 2px solid #8ef0c1; border-radius: 10px; min-height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; text-align: center; cursor: pointer;">
+              <span style="font-size: 11px; color: #8ef0c1; font-weight: bold; margin-bottom: 6px;">✨ 1. SKILL</span>
+              <div id="placedSkillContent" style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <small style="color: var(--muted); font-size: 11px;">Trống</small>
+              </div>
+            </div>
+
+            <!-- Ô 2: NHÂN VẬT -->
+            <div class="slot-box" id="slotCharacter" onclick="clearSlot('CHARACTER')" title="Nhấn để gỡ thẻ" style="background: rgba(0,0,0,0.4); border: 2px solid #ffd700; border-radius: 10px; min-height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; text-align: center; cursor: pointer;">
+              <span style="font-size: 11px; color: #ffd700; font-weight: bold; margin-bottom: 6px;">👤 2. NHÂN VẬT</span>
+              <div id="placedCharacterContent" style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <small style="color: var(--muted); font-size: 11px;">Trống</small>
+              </div>
+            </div>
+
+            <!-- Ô 3: TÌNH HUỐNG -->
+            <div class="slot-box" id="slotSituation" onclick="clearSlot('SITUATION')" title="Nhấn để gỡ thẻ" style="background: rgba(0,0,0,0.4); border: 2px solid #00d2ff; border-radius: 10px; min-height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; text-align: center; cursor: pointer;">
+              <span style="font-size: 11px; color: #00d2ff; font-weight: bold; margin-bottom: 6px;">📜 3. TÌNH HUỐNG</span>
+              <div id="placedSituationContent" style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <small style="color: var(--muted); font-size: 11px;">Trống</small>
+              </div>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 14px;">
+            <button id="confirmBattleTurnBtn" class="primary-btn" onclick="executeBattleTurn()" style="padding: 10px 26px; font-size: 12px;">⚔️ RA ĐÒN TẤN CÔNG</button>
+          </div>
+        </div>
+
+        <!-- SẤP BÀI ĐÃ SỞ HỮU TRONG ALBUM -->
+        <div>
+          <h4 style="font-size: 13px; margin-bottom: 8px;">📚 Sấp bài sở hữu trong Album (Nhấn thẻ để đưa vào ô tương ứng):</h4>
+          <div id="battleDeckGrid" style="display: flex; gap: 10px; overflow-x: auto; background: rgba(0,0,0,0.35); padding: 12px; border-radius: 10px; min-height: 110px; border: 1px solid rgba(255,255,255,0.08);">
+            <!-- Thẻ bài trong album sẽ hiện ở đây -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
     <!-- SHOP -->
     <section id="shopScreen" class="content-screen hidden">
       <div class="section-heading">
