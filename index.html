@@ -121,7 +121,7 @@
                 <div class="clown-hat"><div class="hat-pom">⭐</div></div>
                 <div class="clown-curly-hair left-curls"><span class="curl c1"></span><span class="curl c2"></span></div>
                 <div class="clown-head"><div class="blush left"></div><div class="blush right"></div><div class="eye left"><span></span></div><div class="eye right"><span></span></div><div class="nose"></div><div class="smile"></div></div>
-                <div class="clown-body"><div class="collar"></div><div class="bowtie">🎀</div></div>
+                <div class="chibi-clown-body"><div class="collar"></div><div class="bowtie">🎀</div></div>
                 <div class="clown-legs"><div class="clown-leg left-leg"><div class="clown-shoe"></div></div><div class="clown-leg right-leg"><div class="clown-shoe"></div></div></div>
               </div>
             </div>
@@ -161,7 +161,7 @@
         </div>
       </div>
 
-      <div class="tcg-board" style="background: linear-gradient(135deg, #0f172a, #1e293b); border: 2px solid var(--panel-border); border-radius: 16px; padding: 14px; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px;">
+      <div class="tcg-board" style="background: linear-gradient(135deg, #0f172a, #1e293b); border: 2px solid var(--panel-border); border-radius: 16px; padding: 14px; max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px;">
         
         <!-- BÊN TRÊN: BOT -->
         <div style="background: rgba(255, 50, 50, 0.08); border: 1px solid rgba(255, 82, 82, 0.3); border-radius: 12px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
@@ -173,50 +173,53 @@
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="botSlotsContainer">
-            <div class="bot-slot" id="botSlotSkill" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: #ff5252; text-align: center;">Skill</div>
-            <div class="bot-slot" id="botSlotChar" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: #ff5252; text-align: center;">NV</div>
-            <div class="bot-slot" id="botSlotSit" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: #ff5252; text-align: center;">Tình huống</div>
+          <!-- 3 Ô đặt thẻ trên sân của Bot (Kích thước to bằng người chơi: 70x95px) -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+            <div class="bot-slot" id="botSlotSkill" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 70px; height: 95px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #ff5252; text-align: center;">Skill</div>
+            <div class="bot-slot" id="botSlotChar" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 70px; height: 95px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #ff5252; text-align: center;">NV</div>
+            <div class="bot-slot" id="botSlotSit" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 70px; height: 95px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #ff5252; text-align: center;">Tình huống</div>
           </div>
 
-          <div style="background: #334155; border: 2px solid #ff5252; width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #ff5252; font-weight: bold;">BOT DECK</div>
+          <div style="background: #334155; border: 2px solid #ff5252; width: 70px; height: 95px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #ff5252; font-weight: bold;">BOT DECK</div>
         </div>
 
-        <!-- KHU VỰC TRUNG TÂM: CHAT HỆ THỐNG BÊN TRÁI -->
+        <!-- KHU VỰC TRUNG TÂM: CHAT HỆ THỐNG CĂN TRÁI TUYỆT ĐỐI -->
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: center;">
-          <div id="battleLogBox" style="background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; height: 75px; overflow-y: auto; font-size: 11px; color: var(--muted); text-align: left;">
-            [Hệ thống] Trận đấu bắt đầu! Bạn có 30 giây để bốc bài, chọn hệ ATK/DEF và ấn Hoàn Thành.
+          <div id="battleLogBox" style="background: rgba(0,0,0,0.6); border: 1px solid var(--panel-border); padding: 12px; border-radius: 8px; height: 85px; overflow-y: auto; font-size: 12px; color: #e2e8f0; text-align: left; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; line-height: 1.5;">
+            <div style="text-align: left; width: 100%;">[Hệ thống] Trận đấu bắt đầu! Bạn có 30 giây để bốc bài, chọn hệ ATK/DEF và ấn Hoàn Thành.</div>
           </div>
           <div style="text-align: center;">
-            <button id="confirmTurnBtn" class="primary-btn" onclick="confirmPlayerTurn()" style="padding: 10px 16px; font-size: 12px; width: 100%;">⚔️ HOÀN THÀNH BÀI</button>
+            <button id="confirmTurnBtn" class="primary-btn" onclick="confirmPlayerTurn()" style="padding: 12px 16px; font-size: 12px; width: 100%;">⚔️ HOÀN THÀNH BÀI</button>
           </div>
         </div>
 
         <!-- BÊN DƯỚI: NGƯỜI CHƠI -->
         <div style="background: rgba(142, 240, 193, 0.08); border: 1px solid rgba(142, 240, 193, 0.3); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
           
+          <!-- 3 Ô đặt thẻ to hơn (70x95px) -->
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-            <div onclick="clearSlot('SKILL')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #8ef0c1; border-radius: 8px; width: 55px; height: 75px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px; text-align: center; cursor: pointer;">
-              <span style="font-size: 9px; color: #8ef0c1; font-weight: bold;">✨ SKILL</span>
+            <div onclick="clearSlot('SKILL')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #8ef0c1; border-radius: 10px; width: 70px; height: 95px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px; text-align: center; cursor: pointer;">
+              <span style="font-size: 10px; color: #8ef0c1; font-weight: bold;">✨ SKILL</span>
               <div id="placedSkillContent" style="margin-top: 2px;"><small style="color: var(--muted); font-size: 9px;">Trống</small></div>
             </div>
 
-            <div onclick="clearSlot('CHARACTER')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #ffd700; border-radius: 8px; width: 55px; height: 75px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px; text-align: center; cursor: pointer;">
-              <span style="font-size: 9px; color: #ffd700; font-weight: bold;">👤 NHÂN VẬT</span>
+            <div onclick="clearSlot('CHARACTER')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #ffd700; border-radius: 10px; width: 70px; height: 95px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px; text-align: center; cursor: pointer;">
+              <span style="font-size: 10px; color: #ffd700; font-weight: bold;">👤 NHÂN VẬT</span>
               <div id="placedCharacterContent" style="margin-top: 2px;"><small style="color: var(--muted); font-size: 9px;">Trống</small></div>
             </div>
 
-            <div onclick="clearSlot('SITUATION')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #00d2ff; border-radius: 8px; width: 55px; height: 75px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px; text-align: center; cursor: pointer;">
-              <span style="font-size: 9px; color: #00d2ff; font-weight: bold;">📜 TÌNH HUỐNG</span>
+            <div onclick="clearSlot('SITUATION')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #00d2ff; border-radius: 10px; width: 70px; height: 95px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2px; text-align: center; cursor: pointer;">
+              <span style="font-size: 10px; color: #00d2ff; font-weight: bold;">📜 TÌNH HUỐNG</span>
               <div id="placedSituationContent" style="margin-top: 2px;"><small style="color: var(--muted); font-size: 9px;">Trống</small></div>
             </div>
           </div>
 
+          <!-- Thông tin & Chồng bài bốc -->
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <div id="playerDeckPile" onclick="openPlayerDeckPicker()" title="Nhấn để bốc bài từ Album" style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid var(--panel-border); width: 55px; height: 75px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
-                <span style="font-size: 16px;">🎴</span>
-                <small style="font-size: 9px; color: var(--text); font-weight: bold; margin-top: 2px;">BỐC</small>
+              <div id="playerDeckPile" onclick="openPlayerDeckPicker()" title="Nhấn để bốc bài từ Album" style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid var(--panel-border); width: 70px; height: 95px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                <span style="font-size: 18px;">🎴</span>
+                <small style="font-size: 10px; color: var(--text); font-weight: bold; margin-top: 2px;">BỐC</small>
               </div>
               <div>
                 <h4 id="playerBattleName" style="color: var(--text); margin: 0; font-size: 13px;">Người chơi</h4>
@@ -275,31 +278,51 @@
       <p id="emptyMail" class="empty-state">Hòm thư trống!</p>
     </section>
 
-    <!-- ADMIN GỬI THƯ -->
+    <!-- ADMIN GỬI THƯ & TẶNG QUÀ -->
     <section id="adminSendMailScreen" class="content-screen hidden">
-      <div class="section-heading"><div><p class="eyebrow">ADMIN DISPATCH</p><h2>Gửi thư <span>& Quà tặng</span></h2></div></div>
-      <form id="adminSendMailForm" class="admin-mail-composer">
-        <div class="composer-group">
-          <label>1. Chọn người nhận</label>
-          <div class="recipient-mode-tabs">
-            <label class="radio-pill"><input type="radio" name="recipientMode" value="all" checked><span>📢 Tất cả</span></label>
-            <label class="radio-pill"><input type="radio" name="recipientMode" value="selected"><span>🎯 Cụ thể</span></label>
+      <div class="section-heading"><div><p class="eyebrow">ADMIN DISPATCH</p><h2>Gửi thư <span>& Tặng quà</span></h2></div></div>
+      <form id="adminSendMailForm" class="admin-mail-composer" style="background: rgba(0,0,0,0.4); padding: 16px; border-radius: 12px; border: 1px solid var(--panel-border);">
+        <div class="composer-group" style="margin-bottom: 12px;">
+          <label style="display: block; margin-bottom: 6px; font-weight: bold;">1. Chọn người nhận</label>
+          <div class="recipient-mode-tabs" style="display: flex; gap: 10px; margin-bottom: 8px;">
+            <label class="radio-pill"><input type="radio" name="recipientMode" value="all" checked onchange="toggleRecipientMode()"><span>📢 Tất cả người chơi</span></label>
+            <label class="radio-pill"><input type="radio" name="recipientMode" value="selected" onchange="toggleRecipientMode()"><span>🎯 Tài khoản cụ thể</span></label>
           </div>
-          <div id="recipientChecklistBox" class="recipient-checklist hidden"></div>
+          <div id="recipientChecklistBox" class="recipient-checklist hidden" style="max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 8px; border: 1px solid var(--panel-border);"></div>
         </div>
-        <div class="composer-group">
-          <label>2. Nội dung</label>
-          <input id="mailSubjectInput" placeholder="Tiêu đề..." required>
-          <textarea id="mailBodyInput" rows="3" placeholder="Lời nhắn..." required></textarea>
+
+        <div class="composer-group" style="margin-bottom: 12px;">
+          <label style="display: block; margin-bottom: 6px; font-weight: bold;">2. Đính kèm quà tặng (Xu / Pack)</label>
+          <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+              <small style="color: var(--muted);">Số lượng Xu:</small>
+              <input id="adminGiftCoins" type="number" value="0" min="0" style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); padding: 8px; border-radius: 6px; color: var(--text);">
+            </div>
+            <div style="flex: 1;">
+              <small style="color: var(--muted);">Tặng kèm Pack:</small>
+              <select id="adminGiftPack" style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); padding: 9px; border-radius: 6px; color: var(--text);">
+                <option value="">Không tặng pack</option>
+                <option value="basic">Basic Pack</option>
+                <option value="premium">Premium Pack</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <button type="submit" class="primary-btn" style="width: 100%; margin-top: 10px;">GỬI THƯ NGAY ✉</button>
+
+        <div class="composer-group" style="margin-bottom: 12px;">
+          <label style="display: block; margin-bottom: 6px; font-weight: bold;">3. Nội dung thư</label>
+          <input id="mailSubjectInput" placeholder="Tiêu đề thư quà tặng..." required style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); padding: 8px; border-radius: 6px; color: var(--text); margin-bottom: 6px;">
+          <textarea id="mailBodyInput" rows="3" placeholder="Lời nhắn từ Admin..." required style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); padding: 8px; border-radius: 6px; color: var(--text);"></textarea>
+        </div>
+
+        <button type="submit" class="primary-btn" style="width: 100%;">GỬI THƯ & TẶNG QUÀ NGAY ✉</button>
       </form>
     </section>
 
-    <!-- ADMIN CHECK TK -->
+    <!-- ADMIN CHECK TK & TẶNG QUÀ NHANH -->
     <section id="adminCheckScreen" class="content-screen hidden">
-      <div class="section-heading"><div><p class="eyebrow">ADMIN MANAGEMENT</p><h2>Quản lý <span>Tài khoản</span></h2></div></div>
-      <div class="admin-backup-bar">
+      <div class="section-heading"><div><p class="eyebrow">ADMIN MANAGEMENT</p><h2>Quản lý <span>Tài khoản & Tặng quà</span></h2></div></div>
+      <div class="admin-backup-bar" style="margin-bottom: 14px;">
         <button class="primary-btn" onclick="exportDataBackup()" style="font-size: 11px; padding: 10px 16px;">📥 Xuất Backup</button>
         <label class="primary-btn" style="font-size: 11px; padding: 10px 16px; cursor: pointer; display: inline-flex; align-items: center; margin: 0;">
           📤 Nhập Backup
@@ -342,6 +365,30 @@
         <button class="primary-btn" onclick="submitStatChoice('ATK')" style="flex: 1; background: #ff5252;">⚔️ DÙNG ATK</button>
         <button class="primary-btn" onclick="submitStatChoice('DEF')" style="flex: 1; background: #00d2ff;">🛡️ DÙNG DEF</button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL ADMIN TẶNG QUÀ TRỰC TIẾP CHO 1 USER -->
+  <div id="adminGiftModal" class="starter-overlay hidden">
+    <div class="starter-dialog" style="max-width: 420px;">
+      <button class="close-btn" onclick="$('adminGiftModal').classList.add('hidden')">×</button>
+      <p class="eyebrow">ADMIN QUICK GIFT</p>
+      <h2>Tặng quà tài khoản</h2>
+      <p id="targetGiftUsername" style="font-weight: bold; color: #8ef0c1; margin-bottom: 12px;"></p>
+      
+      <div style="margin-bottom: 12px; text-align: left;">
+        <label style="font-size: 12px; color: var(--muted);">Thêm số lượng Xu:</label>
+        <input id="quickGiftCoins" type="number" value="10" min="0" style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); padding: 8px; border-radius: 6px; color: var(--text); margin-top: 4px;">
+      </div>
+      <div style="margin-bottom: 16px; text-align: left;">
+        <label style="font-size: 12px; color: var(--muted);">Tặng kèm Pack:</label>
+        <select id="quickGiftPack" style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); padding: 8px; border-radius: 6px; color: var(--text); margin-top: 4px;">
+          <option value="">Không tặng pack</option>
+          <option value="basic">Basic Pack</option>
+          <option value="premium">Premium Pack</option>
+        </select>
+      </div>
+      <button class="primary-btn" onclick="submitQuickGift()" style="width: 100%;">XÁC NHẬN TẶNG QUÀ 🎁</button>
     </div>
   </div>
 
