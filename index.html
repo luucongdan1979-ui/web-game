@@ -1,782 +1,455 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-analytics.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MEME CARD ARENA</title>
+  <link rel="icon" type="image/png" href="avt1.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-glow"></div>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDly5plLAysmA-_tRrN4XRhBhCI1A6sgGs",
-  authDomain: "memchee-d1cae.firebaseapp.com",
-  projectId: "memchee-d1cae",
-  storageBucket: "memchee-d1cae.firebasestorage.app",
-  messagingSenderId: "638843455684",
-  appId: "1:638843455684:web:9e270109251e75de4ca191",
-  measurementId: "G-5YCXB2107"
-};
-
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const auth = getAuth(app);
-
-window.firebaseAuth = auth;
-window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-window.sendEmailVerification = sendEmailVerification;
-
-const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='130' viewBox='0 0 100 130'><rect width='100' height='130' fill='%23111'/><text x='50' y='75' font-size='60' fill='%238ef0c1' text-anchor='middle' dominant-baseline='central'>?</text></svg>";
-const $ = id => document.getElementById(id);
-
-const STORAGE_KEY = "memeCardArena_permanent_database";
-const ADMIN_CODE = "171113";
-
-const cards = {
-  kha: { name: "Khá Bảnh", file: "khá bảnh nv.png", rarity: "RARE", category: "CHARACTER", atk: 49, def: 49 },
-  jack: { name: "Jack", file: "jack nv.png", rarity: "LEGENDARY", category: "CHARACTER", atk: 97, def: 13 },
-  vaoTu: { name: "Vào Tù", file: "Vào Tù Th.png", rarity: "LEGENDARY", category: "SITUATION" },
-  muaQuat: { name: "Múa Quạt", file: "mua quat skill.png", rarity: "RARE", category: "SKILL" },
-  chuCap5Cu: { name: "Chu Cấp 5 Củ", file: "chu cap 5 cu.png", rarity: "LEGENDARY", category: "SKILL" }
-};
-
-const CATEGORY_LABELS = { CHARACTER: "NHÂN VẬT", SKILL: "SKILL", SITUATION: "TÌNH HUỐNG" };
-
-let state = loadState();
-let currentUser = null;
-let isAdmin = false;
-let pendingCard = null;
-let activePackIndex = null;
-let activePackType = null;
-let isTearingPack = false;
-let currentAlbumFilter = "ALL";
-let toastTimer;
-
-// Trạng thái trận đấu 250 HP & 30s
-let battleState = {
-  playerHp: 250,
-  maxPlayerHp: 250,
-  botHp: 250,
-  maxBotHp: 250,
-  selectedSkill: null,
-  selectedCharacter: null,
-  selectedSituation: null,
-  playerStatType: "ATK", // 'ATK' hoặc 'DEF'
-  playerSubmitted: false,
-  timerInterval: null,
-  timeLeft: 30
-};
-
-function loadState() {
-  try {
-    let data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (data && data.users) {
-      if (!Array.isArray(data.adminMailbox)) data.adminMailbox = [];
-      return data;
-    }
-    return { users: {}, active: null, adminMailbox: [] };
-  } catch {
-    return { users: {}, active: null, adminMailbox: [] };
-  }
-}
-
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-function getProfile() {
-  if (isAdmin) {
-    if (!state.adminBag) state.adminBag = [];
-    if (!Array.isArray(state.adminMailbox)) state.adminMailbox = [];
-    if (!state.adminAvatar) state.adminAvatar = DEFAULT_AVATAR;
-    return { coins: Infinity, cards: Object.keys(cards), bag: state.adminBag, mailbox: state.adminMailbox, starterOpened: true, avatar: state.adminAvatar, unlockedAvatars: [DEFAULT_AVATAR, "avt2.png", "avt3.png", "avt4.png"] };
-  }
-  const p = currentUser ? state.users[currentUser] : null;
-  if (p) {
-    if (!Array.isArray(p.bag)) p.bag = [];
-    if (!Array.isArray(p.mailbox)) p.mailbox = [];
-  }
-  return p;
-}
-
-function showToast(message) {
-  $("toast").textContent = message;
-  $("toast").classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => $("toast").classList.remove("show"), 2400);
-}
-
-function showAuthMessage(message, success = false) {
-  $("authMessage").textContent = message;
-  $("authMessage").style.color = success ? "#8ef0c1" : "#ff9dbe";
-}
-
-function switchPanel(panelId) {
-  document.querySelectorAll(".auth-form").forEach(form => form.classList.toggle("hidden", form.id !== panelId));
-  document.querySelectorAll(".tab").forEach(tab => tab.classList.toggle("active", tab.dataset.panel === panelId));
-  showAuthMessage("");
-}
-
-document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => switchPanel(tab.dataset.panel)));
-document.querySelectorAll("[data-switch]").forEach(btn => btn.addEventListener("click", () => switchPanel(btn.dataset.switch)));
-
-function createProfile(username, email, password) {
-  return { username, email, password, coins: 20, avatar: DEFAULT_AVATAR, unlockedAvatars: [DEFAULT_AVATAR, "avt1.png"], cards: [], bag: [], mailbox: [], starterOpened: false, banned: false };
-}
-
-$("registerPanel").addEventListener("submit", async event => {
-  event.preventDefault();
-  const username = $("registerUsername").value.trim();
-  const email = $("registerEmail").value.trim().toLowerCase();
-  const password = $("registerPassword").value;
-  const key = username.toLowerCase();
-
-  if (state.users[key]) return showAuthMessage("Tên tài khoản đã tồn tại!");
-  if (!/^[a-zA-Z0-9_]{3,18}$/.test(username)) return showAuthMessage("Tên tài khoản cần 3–18 ký tự.");
-  if (password.length < 6) return showAuthMessage("Mật khẩu cần ít nhất 6 ký tự!");
-
-  try {
-    const userCredential = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
-    await window.sendEmailVerification(userCredential.user);
-    showAuthMessage("Link xác thực đã gửi về email!", true);
-    state.users[key] = createProfile(username, email, password);
-    saveState();
-    setTimeout(() => switchPanel("loginPanel"), 4000);
-  } catch (error) {
-    showAuthMessage(error.message);
-  }
-});
-
-$("loginPanel").addEventListener("submit", event => {
-  event.preventDefault();
-  const username = $("loginUsername").value.trim().toLowerCase();
-  const password = $("loginPassword").value;
-  const profile = state.users[username];
-  if (!profile || profile.password !== password) return showAuthMessage("Sai tài khoản hoặc mật khẩu!");
-  if (profile.banned) return showAuthMessage("Tài khoản đã bị khóa!");
-  loginAs(username);
-});
-
-$("adminPanel").addEventListener("submit", event => {
-  event.preventDefault();
-  if ($("adminCode").value !== ADMIN_CODE) return showAuthMessage("Mã Admin không chính xác!");
-  currentUser = null;
-  isAdmin = true;
-  enterGame("ADMIN");
-});
-
-function loginAs(username) {
-  currentUser = username;
-  isAdmin = false;
-  state.active = username;
-  saveState();
-  enterGame(state.users[username].username);
-}
-
-function enterGame(displayName) {
-  $("authScreen").classList.add("hidden");
-  $("gameScreen").classList.remove("hidden");
-  $("bottomNav").classList.remove("hidden");
-  document.body.classList.add("logged-in");
-
-  const profile = getProfile();
-  const currentAvatar = isAdmin ? (state.adminAvatar || DEFAULT_AVATAR) : (profile?.avatar || DEFAULT_AVATAR);
-
-  if ($("userProfileBadge")) $("userProfileBadge").classList.remove("hidden");
-  if ($("userAvatarImg")) $("userAvatarImg").src = currentAvatar;
-  $("welcomeUser").textContent = isAdmin ? "Admin" : displayName;
-
-  $("adminTag").classList.toggle("hidden", !isAdmin);
-  $("adminCheckNavBtn").classList.toggle("hidden", !isAdmin);
-  $("adminSendMailNavBtn").classList.toggle("hidden", !isAdmin);
-  if ($("userExportBtn")) $("userExportBtn").classList.toggle("hidden", isAdmin);
-
-  renderProfile();
-  showScreen("gameScreen");
-
-  if (isAdmin || getProfile().starterOpened) {
-    hideOldStarterChest();
-  } else {
-    showStarterOverlay();
-  }
-}
-
-function showScreen(screenId) {
-  ["gameScreen", "pveBattleScreen", "shopScreen", "backpackScreen", "albumScreen", "mailScreen", "adminSendMailScreen", "adminCheckScreen"].forEach(id => {
-    if ($(id)) $(id).classList.toggle("hidden", id !== screenId);
-  });
-  document.querySelectorAll(".nav-item[data-screen]").forEach(btn => btn.classList.toggle("active", btn.dataset.screen === screenId));
-
-  if (screenId === "backpackScreen") renderBackpack();
-  if (screenId === "albumScreen") renderAlbum();
-  if (screenId === "mailScreen") renderMailbox();
-  if (screenId === "adminSendMailScreen") renderAdminSendMailScreen();
-  if (screenId === "adminCheckScreen") renderAdminUserManagement();
-}
-
-document.querySelectorAll(".nav-item[data-screen]").forEach(btn => btn.addEventListener("click", () => showScreen(btn.dataset.screen)));
-
-$("logoutBtn").addEventListener("click", () => {
-  currentUser = null;
-  isAdmin = false;
-  state.active = null;
-  saveState();
-  document.body.classList.remove("logged-in", "starter-active");
-  $("authScreen").classList.remove("hidden");
-  $("gameScreen").classList.add("hidden");
-  if ($("pveBattleScreen")) $("pveBattleScreen").classList.add("hidden");
-  $("bottomNav").classList.add("hidden");
-  switchPanel("loginPanel");
-});
-
-function renderProfile() {
-  const profile = getProfile();
-  if (!profile) return;
-  $("coinCount").textContent = isAdmin ? "∞" : profile.coins;
-  const bagCount = profile.bag ? profile.bag.length : 0;
-  $("navPackBadge").textContent = bagCount;
-  $("navPackBadge").classList.toggle("hidden", bagCount === 0);
-  $("starterChest").classList.toggle("opened", !!profile.starterOpened);
-  $("openStarterBtn").textContent = profile.starterOpened ? "ĐÃ MỞ RƯƠNG" : "MỞ RƯƠNG NGAY ✦";
-  $("openStarterBtn").disabled = !!profile.starterOpened;
-}
-
-function hideOldStarterChest() {
-  $("arenaCopyChest").classList.add("hidden");
-  $("chibiClownHome").classList.remove("hidden");
-  $("mainArena").classList.add("chest-completed");
-}
-
-function getRandomCardByRarity(rareChance) {
-  const rand = Math.random();
-  const targetRarity = rand < rareChance ? "RARE" : "LEGENDARY";
-  const matchingKeys = Object.keys(cards).filter(key => cards[key].rarity === targetRarity);
-  return matchingKeys[Math.floor(Math.random() * matchingKeys.length)];
-}
-
-$("openStarterBtn").addEventListener("click", () => {
-  const profile = getProfile();
-  if (!isAdmin && !profile?.starterOpened) showStarterOverlay();
-});
-
-function showStarterOverlay() {
-  $("starterOverlay").classList.remove("hidden");
-  document.body.classList.add("starter-active");
-  $("chestStage").classList.remove("hidden");
-  $("packStage").classList.add("hidden");
-  $("starterResultStage").classList.add("hidden");
-  pendingCard = null;
-}
-
-$("starterChestClick").addEventListener("click", () => {
-  $("starterChestClick").classList.add("opening");
-  setTimeout(() => {
-    $("chestStage").classList.add("hidden");
-    $("packStage").classList.remove("hidden");
-  }, 650);
-});
-
-$("starterPackClick").addEventListener("click", () => {
-  if (pendingCard) return;
-  $("starterPackClick").classList.add("tearing");
-  setTimeout(openStarterPack, 850);
-});
-
-function openStarterPack() {
-  const profile = getProfile();
-  if (!profile || profile.starterOpened) return;
-  pendingCard = getRandomCardByRarity(0.60);
-  const card = cards[pendingCard];
-  profile.cards.push(pendingCard);
-  profile.starterOpened = true;
-  if (!profile.unlockedAvatars.includes("avt1.png")) profile.unlockedAvatars.push("avt1.png");
-  profile.avatar = "avt1.png";
-  saveState();
-
-  $("packStage").classList.add("hidden");
-  $("starterResultStage").classList.remove("hidden");
-  $("starterResultImage").src = card.file;
-  $("starterResultName").textContent = card.name;
-  $("starterResultRarity").textContent = card.rarity;
-  $("starterResultCategory").textContent = CATEGORY_LABELS[card.category];
-  renderProfile();
-}
-
-$("starterFinish").addEventListener("click", () => {
-  if (!pendingCard) return;
-  $("starterOverlay").classList.add("hidden");
-  document.body.classList.remove("starter-active");
-  hideOldStarterChest();
-  pendingCard = null;
-  renderProfile();
-  renderAlbum();
-  showToast("Đã thêm thẻ bài vào Album!");
-});
-
-document.querySelectorAll(".buy-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const packType = btn.dataset.pack;
-    const price = packType === "basic" ? 10 : 20;
-    const profile = getProfile();
-    if (!isAdmin && profile.coins < price) return showToast("Không đủ xu!");
-    if (!isAdmin) profile.coins -= price;
-    profile.bag.push(packType);
-    saveState();
-    renderProfile();
-    showToast("Đã mua pack!");
-  });
-});
-
-function renderBackpack() {
-  const profile = getProfile();
-  const bag = profile?.bag || [];
-  $("emptyBackpack").classList.toggle("hidden", bag.length > 0);
-  $("backpackGrid").innerHTML = bag.map((type, index) => `
-    <div class="bag-item" data-index="${index}" data-type="${type}">
-      <div class="foil-pack ${type === "premium" ? "premium-foil" : "basic-foil"}">
-        <div class="foil-crimp top"></div><div class="foil-shine"></div>
-        <span class="foil-badge">${type === "premium" ? "GOLD" : "STANDARD"}</span>
-        <div class="foil-emblem">${type === "premium" ? "✧" : "✦"}</div>
-        <div class="foil-title">${type === "premium" ? "PREMIUM" : "BASIC"}</div>
+  <header class="topbar">
+    <div class="topbar-left" style="display: flex; align-items: center; gap: 16px;">
+      <div id="userProfileBadge" class="user-profile-badge hidden" onclick="openProfileModal()" title="Nhấn để xem thông tin cá nhân">
+        <img id="userAvatarImg" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='130' viewBox='0 0 100 130'><rect width='100' height='130' fill='%23111'/><text x='50' y='75' font-size='60' fill='%238ef0c1' text-anchor='middle' dominant-baseline='central'>?</text></svg>" alt="Avatar">
+        <span id="welcomeUser" class="welcome-user">Tài khoản</span>
       </div>
-      <h4>${type === "premium" ? "Premium" : "Basic"} Pack</h4>
+
+      <a class="brand" href="#">
+        <span class="brand-mark">✦</span>
+        <span>MEME <b>CARD</b> ARENA</span>
+      </a>
     </div>
-  `).join("");
 
-  document.querySelectorAll(".bag-item").forEach(item => {
-    item.addEventListener("click", () => openPackZoomModal(Number(item.dataset.index), item.dataset.type));
-  });
-}
-
-function openPackZoomModal(index, type) {
-  activePackIndex = index;
-  activePackType = type;
-  isTearingPack = false;
-  $("zoomPackStage").classList.remove("hidden");
-  $("zoomResultStage").classList.add("hidden");
-  $("packOpenOverlay").classList.remove("hidden");
-}
-
-$("zoomedPackElement").addEventListener("click", () => {
-  if (isTearingPack || activePackIndex === null) return;
-  isTearingPack = true;
-  setTimeout(() => {
-    const profile = getProfile();
-    profile.bag.splice(activePackIndex, 1);
-    const cardId = getRandomCardByRarity(activePackType === "premium" ? 0.40 : 0.60);
-    const card = cards[cardId];
-    if (!isAdmin) profile.cards.push(cardId);
-    saveState();
-    renderProfile();
-    renderBackpack();
-    $("zoomPackStage").classList.add("hidden");
-    $("zoomResultStage").classList.remove("hidden");
-    $("zoomResultImage").src = card.file;
-    $("zoomResultName").textContent = card.name;
-    $("zoomResultRarity").textContent = card.rarity;
-    $("zoomResultCategory").textContent = CATEGORY_LABELS[card.category];
-    activePackIndex = null;
-    isTearingPack = false;
-  }, 850);
-});
-
-$("closePackOverlay").addEventListener("click", () => $("packOpenOverlay").classList.add("hidden"));
-$("zoomFinishBtn").addEventListener("click", () => $("packOpenOverlay").classList.add("hidden"));
-
-document.querySelectorAll(".album-tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".album-tab").forEach(t => t.classList.remove("active"));
-    tab.classList.add("active");
-    currentAlbumFilter = tab.dataset.filter;
-    renderAlbum();
-  });
-});
-
-function renderAlbum() {
-  const profile = getProfile();
-  const owned = isAdmin ? Object.keys(cards) : (profile?.cards || []);
-  const filtered = owned.filter(id => currentAlbumFilter === "ALL" || cards[id]?.category === currentAlbumFilter);
-  $("emptyAlbum").classList.toggle("hidden", filtered.length > 0);
-  $("albumGrid").innerHTML = filtered.map(id => `
-    <article class="owned-card" data-card-id="${id}">
-      <img src="${cards[id].file}" alt="${cards[id].name}">
-      <h3>${cards[id].name}</h3>
-      <small>${cards[id].rarity}</small>
-    </article>
-  `).join("");
-
-  document.querySelectorAll(".owned-card").forEach(el => el.addEventListener("click", () => openCardDetail(el.dataset.cardId)));
-}
-
-function openCardDetail(id) {
-  const card = cards[id];
-  if (!card) return;
-  $("detailCategoryBadge").textContent = CATEGORY_LABELS[card.category];
-  $("detailCardName").textContent = card.name;
-  $("detailRarity").textContent = card.rarity;
-  $("detailCardImage").src = card.file;
-  $("detailStatsBox").classList.toggle("hidden", card.category !== "CHARACTER");
-  if (card.category === "CHARACTER") {
-    $("detailAtkValue").textContent = card.atk;
-    $("detailDefValue").textContent = card.def;
-  }
-  $("cardDetailModal").classList.remove("hidden");
-}
-
-$("closeCardDetail").addEventListener("click", () => $("cardDetailModal").classList.add("hidden"));
-
-function renderMailbox() {
-  const profile = getProfile();
-  const mailbox = profile?.mailbox || [];
-  $("emptyMail").classList.toggle("hidden", mailbox.length > 0);
-  $("mailList").innerHTML = mailbox.map((mail, idx) => `
-    <div class="mail-card ${!mail.claimed ? 'unclaimed' : ''}">
-      <h3>${mail.title}</h3>
-      <p>${mail.body}</p>
-      ${!mail.claimed ? `<button class="claim-mail-btn" onclick="claimSingleMail(${idx})">NHẬN QUÀ</button>` : '<span>Đã nhận</span>'}
+    <div class="top-actions">
+      <button id="userExportBtn" class="primary-btn hidden" onclick="exportDataBackup()" style="padding: 8px 14px; font-size: 11px;">📥 Xuất Backup</button>
+      <span class="coin-pill">✦ <b id="coinCount">0</b></span>
     </div>
-  `).join("");
-}
+  </header>
 
-window.claimSingleMail = function(idx) {
-  const profile = getProfile();
-  const mail = profile?.mailbox[idx];
-  if (!mail || mail.claimed) return;
-  if (mail.coins) profile.coins += mail.coins;
-  if (mail.packs) profile.bag.push(...mail.packs);
-  mail.claimed = true;
-  saveState();
-  renderMailbox();
-  showToast("Đã nhận quà!");
-};
+  <main>
+    <!-- ĐĂNG NHẬP -->
+    <section id="authScreen" class="auth-screen">
+      <div class="auth-art">
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+        <div class="hero-card">
+          <div class="hero-spark">✧</div>
+          <div class="hero-emoji">🃏</div>
+          <div class="hero-caption">COLLECT YOUR MEMES</div>
+        </div>
+      </div>
 
-// ==========================================
-// LOGIC SÂN ĐẤU PVE TCG 250 HP & 30 GIÂY
-// ==========================================
+      <div class="auth-panel">
+        <p class="eyebrow">WELCOME TO THE ARENA</p>
+        <h1>Vào đấu trường<br><span>thẻ bài meme!</span></h1>
+        <p class="muted">Sưu tầm nhân vật, mở pack và xây dựng bộ sưu tập của bạn.</p>
 
-function startAdvancedPveBattle() {
-  const profile = getProfile();
-  const ownedCards = isAdmin ? Object.keys(cards) : (profile?.cards || []);
-  if (ownedCards.length === 0) return showToast("Bạn cần có ít nhất 1 thẻ bài trong Album!");
+        <div class="auth-tabs">
+          <button class="tab active" data-panel="loginPanel">Đăng nhập</button>
+          <button class="tab" data-panel="registerPanel">Đăng ký</button>
+          <button class="tab" data-panel="adminPanel">Admin code</button>
+        </div>
 
-  battleState.playerHp = 250;
-  battleState.maxPlayerHp = 250;
-  battleState.botHp = 250;
-  battleState.maxBotHp = 250;
-  battleState.selectedSkill = null;
-  battleState.selectedCharacter = null;
-  battleState.selectedSituation = null;
-  battleState.playerSubmitted = false;
+        <form id="loginPanel" class="auth-form">
+          <label>Tên tài khoản</label>
+          <input id="loginUsername" placeholder="Nhập tên tài khoản" required>
+          <label>Mật khẩu</label>
+          <input id="loginPassword" type="password" placeholder="Nhập mật khẩu" required>
+          <button class="primary-btn" type="submit">ĐĂNG NHẬP <span>➜</span></button>
+          <p class="form-note">Chưa có tài khoản? <button type="button" class="text-btn" data-switch="registerPanel">Đăng ký ngay</button></p>
+        </form>
 
-  showScreen("pveBattleScreen");
-  $("playerBattleName").textContent = isAdmin ? "Admin" : profile.username;
-  $("battleLogBox").innerHTML = "[Hệ thống] Trận đấu bắt đầu! Bạn có 30 giây để chọn bài và ấn Hoàn Thành.";
-  $("confirmTurnBtn").disabled = false;
+        <form id="registerPanel" class="auth-form hidden">
+          <label>Tên tài khoản</label>
+          <input id="registerUsername" placeholder="Nhập tên tài khoản" required minlength="3">
+          <label>Gmail</label>
+          <input id="registerEmail" type="email" placeholder="name@gmail.com" required>
+          <label>Mật khẩu</label>
+          <input id="registerPassword" type="password" placeholder="Tạo mật khẩu" required minlength="6">
+          <button class="primary-btn" type="submit">TẠO TÀI KHOẢN <span>➜</span></button>
+          <p class="form-note">Đã có tài khoản? <button type="button" class="text-btn" data-switch="loginPanel">Đăng nhập</button></p>
+        </form>
 
-  renderBattleSlots();
-  startMatchTimer();
-}
+        <form id="adminPanel" class="auth-form hidden">
+          <label>Mã quản trị 6 số</label>
+          <input id="adminCode" inputmode="numeric" maxlength="6" placeholder="••••••" required>
+          <button class="primary-btn" type="submit">VÀO CHẾ ĐỘ ADMIN <span>➜</span></button>
+          <p class="form-note">Chỉ sử dụng mã quản trị được cấp.</p>
+        </form>
 
-function startMatchTimer() {
-  battleState.timeLeft = 30;
-  $("matchTimer").textContent = battleState.timeLeft;
-  clearInterval(battleState.timerInterval);
+        <p id="authMessage" class="message"></p>
+      </div>
+    </section>
 
-  battleState.timerInterval = setInterval(() => {
-    battleState.timeLeft--;
-    $("matchTimer").textContent = battleState.timeLeft;
-    if (battleState.timeLeft <= 0) {
-      clearInterval(battleState.timerInterval);
-      if (!battleState.playerSubmitted) {
-        showToast("Hết giờ! Hệ thống tự động khóa bài.");
-        confirmPlayerTurn();
-      }
-    }
-  }, 1000);
-}
+    <!-- MÀN HÌNH CHÍNH -->
+    <section id="gameScreen" class="game-screen hidden">
+      <div class="game-heading">
+        <div>
+          <p class="eyebrow">YOUR MEME UNIVERSE</p>
+          <h2>Đấu trường <span>của bạn</span></h2>
+        </div>
+        <div id="adminTag" class="admin-tag hidden">✦ ADMIN MODE</div>
+      </div>
 
-window.openPlayerDeckPicker = function() {
-  if (battleState.playerSubmitted) return showToast("Bạn đã khóa bài vòng này rồi!");
-  const profile = getProfile();
-  const ownedCards = isAdmin ? Object.keys(cards) : (profile?.cards || []);
-  const grid = $("deckPickerGrid");
+      <div class="arena" id="mainArena">
+        <div class="arena-stars">✦ ✧ ✦ ✧ ✦</div>
 
-  grid.innerHTML = ownedCards.map(cid => `
-    <div onclick="promptCardToBoard('${cid}')" style="background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); border-radius: 8px; padding: 6px; text-align: center; cursor: pointer;">
-      <img src="${cards[cid].file}" alt="${cards[cid].name}" style="width: 100%; height: 75px; object-fit: cover; border-radius: 4px;">
-      <strong style="font-size: 10px; display: block; margin-top: 4px;">${cards[cid].name}</strong>
-      <small style="font-size: 9px; color: var(--muted);">${CATEGORY_LABELS[cards[cid].category]}</small>
+        <div class="arena-copy" id="arenaCopyChest">
+          <p class="eyebrow">STARTER EVENT</p>
+          <h2>Rương tân thủ</h2>
+          <p>Mở rương đầu tiên để nhận ngẫu nhiên một thẻ bài meme và mở khóa Avatar avt1.png!</p>
+          <div class="chest royal-chest" id="starterChest">
+            <div class="chest-glow"></div>
+            <div class="chest-lid"><div class="chest-trim"></div></div>
+            <div class="chest-body"><div class="chest-lock">✦</div></div>
+          </div>
+          <button id="openStarterBtn" class="primary-btn chest-btn">MỞ RƯƠNG NGAY ✦</button>
+          <p class="tiny-note">Rare 60% · Legendary 40% + Tặng Avatar avt1.png</p>
+        </div>
+
+        <div class="chibi-clown-home hidden" id="chibiClownHome">
+          <div class="arena-layout-flex">
+            <div class="chibi-clown-stage">
+              <div class="clown-speech-bubble">Đấu trường sẵn sàng rồi!</div>
+              <div class="chibi-clown">
+                <div class="clown-hat"><div class="hat-pom">⭐</div></div>
+                <div class="clown-curly-hair left-curls"><span class="curl c1"></span><span class="curl c2"></span></div>
+                <div class="clown-head"><div class="blush left"></div><div class="blush right"></div><div class="eye left"><span></span></div><div class="eye right"><span></span></div><div class="nose"></div><div class="smile"></div></div>
+                <div class="clown-body"><div class="collar"></div><div class="bowtie">🎀</div></div>
+                <div class="clown-legs"><div class="clown-leg left-leg"><div class="clown-shoe"></div></div><div class="clown-leg right-leg"><div class="clown-shoe"></div></div></div>
+              </div>
+            </div>
+
+            <div class="arena-action-column">
+              <p class="eyebrow">PVE ARENA BATTLE</p>
+              <h2 style="font-size: 26px; margin: 5px 0 10px;">Thách đấu <span>Bot</span></h2>
+              <p class="muted" style="margin-bottom: 18px;">Đem bộ bài meme mạnh nhất của bạn ra để so tài với các bot chiến thuật!</p>
+              <div class="arena-btn-stack">
+                <button id="startPveBtn" class="primary-btn arena-mode-btn pve-btn">
+                  <span class="mode-btn-icon">⚔️</span>
+                  <span class="mode-btn-text"><strong>CHIẾN ĐẤU (PVE)</strong><small>Thách đấu Bot TCG 250 HP</small></span>
+                </button>
+                <button id="startTrainingBtn" class="primary-btn arena-mode-btn training-btn">
+                  <span class="mode-btn-icon">📖</span>
+                  <span class="mode-btn-text"><strong>HƯỚNG DẪN & TẬP LUYỆN</strong><small>Làm quen luật chơi</small></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MÀN HÌNH SÂN ĐẤU TCG 2 BÊN (30S, ÚP BÀI, CHAT BÊN TRÁI, 250 HP) -->
+    <section id="pveBattleScreen" class="content-screen hidden">
+      <div class="section-heading" style="margin-bottom: 8px;">
+        <div>
+          <p class="eyebrow">TCG CARD ARENA</p>
+          <h2>Sân đấu <span>Đối kháng 250 HP</span></h2>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="background: rgba(255,215,0,0.15); border: 1px solid #ffd700; padding: 6px 12px; border-radius: 8px; font-weight: bold; color: #ffd700; font-size: 13px;">
+            ⏱️ Thời gian: <span id="matchTimer">30</span>s
+          </div>
+          <button class="primary-btn" onclick="quitPveBattle()" style="padding: 6px 12px; font-size: 11px;">🚪 Rời trận</button>
+        </div>
+      </div>
+
+      <div class="tcg-board" style="background: linear-gradient(135deg, #0f172a, #1e293b); border: 2px solid var(--panel-border); border-radius: 16px; padding: 14px; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px;">
+        
+        <!-- BÊN TRÊN: BOT -->
+        <div style="background: rgba(255, 50, 50, 0.08); border: 1px solid rgba(255, 82, 82, 0.3); border-radius: 12px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; background: #ff5252; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px;">🤖</div>
+            <div>
+              <h4 style="color: #ff5252; margin: 0; font-size: 13px;">Bot Đối Thủ</h4>
+              <small style="color: var(--muted); font-size: 11px;">HP: <b id="botHpText">250 / 250</b></small>
+            </div>
+          </div>
+
+          <!-- Sân đặt thẻ của Bot (Úp / Lật) -->
+          <div style="display: flex; gap: 6px;" id="botSlotsContainer">
+            <div class="bot-slot" id="botSlotSkill" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 45px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--muted);">Skill</div>
+            <div class="bot-slot" id="botSlotChar" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 45px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--muted);">NV</div>
+            <div class="bot-slot" id="botSlotSit" style="background: rgba(0,0,0,0.5); border: 1px solid #ff5252; width: 45px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--muted);">Tình huống</div>
+          </div>
+
+          <!-- Chồng bài Bot -->
+          <div style="background: #334155; border: 2px solid #ff5252; width: 45px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #ff5252; font-weight: bold;">BOT DECK</div>
+        </div>
+
+        <!-- KHU VỰC TRUNG TÂM: CHAT HỆ THỐNG BÊN TRÁI -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: center;">
+          <div id="battleLogBox" style="background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; height: 75px; overflow-y: auto; font-size: 11px; color: var(--muted); text-align: left;">
+            [Hệ thống] Trận đấu bắt đầu! Bạn có 30 giây để bốc bài, chọn hệ ATK/DEF và ấn Hoàn Thành.
+          </div>
+          <div style="text-align: center;">
+            <button id="confirmTurnBtn" class="primary-btn" onclick="confirmPlayerTurn()" style="padding: 10px 16px; font-size: 12px; width: 100%;">⚔️ HOÀN THÀNH BÀI</button>
+          </div>
+        </div>
+
+        <!-- BÊN DƯỚI: NGƯỜI CHƠI -->
+        <div style="background: rgba(142, 240, 193, 0.08); border: 1px solid rgba(142, 240, 193, 0.3); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+          
+          <!-- 3 Ô đặt thẻ trên sân của người chơi -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+            <div onclick="clearSlot('SKILL')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #8ef0c1; border-radius: 8px; min-height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px; text-align: center; cursor: pointer;">
+              <span style="font-size: 10px; color: #8ef0c1; font-weight: bold;">✨ Ô SKILL</span>
+              <div id="placedSkillContent" style="margin-top: 4px;"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
+            </div>
+
+            <div onclick="clearSlot('CHARACTER')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #ffd700; border-radius: 8px; min-height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px; text-align: center; cursor: pointer;">
+              <span style="font-size: 10px; color: #ffd700; font-weight: bold;">👤 NHÂN VẬT</span>
+              <div id="placedCharacterContent" style="margin-top: 4px;"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
+            </div>
+
+            <div onclick="clearSlot('SITUATION')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #00d2ff; border-radius: 8px; min-height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px; text-align: center; cursor: pointer;">
+              <span style="font-size: 10px; color: #00d2ff; font-weight: bold;">📜 TÌNH HUỐNG</span>
+              <div id="placedSituationContent" style="margin-top: 4px;"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
+            </div>
+          </div>
+
+          <!-- Thông tin & Chồng bài bốc -->
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div id="playerDeckPile" onclick="openPlayerDeckPicker()" title="Nhấn để bốc bài từ Album" style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid var(--panel-border); width: 50px; height: 68px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                <span style="font-size: 16px;">🎴</span>
+                <small style="font-size: 9px; color: var(--text); font-weight: bold; margin-top: 2px;">BỐC</small>
+              </div>
+              <div>
+                <h4 id="playerBattleName" style="color: var(--text); margin: 0; font-size: 13px;">Người chơi</h4>
+                <small style="color: var(--muted); font-size: 11px;">HP: <b id="playerHpText">250 / 250</b></small>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SHOP -->
+    <section id="shopScreen" class="content-screen hidden">
+      <div class="section-heading"><div><p class="eyebrow">CARD STORE</p><h2>Cửa hàng <span>pack</span></h2></div></div>
+      <div class="shop-grid">
+        <article class="pack-card">
+          <div class="foil-pack basic-foil"><div class="foil-crimp top"></div><div class="foil-shine"></div><span class="foil-badge">STANDARD</span><div class="foil-emblem">✦</div><div class="foil-title">BASIC<br>PACK</div><div class="foil-sub">MEME ARENA</div><div class="foil-crimp bottom"></div></div>
+          <h3>Basic Pack</h3><p>60% Rare · 40% Legendary</p><button class="buy-btn" data-pack="basic">Mua · 10 xu</button>
+        </article>
+        <article class="pack-card">
+          <div class="foil-pack premium-foil"><div class="foil-crimp top"></div><div class="foil-shine"></div><span class="foil-badge">GOLD EDITION</span><div class="foil-emblem">✧</div><div class="foil-title">PREMIUM<br>PACK</div><div class="foil-sub">MEME ARENA</div><div class="foil-crimp bottom"></div></div>
+          <h3>Premium Pack</h3><p>60% Legendary · 40% Rare</p><button class="buy-btn" data-pack="premium">Mua · 20 xu</button>
+        </article>
+      </div>
+    </section>
+
+    <!-- BALO -->
+    <section id="backpackScreen" class="content-screen hidden">
+      <div class="section-heading"><div><p class="eyebrow">YOUR INVENTORY</p><h2>Balo <span>vật phẩm</span></h2></div></div>
+      <div id="backpackGrid" class="backpack-grid"></div>
+      <p id="emptyBackpack" class="empty-state">Balo của bạn đang trống.</p>
+    </section>
+
+    <!-- ALBUM -->
+    <section id="albumScreen" class="content-screen hidden">
+      <div class="section-heading"><div><p class="eyebrow">YOUR COLLECTION</p><h2>Bộ sưu tập <span>thẻ bài</span></h2></div></div>
+      <div class="album-tabs" id="albumTabs">
+        <button class="album-tab active" data-filter="ALL">Tất cả</button>
+        <button class="album-tab" data-filter="CHARACTER">Nhân vật</button>
+        <button class="album-tab" data-filter="SKILL">Skill</button>
+        <button class="album-tab" data-filter="SITUATION">Tình huống</button>
+      </div>
+      <div id="albumGrid" class="album-grid"></div>
+      <p id="emptyAlbum" class="empty-state">Chưa có thẻ bài nào trong mục này!</p>
+    </section>
+
+    <!-- HÒM THƯ -->
+    <section id="mailScreen" class="content-screen hidden">
+      <div class="section-heading">
+        <div><p class="eyebrow">INBOX & REWARDS</p><h2>Hòm thư <span>hệ thống</span></h2></div>
+        <button id="claimAllMailBtn" class="primary-btn hidden" style="padding: 10px 16px; font-size: 11px;">NHẬN TẤT CẢ ✦</button>
+      </div>
+      <div id="mailList" class="mail-list"></div>
+      <p id="emptyMail" class="empty-state">Hòm thư trống!</p>
+    </section>
+
+    <!-- ADMIN GỬI THƯ -->
+    <section id="adminSendMailScreen" class="content-screen hidden">
+      <div class="section-heading"><div><p class="eyebrow">ADMIN DISPATCH</p><h2>Gửi thư <span>& Quà tặng</span></h2></div></div>
+      <form id="adminSendMailForm" class="admin-mail-composer">
+        <div class="composer-group">
+          <label>1. Chọn người nhận</label>
+          <div class="recipient-mode-tabs">
+            <label class="radio-pill"><input type="radio" name="recipientMode" value="all" checked><span>📢 Tất cả</span></label>
+            <label class="radio-pill"><input type="radio" name="recipientMode" value="selected"><span>🎯 Cụ thể</span></label>
+          </div>
+          <div id="recipientChecklistBox" class="recipient-checklist hidden"></div>
+        </div>
+        <div class="composer-group">
+          <label>2. Nội dung</label>
+          <input id="mailSubjectInput" placeholder="Tiêu đề..." required>
+          <textarea id="mailBodyInput" rows="3" placeholder="Lời nhắn..." required></textarea>
+        </div>
+        <button type="submit" class="primary-btn" style="width: 100%; margin-top: 10px;">GỬI THƯ NGAY ✉</button>
+      </form>
+    </section>
+
+    <!-- ADMIN CHECK TK -->
+    <section id="adminCheckScreen" class="content-screen hidden">
+      <div class="section-heading"><div><p class="eyebrow">ADMIN MANAGEMENT</p><h2>Quản lý <span>Tài khoản</span></h2></div></div>
+      <div class="admin-backup-bar">
+        <button class="primary-btn" onclick="exportDataBackup()" style="font-size: 11px; padding: 10px 16px;">📥 Xuất Backup</button>
+        <label class="primary-btn" style="font-size: 11px; padding: 10px 16px; cursor: pointer; display: inline-flex; align-items: center; margin: 0;">
+          📤 Nhập Backup
+          <input type="file" id="importFile" accept=".json" multiple style="display: none;" onchange="importDataBackup(event)">
+        </label>
+      </div>
+      <div id="adminUserManagementList" class="admin-user-mgmt-grid"></div>
+    </section>
+  </main>
+
+  <nav id="bottomNav" class="bottom-nav hidden">
+    <button class="nav-item active" data-screen="gameScreen"><span class="nav-icon">🏠</span> Trang chủ</button>
+    <button class="nav-item" data-screen="shopScreen"><span class="nav-icon">🛍️</span> Shop</button>
+    <button class="nav-item" data-screen="backpackScreen"><span class="nav-icon">🎒</span> Balo <em id="navPackBadge" class="nav-badge hidden">0</em></button>
+    <button class="nav-item" data-screen="albumScreen"><span class="nav-icon">📖</span> Album</button>
+    <button id="mailNavBtn" class="nav-item" data-screen="mailScreen"><span class="nav-icon">📬</span> Thư <em id="navMailBadge" class="nav-badge hidden">0</em></button>
+    <button id="adminSendMailNavBtn" class="nav-item admin-only-nav hidden" data-screen="adminSendMailScreen"><span class="nav-icon">✉️</span> Gửi thư</button>
+    <button id="adminCheckNavBtn" class="nav-item admin-only-nav hidden" data-screen="adminCheckScreen"><span class="nav-icon">⚙️</span> Check TK</button>
+    <button id="logoutBtn" class="nav-item logout-nav"><span class="nav-icon">🚪</span> Đăng xuất</button>
+  </nav>
+
+  <!-- MODAL CHỌN THẺ TỪ CHỒNG BÀI -->
+  <div id="deckPickerModal" class="starter-overlay hidden">
+    <div class="starter-dialog" style="max-width: 500px; width: 90%;">
+      <button class="close-btn" onclick="closeDeckPicker()">×</button>
+      <p class="eyebrow">YOUR COLLECTION</p>
+      <h2>Chồng bài sở hữu</h2>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Nhấn vào thẻ bài bên dưới để đưa lên bàn đấu:</p>
+      <div id="deckPickerGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; max-height: 280px; overflow-y: auto; padding: 4px;"></div>
     </div>
-  `).join("");
+  </div>
 
-  $("deckPickerModal").classList.remove("hidden");
-};
+  <!-- MODAL CHỌN CHỈ SỐ NHÂN VẬT (ATK / DEF) -->
+  <div id="statChoiceModal" class="starter-overlay hidden">
+    <div class="starter-dialog" style="max-width: 400px; text-align: center;">
+      <p class="eyebrow">COMBAT STRATEGY</p>
+      <h2 id="choiceCharName">Chọn chỉ số chiến đấu</h2>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Bạn muốn nhân vật này chiến đấu bằng hệ ATK hay DEF?</p>
+      <div style="display: flex; gap: 14px; justify-content: center;">
+        <button class="primary-btn" onclick="submitStatChoice('ATK')" style="flex: 1; background: #ff5252;">⚔️ DÙNG ATK</button>
+        <button class="primary-btn" onclick="submitStatChoice('DEF')" style="flex: 1; background: #00d2ff;">🛡️ DÙNG DEF</button>
+      </div>
+    </div>
+  </div>
 
-window.closeDeckPicker = function() { $("deckPickerModal").classList.add("hidden"); };
+  <!-- MODALS KHÁC -->
+  <div id="cardDetailModal" class="starter-overlay hidden">
+    <div class="starter-dialog card-detail-dialog">
+      <button id="closeCardDetail" class="close-btn">×</button>
+      <p class="eyebrow" id="detailCategoryBadge">NHÂN VẬT</p>
+      <h2 id="detailCardName">Tên Thẻ Bài</h2>
+      <span class="detail-rarity-pill" id="detailRarity">LEGENDARY</span>
+      <div class="detail-card-frame"><img id="detailCardImage" src="" alt="Card"></div>
+      <div id="detailStatsBox" class="detail-stats-box">
+        <div class="stat-pill atk-pill"><span class="stat-label">⚔️ ATK</span><strong id="detailAtkValue">0</strong></div>
+        <div class="stat-pill def-pill"><span class="stat-label">🛡️ DEF</span><strong id="detailDefValue">0</strong></div>
+      </div>
+    </div>
+  </div>
 
-window.promptCardToBoard = function(cardId) {
-  const card = cards[cardId];
-  if (!card) return;
+  <div id="starterOverlay" class="starter-overlay hidden">
+    <div class="starter-dialog">
+      <p class="eyebrow">WELCOME REWARD</p>
+      <h2 id="starterTitle">RƯƠNG TÂN THỦ</h2>
+      <p id="starterDescription">Bạn nhận được một rương tân thủ miễn phí!</p>
+      <div id="chestStage" class="starter-stage">
+        <div id="starterChestClick" class="starter-chest royal-chest"><div class="chest-glow"></div><div class="starter-chest-lid"><div class="chest-trim"></div></div><div class="starter-chest-body"><div class="chest-lock">✦</div></div></div>
+        <p class="tap-hint">NHẤN VÀO RƯƠNG ĐỂ MỞ</p>
+      </div>
+      <div id="packStage" class="starter-stage hidden">
+        <div id="starterPackClick" class="foil-pack starter-foil tearable-pack"><div class="foil-crimp top"></div><div class="foil-shine"></div><span class="foil-badge">STARTER</span><div class="foil-emblem">✦</div><div class="foil-title">MEME<br>CARD</div><div class="foil-sub">STARTER PACK</div><div class="foil-crimp bottom"></div></div>
+        <p class="tap-hint">NHẤN VÀO PACK ĐỂ XÉ GÓI</p>
+      </div>
+      <div id="starterResultStage" class="starter-stage hidden">
+        <div class="starter-result-card"><img id="starterResultImage" src="" alt="Card"><div id="starterResultName"></div><div id="starterResultRarity"></div><div id="starterResultCategory"></div></div>
+        <button id="starterFinish" class="primary-btn">NHẬN THẺ BÀI & AVATAR</button>
+      </div>
+    </div>
+  </div>
 
-  if (card.category === "CHARACTER") {
-    // Yêu cầu chọn ATK hoặc DEF
-    window.pendingCharChoice = cardId;
-    $("choiceCharName").textContent = `Chọn chỉ số cho ${card.name}`;
-    $("statChoiceModal").classList.remove("hidden");
-    closeDeckPicker();
-  } else {
-    if (card.category === "SKILL") battleState.selectedSkill = cardId;
-    if (card.category === "SITUATION") battleState.selectedSituation = cardId;
-    showToast(`Đã đặt [${card.name}] lên sân!`);
-    closeDeckPicker();
-    renderBattleSlots();
-  }
-};
+  <div id="packOpenOverlay" class="starter-overlay hidden">
+    <div class="starter-dialog pack-zoom-dialog">
+      <button id="closePackOverlay" class="close-btn">×</button>
+      <p class="eyebrow" id="packOverlayEyebrow">UNBOXING</p>
+      <h2 id="packOverlayTitle">GÓI THẺ BÀI</h2>
+      <p id="packOverlayDesc">Nhấn vào gói bài để xé mở!</p>
+      <div id="zoomPackStage" class="starter-stage">
+        <div id="zoomedPackElement" class="foil-pack basic-foil zoomed-pack tearable-pack"><div class="foil-crimp top"></div><div class="foil-shine"></div><span class="foil-badge" id="zoomPackBadge">STANDARD</span><div class="foil-emblem" id="zoomPackEmblem">✦</div><div class="foil-title" id="zoomPackTitle">BASIC<br>PACK</div><div class="foil-sub">MEME ARENA</div><div class="foil-crimp bottom"></div></div>
+        <p class="tap-hint">CHẠM LẦN NỮA ĐỂ XÉ PACK ✦</p>
+      </div>
+      <div id="zoomResultStage" class="starter-stage hidden">
+        <div class="starter-result-card"><img id="zoomResultImage" src="" alt="Card"><div id="zoomResultName"></div><div id="zoomResultRarity"></div><div id="zoomResultCategory"></div></div>
+        <button id="zoomFinishBtn" class="primary-btn">CẤT VÀO ALBUM</button>
+      </div>
+    </div>
+  </div>
 
-window.submitStatChoice = function(statType) {
-  battleState.playerStatType = statType;
-  battleState.selectedCharacter = window.pendingCharChoice;
-  const card = cards[battleState.selectedCharacter];
-  showToast(`Đã chọn [${card.name}] hệ ${statType}!`);
-  $("statChoiceModal").classList.add("hidden");
-  renderBattleSlots();
-};
+  <div id="trainingGuideModal" class="starter-overlay hidden">
+    <div class="starter-dialog training-guide-dialog">
+      <button id="closeTrainingGuideModal" class="close-btn">×</button>
+      <p class="eyebrow">TRAINING & TUTORIAL</p>
+      <h2>Hướng Dẫn & Tập Luyện</h2>
+      <p>Nắm vững cơ chế chiến đấu 250 HP và chọn ATK/DEF!</p>
+      <div style="text-align: center; margin-top: 20px;"><button id="launchPracticeMatchBtn" class="primary-btn" style="width: 100%;">🎯 VÀO TRẬN TẬP LUYỆN</button></div>
+    </div>
+  </div>
 
-window.clearSlot = function(category) {
-  if (battleState.playerSubmitted) return;
-  if (category === "SKILL") battleState.selectedSkill = null;
-  if (category === "CHARACTER") battleState.selectedCharacter = null;
-  if (category === "SITUATION") battleState.selectedSituation = null;
-  renderBattleSlots();
-};
+  <!-- MODAL PROFILE -->
+  <div id="profileModal" class="starter-overlay hidden">
+    <div class="starter-dialog profile-modal-dialog">
+      <button id="closeProfileModal" class="close-btn" onclick="closeProfileModal()">×</button>
+      <p class="eyebrow">USER PROFILE</p>
+      <h2>Tài khoản của bạn</h2>
+      <div class="profile-avatar-box">
+        <img id="modalAvatarImg" src="" alt="Avatar" class="profile-avatar-preview">
+        <h3 id="modalUsername" style="margin-top: 10px; font-size: 18px;">Tên tài khoản</h3>
+      </div>
+      <div class="profile-tabs" style="display: flex; gap: 8px; margin: 16px 0 12px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 10px;">
+        <button class="profile-tab active" onclick="switchProfileTab('infoTab', this)" style="flex:1; background:var(--panel-border); border:none; color:var(--text); padding:8px; border-radius:8px; font-weight:600; cursor:pointer; font-size:12px;">Thông tin</button>
+        <button class="profile-tab" onclick="switchProfileTab('avatarTab', this)" style="flex:1; background:transparent; border:none; color:var(--muted); padding:8px; border-radius:8px; font-weight:600; cursor:pointer; font-size:12px;">Avatar</button>
+        <button class="profile-tab" onclick="switchProfileTab('codeTab', this)" style="flex:1; background:transparent; border:none; color:var(--muted); padding:8px; border-radius:8px; font-weight:600; cursor:pointer; font-size:12px;">Mã Code</button>
+      </div>
+      <div class="profile-sections">
+        <div id="infoTab" class="profile-tab-pane">
+          <div class="profile-section-item">
+            <label>Đổi tên hiển thị</label>
+            <div style="display: flex; gap: 8px; margin-top: 6px;">
+              <input id="editUsernameInput" placeholder="Nhập tên mới..." style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; color: var(--text);">
+              <button class="primary-btn" onclick="saveProfileInfo()" style="padding: 10px 16px; font-size: 12px;">LƯU</button>
+            </div>
+          </div>
+        </div>
+        <div id="avatarTab" class="profile-tab-pane hidden">
+          <div class="profile-section-item"><label>Chọn Avatar</label><div id="avatarPresetsContainer" class="avatar-presets" style="display: flex; gap: 10px; margin: 8px 0; flex-wrap: wrap;"></div></div>
+        </div>
+        <div id="codeTab" class="profile-tab-pane hidden">
+          <div class="profile-section-item">
+            <label>Nhập mã quà tặng</label>
+            <div style="display: flex; gap: 8px; margin-top: 6px;">
+              <input id="redeemCodeInput" placeholder="Nhập mã code..." style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; color: var(--text); text-transform: uppercase;">
+              <button class="primary-btn" onclick="redeemGiftCode()" style="padding: 10px 16px; font-size: 12px;">ĐỔI QUÀ</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-function renderBattleSlots() {
-  const skillBox = $("placedSkillContent");
-  skillBox.innerHTML = battleState.selectedSkill ? `<img src="${cards[battleState.selectedSkill].file}" style="width: 42px; height: 52px; object-fit: cover; border-radius: 4px;"><strong style="font-size: 9px; display: block;">${cards[battleState.selectedSkill].name}</strong>` : `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
-
-  const charBox = $("placedCharacterContent");
-  charBox.innerHTML = battleState.selectedCharacter ? `<img src="${cards[battleState.selectedCharacter].file}" style="width: 42px; height: 52px; object-fit: cover; border-radius: 4px;"><strong style="font-size: 9px; display: block;">${cards[battleState.selectedCharacter].name} (${battleState.playerStatType})</strong>` : `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
-
-  const sitBox = $("placedSituationContent");
-  sitBox.innerHTML = battleState.selectedSituation ? `<img src="${cards[battleState.selectedSituation].file}" style="width: 42px; height: 52px; object-fit: cover; border-radius: 4px;"><strong style="font-size: 9px; display: block;">${cards[battleState.selectedSituation].name}</strong>` : `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
-
-  $("botHpText").textContent = `${battleState.botHp} / ${battleState.maxBotHp}`;
-  $("playerHpText").textContent = `${battleState.playerHp} / ${battleState.maxPlayerHp}`;
-}
-
-// Người chơi ấn Hoàn Thành bài -> Các lá bài Úp xuống chờ Bot
-window.confirmPlayerTurn = function() {
-  if (battleState.playerSubmitted) return;
-  if (!battleState.selectedCharacter) return showToast("Bạn phải đặt thẻ Nhân vật lên sân!");
-
-  battleState.playerSubmitted = true;
-  clearInterval(battleState.timerInterval);
-  $("confirmTurnBtn").disabled = true;
-
-  // Úp bài người chơi trên giao diện
-  $("placedSkillContent").innerHTML = `<div style="background:#334155; width:42px; height:52px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">🎴 ÚP</div>`;
-  $("placedCharacterContent").innerHTML = `<div style="background:#334155; width:42px; height:52px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">🎴 ÚP</div>`;
-  $("placedSituationContent").innerHTML = `<div style="background:#334155; width:42px; height:52px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">🎴 ÚP</div>`;
-
-  appendBattleLog("Bạn đã hoàn thành và úp bộ bài. Bot đang chuẩn bị...");
-
-  setTimeout(botTurnProcess, 1500);
-};
-
-// Bot tự chọn bài ngẫu nhiên và cũng úp xuống
-function botTurnProcess() {
-  const allCards = Object.keys(cards);
-  const charKeys = allCards.filter(k => cards[k].category === "CHARACTER");
-  const skillKeys = allCards.filter(k => cards[k].category === "SKILL");
-  const sitKeys = allCards.filter(k => cards[k].category === "SITUATION");
-
-  const botChar = charKeys[Math.floor(Math.random() * charKeys.length)];
-  const botSkill = skillKeys[Math.floor(Math.random() * skillKeys.length)];
-  const botSit = sitKeys[Math.floor(Math.random() * sitKeys.length)];
-  const botStat = Math.random() > 0.5 ? "ATK" : "DEF";
-
-  appendBattleLog("Bot đã hoàn thành bộ bài và úp xuống.");
-  setTimeout(() => resolveBattlePhase(botChar, botSkill, botSit, botStat), 1500);
-}
-
-// Lật bài và tính toán theo yêu cầu chi tiết
-function resolveBattlePhase(botCharKey, botSkillKey, botSitKey, botStat) {
-  appendBattleLog("✨ CẢ HAI BÊN LẬT BÀI (REVEAL)!");
-
-  const pChar = cards[battleState.selectedCharacter];
-  const bChar = cards[botCharKey];
-
-  let pVal = battleState.playerStatType === "ATK" ? pChar.atk : pChar.def;
-  let bVal = botStat === "ATK" ? bChar.atk : bChar.def;
-
-  let pLog = `Bạn lật [${pChar.name}] hệ ${battleState.playerStatType} (${pVal})`;
-  let bLog = `Bot lật [${bChar.name}] hệ ${botStat} (${bVal})`;
-
-  // Xử lý Skill Múa Quạt
-  if (battleState.selectedSkill === "muaQuat") {
-    if (pChar.name === "Khá Bảnh") {
-      pVal *= 2;
-      pLog += " | Múa Quạt x2 ATK Khá Bảnh!";
-    } else {
-      pVal += 20;
-      pLog += " | Múa Quạt +20 điểm!";
-    }
-  }
-  if (botSkill === "muaQuat") {
-    if (bChar.name === "Khá Bảnh") bVal *= 2;
-    else bVal += 20;
-  }
-
-  // Xử lý Skill Chu Cấp 5 Củ
-  if (battleState.selectedSkill === "chuCap5Cu") {
-    if (pChar.name === "Jack") {
-      pVal = (pChar.def || 13) * 5;
-      pLog += " | Chu Cấp 5 Củ x5 DEF Jack!";
-    } else {
-      pVal = Math.round((pChar.def || 10) * 1.5);
-      pLog += " | Chu Cấp 5 Củ x1.5 DEF!";
-    }
-    if (botStat === "DEF") {
-      bVal = 0;
-      bLog += " | Bị Chu Cấp 5 Củ trừ DEF về 0!";
-    }
-  }
-
-  // Xử lý Tình huống Vào Tù
-  if (battleState.selectedSituation === "vaoTu") {
-    if (bChar.name === "Khá Bảnh") {
-      bVal = Math.max(0, bVal - 15);
-      bLog += " | Dính Vào Tù trừ 15 điểm!";
-    }
-  }
-
-  appendBattleLog(pLog);
-  appendBattleLog(bLog);
-
-  // So sánh điểm
-  let diff = 0;
-  if (pVal > bVal) {
-    diff = pVal - bVal;
-    battleState.botHp = Math.max(0, battleState.botHp - diff);
-    appendBattleLog(`🎉 Bạn thắng lượt này! Bot mất ${diff} HP.`);
-  } else if (bVal > pVal) {
-    diff = bVal - pVal;
-    battleState.playerHp = Math.max(0, battleState.playerHp - diff);
-    appendBattleLog(`💥 Bot thắng lượt này! Bạn mất ${diff} HP.`);
-  } else {
-    appendBattleLog(`🤝 Hai bên hòa nhau! Không ai mất HP.`);
-  }
-
-  renderBattleSlots();
-
-  // Kiểm tra kết thúc trận
-  if (battleState.botHp <= 0) {
-    appendBattleLog("🏆 BẠN ĐÃ ĐÁNH BẠI BOT VÀ NHÀN HẠ NHẬN 30 XU!");
-    const profile = getProfile();
-    if (!isAdmin && profile) {
-      profile.coins += 30;
-      saveState();
-      renderProfile();
-    }
-    setTimeout(() => quitPveBattle(), 4000);
-    return;
-  }
-
-  if (battleState.playerHp <= 0) {
-    appendBattleLog("💀 BẠN ĐÃ THUA CUỘC TRƯỚC BOT!");
-    setTimeout(() => quitPveBattle(), 4000);
-    return;
-  }
-
-  // Chuẩn bị vòng tiếp theo
-  setTimeout(() => {
-    battleState.playerSubmitted = false;
-    battleState.selectedSkill = null;
-    battleState.selectedCharacter = null;
-    battleState.selectedSituation = null;
-    $("confirmTurnBtn").disabled = false;
-    renderBattleSlots();
-    appendBattleLog("--- BẮT ĐẦU VÒNG MỚI (30s) ---");
-    startMatchTimer();
-  }, 3500);
-}
-
-function appendBattleLog(msg) {
-  const box = $("battleLogBox");
-  if (!box) return;
-  box.innerHTML += `<br>${msg}`;
-  box.scrollTop = box.scrollHeight;
-}
-
-window.quitPveBattle = function() {
-  clearInterval(battleState.timerInterval);
-  showScreen("gameScreen");
-};
-
-document.addEventListener("click", event => {
-  if (event.target.closest("#startPveBtn")) startAdvancedPveBattle();
-  if (event.target.closest("#startTrainingBtn")) $("trainingGuideModal").classList.remove("hidden");
-  if (event.target.closest("#closeTrainingGuideModal") || event.target === $("trainingGuideModal")) $("trainingGuideModal").classList.add("hidden");
-  if (event.target.closest("#launchPracticeMatchBtn")) {
-    $("trainingGuideModal").classList.add("hidden");
-    startAdvancedPveBattle();
-  }
-});
-
-if (state.active && state.users[state.active]) loginAs(state.active);
-else switchPanel("loginPanel");
-
-window.openProfileModal = function() {
-  const profile = getProfile();
-  if (!profile && !isAdmin) return;
-  $("modalUsername").textContent = isAdmin ? "Admin" : profile.username;
-  $("modalAvatarImg").src = isAdmin ? (state.adminAvatar || DEFAULT_AVATAR) : profile.avatar;
-  const avatars = isAdmin ? [DEFAULT_AVATAR, "avt2.png", "avt3.png", "avt4.png"] : (profile.unlockedAvatars || [DEFAULT_AVATAR, "avt1.png"]);
-  $("avatarPresetsContainer").innerHTML = avatars.map(avt => `<img src="${avt}" onclick="changeAvatar('${avt}')" style="width: 50px; height: 65px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid var(--panel-border);">`).join("");
-  $("profileModal").classList.remove("hidden");
-};
-
-window.closeProfileModal = function() { $("profileModal").classList.add("hidden"); };
-window.changeAvatar = function(src) {
-  if (isAdmin) state.adminAvatar = src;
-  else getProfile().avatar = src;
-  saveState();
-  $("userAvatarImg").src = src;
-  $("modalAvatarImg").src = src;
-  showToast("Đã đổi avatar!");
-};
-
-window.saveProfileInfo = function() {
-  if (isAdmin) return showToast("Không đổi tên Admin!");
-  const newName = $("editUsernameInput").value.trim();
-  if (!/^[a-zA-Z0-9_]{3,18}$/.test(newName)) return showToast("Tên không hợp lệ!");
-  const profile = state.users[currentUser];
-  if (newName.toLowerCase() !== currentUser) {
-    state.users[newName.toLowerCase()] = profile;
-    delete state.users[currentUser];
-    currentUser = newName.toLowerCase();
-    state.active = currentUser;
-  }
-  profile.username = newName;
-  saveState();
-  $("welcomeUser").textContent = newName;
-  showToast("Đã đổi tên!");
-  closeProfileModal();
-};
-
-window.switchProfileTab = function(tabId, btn) {
-  document.querySelectorAll('.profile-tab-pane').forEach(p => p.classList.toggle('hidden', p.id !== tabId));
-  document.querySelectorAll('.profile-tab').forEach(b => { b.style.background = 'transparent'; b.style.color = 'var(--muted)'; });
-  btn.style.background = 'var(--panel-border)';
-  btn.style.color = 'var(--text)';
-};
-
-window.redeemGiftCode = function() {
-  if (isAdmin) return;
-  const code = $("redeemCodeInput").value.trim().toUpperCase();
-  if (code !== "HAPPYBIRTHDAY") return showToast("Mã code không đúng!");
-  const profile = getProfile();
-  if (profile.redeemedCodes?.includes("HAPPYBIRTHDAY")) return showToast("Đã nhập rồi!");
-  if (!profile.redeemedCodes) profile.redeemedCodes = [];
-  profile.redeemedCodes.push("HAPPYBIRTHDAY");
-  profile.bag.push("premium", "premium", "basic", "basic");
-  saveState();
-  renderProfile();
-  showToast("Nhận code thành công!");
-  closeProfileModal();
-};
+  <div id="toast" class="toast"></div>
+  <script type="module" src="script.js"></script>
+</body>
+</html>
