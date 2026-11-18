@@ -1174,9 +1174,9 @@ function startAdvancedPveBattle() {
   const playerName = isAdmin ? "Admin" : profile.username;
   if ($("playerBattleName")) $("playerBattleName").textContent = playerName;
 
- if ($("battleLogBox")) {
-  $("battleLogBox").innerHTML = "[Hệ thống] Bắt đầu trận đấu (Mỗi người 250 HP)! Bạn có 30s để chọn bài và nhấn hoàn thành.";
-}
+  if ($("battleLogBox")) {
+    $("battleLogBox").innerHTML = "[Hệ thống] Bắt đầu trận đấu (Mỗi người 250 HP)! Bạn có 30s để chọn bài và nhấn hoàn thành.";
+  }
 
   // Bot tự động chọn bài ngẫu nhiên từ kho bài (úm xuống)
   const allCardIds = Object.keys(cards);
@@ -1223,7 +1223,7 @@ window.openPlayerDeckPicker = function() {
     const catLabel = CATEGORY_LABELS[card.category] || card.category;
     return `
       <div onclick="pickCardToBoard('${cid}')" style="background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); border-radius: 8px; padding: 6px; text-align: center; cursor: pointer; transition: transform 0.15s;">
-        <img src="${card.file}" alt="${card.name}" style="width: 100%; height: 75px; object-fit: cover; border-radius: 4px; display: block; margin: 0 auto;">
+        <img src="${card.file}" alt="${card.name}" style="width: 100%; height: 85px; object-fit: cover; border-radius: 4px; display: block; margin: 0 auto;">
         <strong style="font-size: 10px; display: block; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${card.name}</strong>
         <small style="font-size: 9px; color: var(--muted); display: block;">${catLabel}</small>
       </div>
@@ -1280,16 +1280,16 @@ function renderBattleSlots() {
   if (skillBox) {
     if (battleDeckState.selectedSkill) {
       if (isFlipped) {
-        skillBox.innerHTML = `<div style="background: #1e293b; border: 1px solid #8ef0c1; height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🎴 (Đã úp)</div>`;
+        skillBox.innerHTML = `<div class="facedown-card-cover" style="background: #1e293b; border: 1px solid #8ef0c1;"><span>🎴</span><small style="font-size: 10px; color: #8ef0c1;">Đã úp</small></div>`;
       } else {
         const c = cards[battleDeckState.selectedSkill];
         skillBox.innerHTML = `
-          <img src="${c.file}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;">
-          <strong style="font-size: 9px; display: block; margin-top: 2px;">${c.name}</strong>
+          <img src="${c.file}" alt="${c.name}" class="placed-card-img">
+          <div class="placed-card-caption">${c.name}</div>
         `;
       }
     } else {
-      skillBox.innerHTML = `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
+      skillBox.innerHTML = `<small style="color: var(--muted); font-size: 11px;">Trống</small>`;
     }
   }
 
@@ -1297,16 +1297,16 @@ function renderBattleSlots() {
   if (charBox) {
     if (battleDeckState.selectedCharacter) {
       if (isFlipped) {
-        charBox.innerHTML = `<div style="background: #1e293b; border: 1px solid #ffd700; height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🎴 (Đã úp)</div>`;
+        charBox.innerHTML = `<div class="facedown-card-cover" style="background: #1e293b; border: 1px solid #ffd700;"><span>🎴</span><small style="font-size: 10px; color: #ffd700;">Đã úp</small></div>`;
       } else {
         const c = cards[battleDeckState.selectedCharacter];
         charBox.innerHTML = `
-          <img src="${c.file}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;">
-          <strong style="font-size: 9px; display: block; margin-top: 2px;">${c.name}</strong>
+          <img src="${c.file}" alt="${c.name}" class="placed-card-img">
+          <div class="placed-card-caption">${c.name}</div>
         `;
       }
     } else {
-      charBox.innerHTML = `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
+      charBox.innerHTML = `<small style="color: var(--muted); font-size: 11px;">Trống</small>`;
     }
   }
 
@@ -1314,16 +1314,16 @@ function renderBattleSlots() {
   if (sitBox) {
     if (battleDeckState.selectedSituation) {
       if (isFlipped) {
-        sitBox.innerHTML = `<div style="background: #1e293b; border: 1px solid #00d2ff; height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🎴 (Đã úp)</div>`;
+        sitBox.innerHTML = `<div class="facedown-card-cover" style="background: #1e293b; border: 1px solid #00d2ff;"><span>🎴</span><small style="font-size: 10px; color: #00d2ff;">Đã úp</small></div>`;
       } else {
         const c = cards[battleDeckState.selectedSituation];
         sitBox.innerHTML = `
-          <img src="${c.file}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;">
-          <strong style="font-size: 9px; display: block; margin-top: 2px;">${c.name}</strong>
+          <img src="${c.file}" alt="${c.name}" class="placed-card-img">
+          <div class="placed-card-caption">${c.name}</div>
         `;
       }
     } else {
-      sitBox.innerHTML = `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
+      sitBox.innerHTML = `<small style="color: var(--muted); font-size: 11px;">Trống</small>`;
     }
   }
 
@@ -1334,14 +1334,14 @@ function renderBattleSlots() {
       if (isFlipped) {
         const c = cards[battleDeckState.botSelectedSkill];
         botSkillBox.innerHTML = `
-          <img src="${c.file}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;">
-          <strong style="font-size: 9px; display: block; margin-top: 2px;">${c.name}</strong>
+          <img src="${c.file}" alt="${c.name}" class="placed-card-img">
+          <div class="placed-card-caption">${c.name}</div>
         `;
       } else {
-        botSkillBox.innerHTML = `<div style="background: #334155; border: 1px solid #ff5252; height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🎴</div>`;
+        botSkillBox.innerHTML = `<div class="facedown-card-cover" style="background: #334155; border: 1px solid #ff5252;"><span>🎴</span></div>`;
       }
     } else {
-      botSkillBox.innerHTML = `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
+      botSkillBox.innerHTML = `<small style="color: var(--muted); font-size: 11px;">Trống</small>`;
     }
   }
 
@@ -1351,14 +1351,14 @@ function renderBattleSlots() {
       if (isFlipped) {
         const c = cards[battleDeckState.botSelectedCharacter];
         botCharBox.innerHTML = `
-          <img src="${c.file}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;">
-          <strong style="font-size: 9px; display: block; margin-top: 2px;">${c.name}</strong>
+          <img src="${c.file}" alt="${c.name}" class="placed-card-img">
+          <div class="placed-card-caption">${c.name}</div>
         `;
       } else {
-        botCharBox.innerHTML = `<div style="background: #334155; border: 1px solid #ff5252; height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🎴</div>`;
+        botCharBox.innerHTML = `<div class="facedown-card-cover" style="background: #334155; border: 1px solid #ff5252;"><span>🎴</span></div>`;
       }
     } else {
-      botCharBox.innerHTML = `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
+      botCharBox.innerHTML = `<small style="color: var(--muted); font-size: 11px;">Trống</small>`;
     }
   }
 
@@ -1368,14 +1368,14 @@ function renderBattleSlots() {
       if (isFlipped) {
         const c = cards[battleDeckState.botSelectedSituation];
         botSitBox.innerHTML = `
-          <img src="${c.file}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;">
-          <strong style="font-size: 9px; display: block; margin-top: 2px;">${c.name}</strong>
+          <img src="${c.file}" alt="${c.name}" class="placed-card-img">
+          <div class="placed-card-caption">${c.name}</div>
         `;
       } else {
-        botSitBox.innerHTML = `<div style="background: #334155; border: 1px solid #ff5252; height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🎴</div>`;
+        botSitBox.innerHTML = `<div class="facedown-card-cover" style="background: #334155; border: 1px solid #ff5252;"><span>🎴</span></div>`;
       }
     } else {
-      botSitBox.innerHTML = `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
+      botSitBox.innerHTML = `<small style="color: var(--muted); font-size: 11px;">Trống</small>`;
     }
   }
 
