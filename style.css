@@ -7,10 +7,14 @@
 :root {
   --bg: #090b1b;
   --panel: #151932;
+  --panel-border: rgba(155, 120, 255, 0.35);
   --purple: #9b78ff;
   --pink: #ff72c6;
   --cyan: #69e4ff;
   --gold: #ffd76e;
+  --success: #8ef0c1;
+  --accent: #69e4ff;
+  --accent-glow: rgba(105, 228, 255, 0.35);
   --text: #f7f5ff;
   --muted: #aaa9c5;
 }
@@ -1892,6 +1896,182 @@ body.starter-active .bottom-nav {
   line-height: 1.5;
 }
 
+/* ========================================================================== */
+/* 12. SÂN ĐẤU TCG: BỐ CỤC NHẬT KÝ BÊN PHẢI & Ô ĐẶT BÀI CHỮ NHẬT DỌC ÔM SÁT   */
+/* ========================================================================== */
+.tcg-arena-wrapper {
+  display: flex;
+  gap: 18px;
+  align-items: stretch;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.tcg-board-main {
+  flex: 1;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border: 2px solid var(--panel-border);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Cột Nhật ký trận đấu dời sang hẳn bên phải */
+.tcg-log-sidebar {
+  width: 310px;
+  flex-shrink: 0;
+  background: linear-gradient(160deg, #10162b, #0b0f1f);
+  border: 2px solid var(--panel-border);
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.tcg-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.tcg-log-header h4 {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--cyan);
+  text-transform: uppercase;
+}
+
+.battle-log-scroll {
+  flex: 1;
+  min-height: 360px;
+  max-height: 540px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px;
+  overflow-y: auto;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #dbe4ff;
+  text-align: left;
+}
+
+/* Hàng chứa 3 ô đặt bài hình chữ nhật dọc */
+.board-slots-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.slot-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.slot-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+}
+
+/* Ô đặt thẻ bài: Hình chữ nhật dọc to ra, viền ôm sát thẻ bài (cách đúng 1mm) */
+.board-slot-vertical {
+  width: 136px;
+  height: 192px;
+  padding: 1mm;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.board-slot-vertical.player-slot {
+  cursor: pointer;
+}
+
+.board-slot-vertical.player-slot:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(142, 240, 193, 0.25);
+}
+
+.slot-inner-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.placed-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 7px;
+  display: block;
+}
+
+.placed-card-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(9, 11, 27, 0.95) 60%, transparent);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 10px 4px 4px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.facedown-card-cover {
+  width: 100%;
+  height: 100%;
+  border-radius: 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+@media (max-width: 920px) {
+  .tcg-arena-wrapper {
+    flex-direction: column;
+  }
+  .tcg-log-sidebar {
+    width: 100%;
+  }
+  .battle-log-scroll {
+    min-height: 140px;
+    max-height: 200px;
+  }
+}
+
 @media (max-width: 768px) {
   .arena-layout-flex {
     flex-direction: column;
@@ -1904,34 +2084,12 @@ body.starter-active .bottom-nav {
   .arena-btn-stack {
     max-width: 100%;
   }
-}
-/* --- Bổ sung CSS cho Avatar và Tên người chơi trên Topbar --- */
-.user-profile-badge {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 5px 12px 5px 6px;
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
+  .board-slot-vertical {
+    width: 106px;
+    height: 150px;
+  }
 }
 
-.user-profile-badge img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #8ef0c1;
-  box-shadow: 0 0 10px rgba(142, 240, 193, 0.3);
-}
-
-.user-profile-badge .welcome-user {
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffffff;
-  letter-spacing: 0.3px;
-}
 /* --- Avatar & Profile Modal Styles --- */
 .user-profile-badge {
   display: flex;
@@ -1954,7 +2112,7 @@ body.starter-active .bottom-nav {
 .user-profile-badge img {
   width: 38px;
   height: 38px;
-  border-radius: 6px; /* Hình vuông bo góc nhẹ */
+  border-radius: 6px;
   object-fit: cover;
   border: 2px solid var(--success);
   box-shadow: 0 0 10px rgba(142, 240, 193, 0.3);
@@ -1989,7 +2147,7 @@ body.starter-active .bottom-nav {
 
 .profile-avatar-preview {
   width: 130px;
-  height: 170px; /* Hình chữ nhật dọc phóng to */
+  height: 170px;
   border-radius: 12px;
   object-fit: cover;
   border: 3px solid var(--accent);
@@ -2023,7 +2181,7 @@ body.starter-active .bottom-nav {
 
 .preset-avt {
   width: 50px;
-  height: 64px; /* Hình chữ nhật dọc cho preset */
+  height: 64px;
   border-radius: 8px;
   object-fit: cover;
   cursor: pointer;
