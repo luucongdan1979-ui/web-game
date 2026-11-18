@@ -1174,9 +1174,9 @@ function startAdvancedPveBattle() {
   const playerName = isAdmin ? "Admin" : profile.username;
   if ($("playerBattleName")) $("playerBattleName").textContent = playerName;
 
- if ($("battleLogBox")) {
-  $("battleLogBox").innerHTML = "[Hệ thống] Bắt đầu trận đấu (Mỗi người 250 HP)! Bạn có 30s để chọn bài và nhấn hoàn thành.";
-}
+  if ($("battleLogBox")) {
+    $("battleLogBox").innerHTML = "[Hệ thống] Bắt đầu trận đấu (Mỗi người 250 HP)! Bạn có 30s để chọn bài và nhấn hoàn thành.";
+  }
 
   // Bot tự động chọn bài ngẫu nhiên từ kho bài (úm xuống)
   const allCardIds = Object.keys(cards);
@@ -1284,12 +1284,12 @@ function renderBattleSlots() {
       } else {
         const c = cards[battleDeckState.selectedSkill];
         skillBox.innerHTML = `
-          <img src="${c.file}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;">
-          <strong style="font-size: 9px; display: block; margin-top: 2px;">${c.name}</strong>
+          <img src="${c.file}" style="width: 62px; height: 85px; object-fit: cover; border-radius: 6px; border: 1px solid var(--panel-border);">
+          <strong style="font-size: 9px; display: block; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;">${c.name}</strong>
         `;
       }
     } else {
-      skillBox.innerHTML = `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
+      skillBox.innerHTML = `<small style="color: var(--muted); font-size: 10px;">Trống (Nhấn chọn)</small>`;
     }
   }
 
@@ -1301,12 +1301,12 @@ function renderBattleSlots() {
       } else {
         const c = cards[battleDeckState.selectedCharacter];
         charBox.innerHTML = `
-          <img src="${c.file}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;">
-          <strong style="font-size: 9px; display: block; margin-top: 2px;">${c.name}</strong>
+          <img src="${c.file}" style="width: 62px; height: 85px; object-fit: cover; border-radius: 6px; border: 1px solid var(--panel-border);">
+          <strong style="font-size: 9px; display: block; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;">${c.name}</strong>
         `;
       }
     } else {
-      charBox.innerHTML = `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
+      charBox.innerHTML = `<small style="color: var(--muted); font-size: 10px;">Trống (Nhấn chọn)</small>`;
     }
   }
 
@@ -1318,12 +1318,12 @@ function renderBattleSlots() {
       } else {
         const c = cards[battleDeckState.selectedSituation];
         sitBox.innerHTML = `
-          <img src="${c.file}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;">
-          <strong style="font-size: 9px; display: block; margin-top: 2px;">${c.name}</strong>
+          <img src="${c.file}" style="width: 62px; height: 85px; object-fit: cover; border-radius: 6px; border: 1px solid var(--panel-border);">
+          <strong style="font-size: 9px; display: block; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;">${c.name}</strong>
         `;
       }
     } else {
-      sitBox.innerHTML = `<small style="color: var(--muted); font-size: 10px;">Trống</small>`;
+      sitBox.innerHTML = `<small style="color: var(--muted); font-size: 10px;">Trống (Nhấn chọn)</small>`;
     }
   }
 
@@ -1334,8 +1334,8 @@ function renderBattleSlots() {
       if (isFlipped) {
         const c = cards[battleDeckState.botSelectedSkill];
         botSkillBox.innerHTML = `
-          <img src="${c.file}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;">
-          <strong style="font-size: 9px; display: block; margin-top: 2px;">${c.name}</strong>
+          <img src="${c.file}" style="width: 62px; height: 85px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,82,82,0.4);">
+          <strong style="font-size: 9px; display: block; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;">${c.name}</strong>
         `;
       } else {
         botSkillBox.innerHTML = `<div style="background: #334155; border: 1px solid #ff5252; height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🎴</div>`;
@@ -1351,8 +1351,8 @@ function renderBattleSlots() {
       if (isFlipped) {
         const c = cards[battleDeckState.botSelectedCharacter];
         botCharBox.innerHTML = `
-          <img src="${c.file}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;">
-          <strong style="font-size: 9px; display: block; margin-top: 2px;">${c.name}</strong>
+          <img src="${c.file}" style="width: 62px; height: 85px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,82,82,0.4);">
+          <strong style="font-size: 9px; display: block; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;">${c.name}</strong>
         `;
       } else {
         botCharBox.innerHTML = `<div style="background: #334155; border: 1px solid #ff5252; height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🎴</div>`;
@@ -1368,8 +1368,8 @@ function renderBattleSlots() {
       if (isFlipped) {
         const c = cards[battleDeckState.botSelectedSituation];
         botSitBox.innerHTML = `
-          <img src="${c.file}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;">
-          <strong style="font-size: 9px; display: block; margin-top: 2px;">${c.name}</strong>
+          <img src="${c.file}" style="width: 62px; height: 85px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,82,82,0.4);">
+          <strong style="font-size: 9px; display: block; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;">${c.name}</strong>
         `;
       } else {
         botSitBox.innerHTML = `<div style="background: #334155; border: 1px solid #ff5252; height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🎴</div>`;
