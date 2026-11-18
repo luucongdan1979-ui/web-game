@@ -94,7 +94,7 @@ let battleDeckState = {
   maxBotHp: 250,
   playerHp: 250,
   maxPlayerHp: 250,
-  playerStatChoice: null, // "ATK" hoặc "DEF"
+  playerStatChoice: null,
   botStatChoice: null,
   cardsFlipped: false,
   timerInterval: null,
@@ -1169,16 +1169,24 @@ function startAdvancedPveBattle() {
   battleDeckState.botStatChoice = null;
   battleDeckState.timeLeft = 30;
 
+  // Chuyển sang màn hình chiến đấu độc lập
   showScreen("pveBattleScreen");
 
   const playerName = isAdmin ? "Admin" : profile.username;
+  const playerAvatar = isAdmin ? (state.adminAvatar || DEFAULT_AVATAR) : (profile?.avatar || DEFAULT_AVATAR);
+
+  // Cập nhật Tên và Avatar người chơi trong trận đấu
   if ($("playerBattleName")) $("playerBattleName").textContent = playerName;
+  if ($("playerBattleAvatar")) $("playerBattleAvatar").src = playerAvatar;
+
+  // Cập nhật Avatar và Tên của Bot đối thủ
+  if ($("botBattleName")) $("botBattleName").textContent = "BOT";
+  if ($("botBattleAvatar")) $("botBattleAvatar").src = DEFAULT_AVATAR;
 
   if ($("battleLogBox")) {
     $("battleLogBox").innerHTML = "[Hệ thống] Bắt đầu trận đấu (Mỗi người 250 HP)! Bạn có 30s để chọn bài và nhấn hoàn thành.";
   }
 
-  // Bot tự động chọn bài ngẫu nhiên từ kho bài (úm xuống)
   const allCardIds = Object.keys(cards);
   const botChars = allCardIds.filter(id => cards[id].category === "CHARACTER");
   const botSkills = allCardIds.filter(id => cards[id].category === "SKILL");
@@ -1257,7 +1265,7 @@ window.pickCardToBoard = function(cardId) {
 };
 
 window.clearSlot = function(category) {
-  if (battleDeckState.cardsFlipped) return; // Không cho gỡ khi bài đã úp/lật
+  if (battleDeckState.cardsFlipped) return;
 
   if (category === "SKILL" && battleDeckState.selectedSkill) {
     battleDeckState.selectedSkill = null;
@@ -1275,7 +1283,6 @@ window.clearSlot = function(category) {
 function renderBattleSlots() {
   const isFlipped = battleDeckState.cardsFlipped;
 
-  // Người chơi
   const skillBox = $("placedSkillContent");
   if (skillBox) {
     if (battleDeckState.selectedSkill) {
@@ -1327,7 +1334,6 @@ function renderBattleSlots() {
     }
   }
 
-  // Bot (Sân đấu bot đối thủ)
   const botSkillBox = $("botPlacedSkillContent");
   if (botSkillBox) {
     if (battleDeckState.botSelectedSkill) {
@@ -1392,7 +1398,6 @@ window.executeBattleTurn = function() {
 
   if (battleDeckState.timerInterval) clearInterval(battleDeckState.timerInterval);
 
-  // Khi bấm hoàn thành: lá bài của bạn úp xuống, sau đó mở modal chọn ATK hoặc DEF
   battleDeckState.cardsFlipped = false;
   renderBattleSlots();
 
@@ -1403,7 +1408,6 @@ window.submitStatChoice = function(choice) {
   battleDeckState.playerStatChoice = choice;
   $("statChoiceModal").classList.add("hidden");
 
-  // Lá bài của người chơi và bot úp xuống, sau đó cả bộ bài lật lên
   battleDeckState.cardsFlipped = true;
   renderBattleSlots();
 
@@ -1433,7 +1437,6 @@ function resolveBattleClash() {
   let bAtk = bChar.atk || 50;
   let bDef = bChar.def || 50;
 
-  // Xử lý Skill Múa Quạt
   if (pSkillKey === "muaQuat") {
     if (pCharKey === "kha") {
       pAtk *= 2;
@@ -1452,7 +1455,6 @@ function resolveBattleClash() {
     }
   }
 
-  // Xử lý Skill Chu Cấp 5 Củ
   if (pSkillKey === "chuCap5Cu") {
     if (pCharKey === "jack") {
       pDef *= 5;
@@ -1474,11 +1476,10 @@ function resolveBattleClash() {
       bDef = Math.round(bDef * 1.5);
     }
     if (pChoice === "ATK") {
-      pDef = 0;
+      bDef = 0;
     }
   }
 
-  // Xử lý Tình huống Vào Tù
   if (pSitKey === "vaoTu") {
     if (bChoice === "ATK") {
       bAtk = Math.max(0, bAtk - 15);
@@ -1499,7 +1500,6 @@ function resolveBattleClash() {
     }
   }
 
-  // So sánh điểm theo chỉ số người chơi và bot chọn
   let pScore = (pChoice === "ATK") ? pAtk : pDef;
   let bScore = (bChoice === "ATK") ? bAtk : bDef;
 
@@ -1535,14 +1535,12 @@ function resolveBattleClash() {
     return;
   }
 
-  // Chuẩn bị lượt tiếp theo sau 3s
   setTimeout(() => {
     battleDeckState.selectedSkill = null;
     battleDeckState.selectedCharacter = null;
     battleDeckState.selectedSituation = null;
     battleDeckState.cardsFlipped = false;
 
-    // Bot random mới cho lượt sau
     const allCardIds = Object.keys(cards);
     const botChars = allCardIds.filter(id => cards[id].category === "CHARACTER");
     const botSkills = allCardIds.filter(id => cards[id].category === "SKILL");
