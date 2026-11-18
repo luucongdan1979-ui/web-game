@@ -258,106 +258,131 @@
       </div>
     </section>
 
-    <!-- MÀN HÌNH SÂN ĐẤU PVE KIỂU ĐỐI KHÁNG TCG (2 BÊN NGƯỢC NHAU) -->
+    <!-- MÀN HÌNH SÂN ĐẤU PVE KIỂU ĐỐI KHÁNG TCG (BÀN ĐẤU BÊN TRÁI + THUẬT LẠI TRẬN ĐẤU BÊN PHẢI) -->
     <section id="pveBattleScreen" class="content-screen hidden">
-      <div class="section-heading" style="margin-bottom: 10px;">
+      <div class="section-heading" style="margin-bottom: 14px;">
         <div>
           <p class="eyebrow">CARD ARENA BATTLE</p>
           <h2>Sân đấu <span>Đối kháng TCG</span></h2>
         </div>
-        <button class="primary-btn" onclick="quitPveBattle()" style="padding: 6px 12px; font-size: 11px;">🚪 Rời trận</button>
+        <button class="primary-btn" onclick="quitPveBattle()" style="padding: 8px 14px; font-size: 11px;">🚪 Rời trận</button>
       </div>
 
-      <!-- BÀN ĐẤU CHÍNH -->
-      <div class="tcg-board" style="background: linear-gradient(135deg, #0f172a, #1e293b); border: 2px solid var(--panel-border); border-radius: 16px; padding: 16px; max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+      <!-- BỐ CỤC CHÍNH 2 CỘT: BÀN ĐẤU (TRÁI) & THUẬT LẠI TRẬN ĐẤU (PHẢI) -->
+      <div class="tcg-arena-wrapper">
         
-        <!-- KHU VỰC ĐỐI THỦ (BÊN TRÊN - CÓ CHỖ ĐẶT BÀI GIỐNG NGƯỜI CHƠI) -->
-        <div class="opponent-zone" style="background: rgba(255, 50, 50, 0.08); border: 1px solid rgba(255, 82, 82, 0.3); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="width: 40px; height: 40px; background: #ff5252; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">🤖</div>
-              <div>
-                <h4 style="color: #ff5252; margin: 0; font-size: 14px;">Bot Đối Thủ</h4>
-                <small style="color: var(--muted); font-size: 11px;">HP: <b id="botHpText">250 / 250</b></small>
+        <!-- CỘT TRÁI: BÀN ĐẤU CHÍNH -->
+        <div class="tcg-board-main">
+          
+          <!-- KHU VỰC ĐỐI THỦ (BÊN TRÊN) -->
+          <div class="opponent-zone" style="background: rgba(255, 50, 50, 0.08); border: 1px solid rgba(255, 82, 82, 0.35); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 42px; height: 42px; background: #ff5252; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">🤖</div>
+                <div>
+                  <h4 style="color: #ff5252; margin: 0; font-size: 14px;">Bot Đối Thủ</h4>
+                  <small style="color: var(--muted); font-size: 11px;">HP: <b id="botHpText">250 / 250</b></small>
+                </div>
+              </div>
+              <!-- Chồng bài của Bot -->
+              <div id="botDeckPile" style="background: #334155; border: 2px solid #ff5252; width: 65px; height: 95px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; color: #ff5252; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                <span>🎴</span>
+                <small style="font-size: 9px; margin-top: 2px;">BOT DECK</small>
               </div>
             </div>
-            <!-- Chồng bài của Bot -->
-            <div id="botDeckPile" style="background: #334155; border: 2px solid #ff5252; width: 65px; height: 95px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; color: #ff5252; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-              <span>🎴</span>
-              <small style="font-size: 9px; margin-top: 2px;">BOT DECK</small>
+
+            <!-- Các ô đặt bài trên sân của Bot (Hình chữ nhật dọc to, viền ôm sát cách 1mm) -->
+            <div class="board-slots-row">
+              <div class="slot-column">
+                <span class="slot-label" style="color: #ff5252;">✨ Ô SKILL BOT</span>
+                <div class="board-slot-vertical" style="border: 2px dashed #ff5252;">
+                  <div id="botPlacedSkillContent" class="slot-inner-content"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
+                </div>
+              </div>
+
+              <div class="slot-column">
+                <span class="slot-label" style="color: #ff5252;">👤 NHÂN VẬT BOT</span>
+                <div class="board-slot-vertical" style="border: 2px dashed #ff5252;">
+                  <div id="botPlacedCharacterContent" class="slot-inner-content"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
+                </div>
+              </div>
+
+              <div class="slot-column">
+                <span class="slot-label" style="color: #ff5252;">📜 TÌNH HUỐNG BOT</span>
+                <div class="board-slot-vertical" style="border: 2px dashed #ff5252;">
+                  <div id="botPlacedSituationContent" class="slot-inner-content"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Các ô đặt bài trên sân của Bot (Kích thước bằng người chơi, hình chữ nhật dọc) -->
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-            <div class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #ff5252; border-radius: 8px; width: 100%; height: 115px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px; text-align: center;">
-              <span style="font-size: 10px; color: #ff5252; font-weight: bold;">✨ Ô SKILL BOT</span>
-              <div id="botPlacedSkillContent" style="margin-top: 4px;"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
-            </div>
-
-            <div class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #ff5252; border-radius: 8px; width: 100%; height: 115px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px; text-align: center;">
-              <span style="font-size: 10px; color: #ff5252; font-weight: bold;">👤 NHÂN VẬT BOT</span>
-              <div id="botPlacedCharacterContent" style="margin-top: 4px;"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
-            </div>
-
-            <div class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #ff5252; border-radius: 8px; width: 100%; height: 115px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px; text-align: center;">
-              <span style="font-size: 10px; color: #ff5252; font-weight: bold;">📜 TÌNH HUỐNG BOT</span>
-              <div id="botPlacedSituationContent" style="margin-top: 4px;"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
+          <!-- THANH TIMER Ở GIỮA BÀN ĐẤU -->
+          <div style="display: flex; justify-content: center; align-items: center;">
+            <div style="background: rgba(142, 240, 193, 0.12); border: 1px solid #8ef0c1; border-radius: 30px; padding: 6px 22px; display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 11px; color: #8ef0c1; font-weight: 800; letter-spacing: 0.5px;">⏰ THỜI GIAN CHỌN:</span>
+              <span id="turnTimerDisplay" style="font-size: 18px; font-weight: 900; color: #8ef0c1;">30s</span>
             </div>
           </div>
+
+          <!-- KHU VỰC NGƯỜI CHƠI (BÊN DƯỚI) -->
+          <div class="player-zone" style="background: rgba(142, 240, 193, 0.08); border: 1px solid rgba(142, 240, 193, 0.35); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+            
+            <!-- Hàng đặt thẻ trên sân của bạn (Hình chữ nhật dọc to, viền ôm sát cách 1mm) -->
+            <div class="board-slots-row">
+              <div class="slot-column">
+                <span class="slot-label" style="color: #8ef0c1;">✨ Ô SKILL</span>
+                <div onclick="clearSlot('SKILL')" class="board-slot-vertical player-slot" style="border: 2px dashed #8ef0c1;" title="Nhấn để gỡ thẻ">
+                  <div id="placedSkillContent" class="slot-inner-content"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
+                </div>
+              </div>
+
+              <div class="slot-column">
+                <span class="slot-label" style="color: #ffd700;">👤 NHÂN VẬT</span>
+                <div onclick="clearSlot('CHARACTER')" class="board-slot-vertical player-slot" style="border: 2px dashed #ffd700;" title="Nhấn để gỡ thẻ">
+                  <div id="placedCharacterContent" class="slot-inner-content"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
+                </div>
+              </div>
+
+              <div class="slot-column">
+                <span class="slot-label" style="color: #00d2ff;">📜 TÌNH HUỐNG</span>
+                <div onclick="clearSlot('SITUATION')" class="board-slot-vertical player-slot" style="border: 2px dashed #00d2ff;" title="Nhấn để gỡ thẻ">
+                  <div id="placedSituationContent" class="slot-inner-content"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Thông tin người chơi & Chồng bài để bấm vào -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <!-- CHỒNG BÀI CỦA BẠN: NHẤN VÀO ĐÂY ĐỂ HIỆN BẢNG CHỌN THẺ -->
+                <div id="playerDeckPile" onclick="openPlayerDeckPicker()" title="Nhấn để bốc bài từ Album" style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid var(--panel-border); width: 65px; height: 95px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: transform 0.2s;">
+                  <span style="font-size: 20px;">🎴</span>
+                  <small style="font-size: 9px; color: var(--text); font-weight: bold; margin-top: 2px;">BỐC BÀI</small>
+                </div>
+
+                <div>
+                  <h4 id="playerBattleName" style="color: var(--text); margin: 0; font-size: 14px;">Người chơi</h4>
+                  <small style="color: var(--muted); font-size: 11px;">HP: <b id="playerHpText">250 / 250</b></small>
+                </div>
+              </div>
+
+              <button id="confirmBattleTurnBtn" class="primary-btn" onclick="executeBattleTurn()" style="padding: 12px 22px; font-size: 12px;">⚔️ HOÀN THÀNH & TẤN CÔNG</button>
+            </div>
+
+          </div>
+
         </div>
 
-        <!-- KHU VỰC TRUNG TÂM (CHAT HỆ THỐNG ĐIỂM TẤN CÔNG DỜI SANG BÊN TRÁI & TIMER 30S) -->
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <div id="battleLogBox" style="flex: 2; background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); padding: 10px; border-radius: 8px; height: 85px; overflow-y: auto; font-size: 11px; color: var(--muted); text-align: left;">
+        <!-- CỘT PHẢI: KHUNG THUẬT LẠI TRẬN ĐẤU -->
+        <aside class="tcg-log-sidebar">
+          <div class="tcg-log-header">
+            <h4>📜 Thuật lại trận đấu</h4>
+            <span style="font-size: 10px; color: var(--muted);">LIVE LOG</span>
+          </div>
+          <div id="battleLogBox" class="battle-log-scroll">
             [Hệ thống] Vào trận! Nhấn vào chồng bài của bạn ở góc dưới để chọn thẻ bài ra sân. Bạn có 30s để chọn bài.
           </div>
-          <div style="flex: 1; background: rgba(142, 240, 193, 0.1); border: 1px solid #8ef0c1; border-radius: 8px; padding: 10px; text-align: center;">
-            <span style="font-size: 10px; color: #8ef0c1; font-weight: bold;">⏰ THỜI GIAN CHỌN</span>
-            <div id="turnTimerDisplay" style="font-size: 20px; font-weight: bold; color: #8ef0c1; margin-top: 2px;">30s</div>
-          </div>
-        </div>
-
-        <!-- KHU VỰC NGƯỜI CHƠI (BÊN DƯỚI) -->
-        <div class="player-zone" style="background: rgba(142, 240, 193, 0.08); border: 1px solid rgba(142, 240, 193, 0.3); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
-          
-          <!-- Hàng đặt thẻ trên sân của bạn (Hình chữ nhật dọc, kích thước chuẩn bằng bot) -->
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-            <div onclick="clearSlot('SKILL')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #8ef0c1; border-radius: 8px; width: 100%; height: 115px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px; text-align: center; cursor: pointer;">
-              <span style="font-size: 10px; color: #8ef0c1; font-weight: bold;">✨ Ô SKILL</span>
-              <div id="placedSkillContent" style="margin-top: 4px;"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
-            </div>
-
-            <div onclick="clearSlot('CHARACTER')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #ffd700; border-radius: 8px; width: 100%; height: 115px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px; text-align: center; cursor: pointer;">
-              <span style="font-size: 10px; color: #ffd700; font-weight: bold;">👤 NHÂN VẬT</span>
-              <div id="placedCharacterContent" style="margin-top: 4px;"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
-            </div>
-
-            <div onclick="clearSlot('SITUATION')" class="board-slot" style="background: rgba(0,0,0,0.4); border: 2px dashed #00d2ff; border-radius: 8px; width: 100%; height: 115px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px; text-align: center; cursor: pointer;">
-              <span style="font-size: 10px; color: #00d2ff; font-weight: bold;">📜 TÌNH HUỐNG</span>
-              <div id="placedSituationContent" style="margin-top: 4px;"><small style="color: var(--muted); font-size: 10px;">Trống</small></div>
-            </div>
-          </div>
-
-          <!-- Thông tin người chơi & Chồng bài để bấm vào -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <!-- CHỒNG BÀI CỦA BẠN: NHẤN VÀO ĐÂY ĐỂ HIỆN BẢNG CHỌN THẺ -->
-              <div id="playerDeckPile" onclick="openPlayerDeckPicker()" title="Nhấn để bốc bài từ Album" style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid var(--panel-border); width: 65px; height: 95px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: transform 0.2s;">
-                <span style="font-size: 20px;">🎴</span>
-                <small style="font-size: 9px; color: var(--text); font-weight: bold; margin-top: 2px;">BỐC BÀI</small>
-              </div>
-
-              <div>
-                <h4 id="playerBattleName" style="color: var(--text); margin: 0; font-size: 13px;">Người chơi</h4>
-                <small style="color: var(--muted); font-size: 11px;">HP: <b id="playerHpText">250 / 250</b></small>
-              </div>
-            </div>
-
-            <button id="confirmBattleTurnBtn" class="primary-btn" onclick="executeBattleTurn()" style="padding: 10px 22px; font-size: 12px;">⚔️ HOÀN THÀNH & TẤN CÔNG</button>
-          </div>
-
-        </div>
+        </aside>
 
       </div>
     </section>
@@ -702,7 +727,7 @@
 
   <!-- MODAL CHỌN CHỈ SỐ NHÂN VẬT (ATK HOẶC DEF) -->
   <div id="statChoiceModal" class="starter-overlay hidden">
-    <div class="starter-dialog" style="max-width: 400px; text-align: center;">
+    <div class="starter-dialog" style="max-width: 400px; min-height: auto; text-align: center;">
       <p class="eyebrow">BATTLE TACTIC</p>
       <h2>Chọn Chỉ Số Thi Đấu</h2>
       <p id="statChoicePrompt" style="font-size: 13px; color: var(--muted); margin: 10px 0 20px;">Nhân vật của bạn muốn tập trung phát huy điểm ATK hay điểm DEF trong lượt này?</p>
@@ -715,7 +740,7 @@
 
   <!-- MODAL BẢNG CHỌN THẺ TỪ CHỒNG BÀI (DECK PICKER) -->
   <div id="deckPickerModal" class="starter-overlay hidden">
-    <div class="starter-dialog" style="max-width: 500px; width: 90%;">
+    <div class="starter-dialog" style="max-width: 500px; min-height: auto; width: 90%;">
       <button class="close-btn" onclick="closeDeckPicker()">×</button>
       <p class="eyebrow">YOUR COLLECTION</p>
       <h2>Chồng bài sở hữu</h2>
@@ -785,4 +810,3 @@
   <script type="module" src="script.js"></script>
 </body>
 </html>
-```[cite: 3]
