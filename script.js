@@ -82,7 +82,6 @@ let currentAlbumFilter = "ALL";
 let targetGiftUserKey = null;
 let toastTimer;
 
-// Trạng thái sân đấu TCG đối kháng với 250 HP, Timer và cơ chế úp/lật bài
 let battleDeckState = {
   selectedSkill: null,
   selectedCharacter: null,
@@ -1169,19 +1168,13 @@ function startAdvancedPveBattle() {
   battleDeckState.botStatChoice = null;
   battleDeckState.timeLeft = 30;
 
-  // Chuyển sang màn hình chiến đấu độc lập
   showScreen("pveBattleScreen");
 
   const playerName = isAdmin ? "Admin" : profile.username;
-  const playerAvatar = isAdmin ? (state.adminAvatar || DEFAULT_AVATAR) : (profile?.avatar || DEFAULT_AVATAR);
+  const currentAvatar = isAdmin ? (state.adminAvatar || DEFAULT_AVATAR) : (profile?.avatar || DEFAULT_AVATAR);
 
-  // Cập nhật Tên và Avatar người chơi trong trận đấu
   if ($("playerBattleName")) $("playerBattleName").textContent = playerName;
-  if ($("playerBattleAvatar")) $("playerBattleAvatar").src = playerAvatar;
-
-  // Cập nhật Avatar và Tên của Bot đối thủ
-  if ($("botBattleName")) $("botBattleName").textContent = "BOT";
-  if ($("botBattleAvatar")) $("botBattleAvatar").src = DEFAULT_AVATAR;
+  if ($("battlePlayerAvatarImg")) $("battlePlayerAvatarImg").src = currentAvatar;
 
   if ($("battleLogBox")) {
     $("battleLogBox").innerHTML = "[Hệ thống] Bắt đầu trận đấu (Mỗi người 250 HP)! Bạn có 30s để chọn bài và nhấn hoàn thành.";
@@ -1476,7 +1469,7 @@ function resolveBattleClash() {
       bDef = Math.round(bDef * 1.5);
     }
     if (pChoice === "ATK") {
-      bDef = 0;
+      pDef = 0;
     }
   }
 
@@ -1639,6 +1632,7 @@ window.changeAvatar = function(avatarSrc) {
 
   if ($("userAvatarImg")) $("userAvatarImg").src = avatarSrc;
   if ($("modalAvatarImg")) $("modalAvatarImg").src = avatarSrc;
+  if ($("battlePlayerAvatarImg")) $("battlePlayerAvatarImg").src = avatarSrc;
   showToast("Đã đổi avatar thành công!");
 };
 
@@ -1669,6 +1663,7 @@ window.saveProfileInfo = function() {
 
   $("welcomeUser").textContent = newName;
   $("modalUsername").textContent = newName;
+  if ($("playerBattleName")) $("playerBattleName").textContent = newName;
   showToast("Đã lưu thông tin cá nhân thành công!");
   closeProfileModal();
 };
