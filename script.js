@@ -707,9 +707,6 @@ function openCardDetail(cardId) {
   if ($("detailStatsBox")) {
     $("detailStatsBox").classList.toggle("hidden", !isCharacter);
   }
-  if ($("detailSituationNote")) {
-    $("detailSituationNote").classList.toggle("hidden", isCharacter);
-  }
 
   if (isCharacter) {
     if ($("detailAtkValue")) $("detailAtkValue").textContent = card.atk ?? 0;
@@ -1140,10 +1137,6 @@ window.importDataBackup = async function(event) {
 
   event.target.value = "";
 };
-
-// ==========================================
-// LOGIC SÂN ĐẤU TCG & 30s TIMER & ÚP/LẬT BÀI
-// ==========================================
 
 function startAdvancedPveBattle() {
   const profile = getProfile();
