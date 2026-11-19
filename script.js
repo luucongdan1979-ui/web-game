@@ -96,9 +96,12 @@ let battleDeckState = {
   playerStatChoice: null,
   botStatChoice: null,
   cardsFlipped: false,
+  isResolvingTurn: false,
   timerInterval: null,
   timeLeft: 30
 };
+
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 function loadState() {
   try {
@@ -233,9 +236,9 @@ $("registerPanel").addEventListener("submit", async event => {
     setTimeout(() => switchPanel("loginPanel"), 4000);
   } catch (error) {
     let msg = "Đăng ký thất bại!";
-    if (error.code === 'auth/email-already-in-use') {
+    if (error.code === "auth/email-already-in-use") {
       msg = "Email này đã được sử dụng bởi tài khoản khác!";
-    } else if (error.code === 'auth/invalid-email') {
+    } else if (error.code === "auth/invalid-email") {
       msg = "Địa chỉ email không hợp lệ!";
     } else {
       msg = error.message;
@@ -466,7 +469,7 @@ function openStarterPack() {
 
   profile.cards.push(pendingCard);
   profile.starterOpened = true;
-  
+
   if (!profile.unlockedAvatars) profile.unlockedAvatars = [DEFAULT_AVATAR, "avt1.png"];
   if (!profile.unlockedAvatars.includes("avt1.png")) {
     profile.unlockedAvatars.push("avt1.png");
@@ -485,7 +488,7 @@ function openStarterPack() {
   img.style.display = "block";
   img.src = card.file;
   img.alt = card.name;
-  img.onerror = function() { this.style.display = "none"; };
+  img.onerror = function () { this.style.display = "none"; };
 
   $("starterResultName").textContent = card.name;
   $("starterResultRarity").textContent = card.rarity;
@@ -600,7 +603,7 @@ $("zoomedPackElement").addEventListener("click", () => {
     const profile = getProfile();
     profile.bag.splice(activePackIndex, 1);
 
-    const rareChance = (activePackType === "premium") ? 0.40 : 0.60;
+    const rareChance = activePackType === "premium" ? 0.40 : 0.60;
     const cardId = getRandomCardByRarity(rareChance);
     const card = cards[cardId];
 
@@ -623,7 +626,7 @@ $("zoomedPackElement").addEventListener("click", () => {
     img.style.display = "block";
     img.src = card.file;
     img.alt = card.name;
-    img.onerror = function() { this.style.display = "none"; };
+    img.onerror = function () { this.style.display = "none"; };
 
     $("zoomResultName").textContent = card.name;
     $("zoomResultRarity").textContent = card.rarity;
@@ -701,7 +704,7 @@ function openCardDetail(cardId) {
     img.style.display = "block";
     img.src = card.file;
     img.alt = card.name;
-    img.onerror = function() { this.style.display = "none"; };
+    img.onerror = function () { this.style.display = "none"; };
   }
 
   if ($("detailStatsBox")) {
@@ -769,18 +772,18 @@ function renderMailbox() {
     const hasAnyReward = rewardsHtml !== "";
 
     return `
-      <div class="mail-card ${!mail.claimed ? 'unclaimed' : ''}">
+      <div class="mail-card ${!mail.claimed ? "unclaimed" : ""}">
         <div class="mail-card-top">
           <div>
-            <h3>${!mail.claimed ? '📩' : '📨'} ${mail.title}</h3>
+            <h3>${!mail.claimed ? "📩" : "📨"} ${mail.title}</h3>
             <span class="mail-date">${mail.date}</span>
           </div>
-          ${!mail.claimed ? `<span class="mgmt-status-badge">CÓ QUÀ MỚI</span>` : ''}
+          ${!mail.claimed ? `<span class="mgmt-status-badge">CÓ QUÀ MỚI</span>` : ""}
         </div>
         <p class="mail-body-text">${mail.body}</p>
-        ${hasAnyReward ? `<div class="mail-attachments">${rewardsHtml}</div>` : ''}
+        ${hasAnyReward ? `<div class="mail-attachments">${rewardsHtml}</div>` : ""}
         <div class="mail-card-footer">
-          ${!mail.claimed 
+          ${!mail.claimed
             ? `<button class="claim-mail-btn" onclick="claimSingleMail(${idx})">NHẬN QUÀ ✦</button>`
             : (hasAnyReward ? `<span class="claimed-tag">✓ Đã nhận quà</span>` : `<span class="claimed-tag">Đã đọc</span>`)
           }
@@ -790,7 +793,7 @@ function renderMailbox() {
   }).join("");
 }
 
-window.claimSingleMail = function(index) {
+window.claimSingleMail = function (index) {
   const profile = getProfile();
   const mail = profile?.mailbox?.[index];
   if (!mail || mail.claimed) return;
@@ -823,13 +826,15 @@ $("claimAllMailBtn").addEventListener("click", () => {
   if (!profile || !profile.mailbox) return;
 
   let claimedCount = 0;
-  profile.mailbox.forEach((mail) => {
+  profile.mailbox.forEach(mail => {
     if (!mail.claimed) {
       if (!isAdmin && mail.coins > 0) profile.coins += mail.coins;
       if (Array.isArray(mail.packs)) profile.bag.push(...mail.packs);
       if (Array.isArray(mail.cards) && !isAdmin) {
         mail.cards.forEach(cid => {
-          if (!profile.cards.includes(cid)) profile.cards.push(cid);
+          if (!profile.cards.includes(cid)) {
+            profile.cards.push(cid);
+          }
         });
       }
       mail.claimed = true;
@@ -959,14 +964,14 @@ function renderAdminUserManagement() {
     const packCount = u.bag ? u.bag.length : 0;
 
     return `
-      <div class="admin-mgmt-card ${isBanned ? 'banned-card' : ''}">
+      <div class="admin-mgmt-card ${isBanned ? "banned-card" : ""}">
         <div class="mgmt-header">
           <strong>👤 ${u.username}</strong>
-          <span class="mgmt-status-badge ${isBanned ? 'banned' : ''}">
-            ${isBanned ? 'ĐÃ BỊ BAN' : 'HOẠT ĐỘNG'}
+          <span class="mgmt-status-badge ${isBanned ? "banned" : ""}">
+            ${isBanned ? "ĐÃ BỊ BAN" : "HOẠT ĐỘNG"}
           </span>
         </div>
-        <small style="color: var(--muted); font-size: 11px;">📧 ${u.email || 'Không có email'}</small>
+        <small style="color: var(--muted); font-size: 11px;">📧 ${u.email || "Không có email"}</small>
 
         <div class="mgmt-stats">
           <span>🪙 Xu: <b>${u.coins}</b></span>
@@ -981,7 +986,7 @@ function renderAdminUserManagement() {
             <button class="mgmt-btn gift-btn" onclick="openAdminGiftModal('${key}')">🎁 Tặng Quà</button>
           </div>
           <div class="mgmt-btn-row">
-            ${isBanned 
+            ${isBanned
               ? `<button class="mgmt-btn unban-btn" onclick="adminToggleBan('${key}')">Gỡ Ban</button>`
               : `<button class="mgmt-btn ban-btn" onclick="adminToggleBan('${key}')">Ban TK</button>`
             }
@@ -992,7 +997,7 @@ function renderAdminUserManagement() {
   }).join("");
 }
 
-window.adminAdjustCoins = function(userKey, amount) {
+window.adminAdjustCoins = function (userKey, amount) {
   const u = state.users[userKey];
   if (!u) return;
   u.coins = Math.max(0, u.coins + amount);
@@ -1001,7 +1006,7 @@ window.adminAdjustCoins = function(userKey, amount) {
   showToast(`Đã cập nhật xu cho ${u.username}!`);
 };
 
-window.adminToggleBan = function(userKey) {
+window.adminToggleBan = function (userKey) {
   const u = state.users[userKey];
   if (!u) return;
   u.banned = !u.banned;
@@ -1010,7 +1015,7 @@ window.adminToggleBan = function(userKey) {
   showToast(u.banned ? `Đã ban tài khoản ${u.username}!` : `Đã mở khóa cho ${u.username}!`);
 };
 
-window.openAdminGiftModal = function(userKey) {
+window.openAdminGiftModal = function (userKey) {
   targetGiftUserKey = userKey;
   const u = state.users[userKey];
   if (!u) return;
@@ -1043,7 +1048,7 @@ window.openAdminGiftModal = function(userKey) {
   $("adminGiftModal").classList.remove("hidden");
 };
 
-window.toggleGiftCardSelect = function(el) {
+window.toggleGiftCardSelect = function (el) {
   el.classList.toggle("selected");
 };
 
@@ -1088,7 +1093,7 @@ $("confirmGiftBtn").addEventListener("click", () => {
   targetGiftUserKey = null;
 });
 
-window.exportDataBackup = function() {
+window.exportDataBackup = function () {
   const exportPayload = isAdmin ? state : {
     users: currentUser && state.users[currentUser] ? { [currentUser]: state.users[currentUser] } : {},
     active: null,
@@ -1096,7 +1101,7 @@ window.exportDataBackup = function() {
   };
   const fileName = isAdmin ? "meme_card_arena_backup.json" : `meme_card_arena_${currentUser || "player"}_backup.json`;
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
-  const downloadAnchor = document.createElement('a');
+  const downloadAnchor = document.createElement("a");
   downloadAnchor.setAttribute("href", dataStr);
   downloadAnchor.setAttribute("download", fileName);
   document.body.appendChild(downloadAnchor);
@@ -1105,18 +1110,18 @@ window.exportDataBackup = function() {
   showToast("Đã xuất file backup thành công!");
 };
 
-window.importDataBackup = async function(event) {
+window.importDataBackup = async function (event) {
   const files = event.target.files;
   if (!files || files.length === 0) return;
 
   try {
     let mergedUsers = { ...(state.users || {}) };
-    let mergedMailbox = [ ...(state.adminMailbox || []) ];
+    let mergedMailbox = [...(state.adminMailbox || [])];
 
     for (let file of files) {
       const text = await file.text();
       const importedState = JSON.parse(text);
-      
+
       if (importedState && importedState.users) {
         mergedUsers = { ...mergedUsers, ...importedState.users };
         if (Array.isArray(importedState.adminMailbox)) {
@@ -1128,7 +1133,7 @@ window.importDataBackup = async function(event) {
     state.users = mergedUsers;
     state.adminMailbox = mergedMailbox;
     saveState();
-    
+
     renderAdminUserManagement();
     showToast(`Đã gộp và nhập thành công ${files.length} file backup!`);
   } catch (err) {
@@ -1137,6 +1142,213 @@ window.importDataBackup = async function(event) {
 
   event.target.value = "";
 };
+
+/* ========================================================================== */
+/* HỆ THỐNG CHIẾN ĐẤU & HIỆU ỨNG CỘNG ĐIỂM TỪNG LÁ BÀI (NGƯỜI CHƠI & BOT) */
+/* ========================================================================== */
+
+function ensureScoreAnimationStyles() {
+  if ($("battleScoreAnimStyle")) return;
+  const style = document.createElement("style");
+  style.id = "battleScoreAnimStyle";
+  style.textContent = `
+    .slot-calc-highlight {
+      transform: translateY(-6px) scale(1.06) !important;
+      box-shadow: 0 0 22px rgba(255, 215, 110, 0.85) !important;
+      border-color: #ffd76e !important;
+      z-index: 15;
+    }
+    .battle-floating-score {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 900;
+      color: #090b1b;
+      background: #8ef0c1;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+      z-index: 30;
+      pointer-events: none;
+      white-space: nowrap;
+      animation: battleFloatUp 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .battle-floating-score.negative {
+      background: #ff5e7e;
+      color: #ffffff;
+    }
+    .battle-floating-score.gold {
+      background: #ffd76e;
+      color: #090b1b;
+    }
+    @keyframes battleFloatUp {
+      0% { opacity: 0; transform: translate(-50%, 10px) scale(0.6); }
+      25% { opacity: 1; transform: translate(-50%, -8px) scale(1.18); }
+      75% { opacity: 1; transform: translate(-50%, -24px) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -38px) scale(0.92); }
+    }
+    .calc-scoreboard-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      background: rgba(9, 11, 27, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .calc-score-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      transition: transform 0.22s ease, background 0.22s ease;
+    }
+    .calc-score-pill.bump {
+      transform: scale(1.18);
+      background: rgba(142, 240, 193, 0.22);
+    }
+    .calc-score-value {
+      font-size: 16px;
+      font-weight: 900;
+      color: #ffd76e;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function ensureBattleScoreHud() {
+  ensureScoreAnimationStyles();
+  const boardMain = document.querySelector(".tcg-board-main");
+  if (!boardMain || $("battleCalcHud")) return;
+
+  const hud = document.createElement("div");
+  hud.id = "battleCalcHud";
+  hud.className = "calc-scoreboard-strip hidden";
+  hud.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <span style="color: #8ef0c1;">TỔNG ĐIỂM BẠN:</span>
+      <span id="playerCalcPill" class="calc-score-pill">
+        <span id="playerCalcTotal" class="calc-score-value">0</span>
+        <small id="playerCalcFormula" style="color: var(--muted); font-size: 11px;"></small>
+      </span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <span style="color: #ff6b8b;">TỔNG ĐIỂM BOT:</span>
+      <span id="botCalcPill" class="calc-score-pill">
+        <span id="botCalcTotal" class="calc-score-value">0</span>
+        <small id="botCalcFormula" style="color: var(--muted); font-size: 11px;"></small>
+      </span>
+    </div>
+  `;
+
+  const timerRow = boardMain.children[1] || null;
+  if (timerRow) {
+    boardMain.insertBefore(hud, timerRow);
+  } else {
+    boardMain.appendChild(hud);
+  }
+}
+
+function resetBattleScoreHud(show = false) {
+  ensureBattleScoreHud();
+  const hud = $("battleCalcHud");
+  if (!hud) return;
+  hud.classList.toggle("hidden", !show);
+  if ($("playerCalcTotal")) $("playerCalcTotal").textContent = "0";
+  if ($("playerCalcFormula")) $("playerCalcFormula").textContent = "";
+  if ($("botCalcTotal")) $("botCalcTotal").textContent = "0";
+  if ($("botCalcFormula")) $("botCalcFormula").textContent = "";
+}
+
+function animateScoreNumber(el, startVal, endVal, duration = 420) {
+  if (!el) return;
+  const startTime = performance.now();
+  function frame(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const current = Math.round(startVal + (endVal - startVal) * progress);
+    el.textContent = String(current);
+    if (progress < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      el.textContent = String(endVal);
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+async function showCardPointStep({ slotContentId, totalElId, formulaElId, pillElId, prevScore, nextScore, badgeText, tone = "positive" }) {
+  const contentEl = $(slotContentId);
+  const slotCardEl = contentEl ? contentEl.closest(".board-slot-vertical") : null;
+  const totalEl = $(totalElId);
+  const formulaEl = $(formulaElId);
+  const pillEl = $(pillElId);
+
+  if (slotCardEl) {
+    slotCardEl.classList.add("slot-calc-highlight");
+  }
+
+  if (contentEl && badgeText) {
+    const floatEl = document.createElement("div");
+    floatEl.className = `battle-floating-score ${tone}`;
+    floatEl.textContent = badgeText;
+    contentEl.appendChild(floatEl);
+    setTimeout(() => floatEl.remove(), 1100);
+  }
+
+  if (pillEl) {
+    pillEl.classList.add("bump");
+  }
+  if (formulaEl && badgeText) {
+    formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} ${badgeText}` : badgeText;
+  }
+
+  animateScoreNumber(totalEl, prevScore, nextScore, 420);
+  await sleep(680);
+
+  if (slotCardEl) {
+    slotCardEl.classList.remove("slot-calc-highlight");
+  }
+  if (pillEl) {
+    pillEl.classList.remove("bump");
+  }
+  await sleep(180);
+}
+
+async function runSideStepByStepAnimation(side, steps) {
+  const isPlayer = side === "player";
+  const slotMap = {
+    CHAR: isPlayer ? "placedCharacterContent" : "botPlacedCharacterContent",
+    SKILL: isPlayer ? "placedSkillContent" : "botPlacedSkillContent",
+    SIT: isPlayer ? "placedSituationContent" : "botPlacedSituationContent"
+  };
+  const totalElId = isPlayer ? "playerCalcTotal" : "botCalcTotal";
+  const formulaElId = isPlayer ? "playerCalcFormula" : "botCalcFormula";
+  const pillElId = isPlayer ? "playerCalcPill" : "botCalcPill";
+
+  let runningScore = 0;
+  for (const step of steps) {
+    const nextScore = Math.max(0, step.nextScore);
+    await showCardPointStep({
+      slotContentId: slotMap[step.slot],
+      totalElId,
+      formulaElId,
+      pillElId,
+      prevScore: runningScore,
+      nextScore,
+      badgeText: step.badge,
+      tone: step.tone || "positive"
+    });
+    runningScore = nextScore;
+  }
+  return runningScore;
+}
 
 function startAdvancedPveBattle() {
   const profile = getProfile();
@@ -1157,11 +1369,13 @@ function startAdvancedPveBattle() {
   battleDeckState.botSelectedCharacter = null;
   battleDeckState.botSelectedSituation = null;
   battleDeckState.cardsFlipped = false;
+  battleDeckState.isResolvingTurn = false;
   battleDeckState.playerStatChoice = null;
   battleDeckState.botStatChoice = null;
   battleDeckState.timeLeft = 30;
 
   showScreen("pveBattleScreen");
+  resetBattleScoreHud(false);
 
   const playerName = isAdmin ? "Admin" : profile.username;
   const currentAvatar = isAdmin ? (state.adminAvatar || DEFAULT_AVATAR) : (profile?.avatar || DEFAULT_AVATAR);
@@ -1193,18 +1407,26 @@ function startTurnTimer() {
   if ($("turnTimerDisplay")) $("turnTimerDisplay").textContent = `${battleDeckState.timeLeft}s`;
 
   battleDeckState.timerInterval = setInterval(() => {
+    if (battleDeckState.isResolvingTurn) return;
     battleDeckState.timeLeft--;
     if ($("turnTimerDisplay")) $("turnTimerDisplay").textContent = `${battleDeckState.timeLeft}s`;
 
     if (battleDeckState.timeLeft <= 0) {
       clearInterval(battleDeckState.timerInterval);
+      if (!battleDeckState.selectedCharacter) {
+        const allCardIds = Object.keys(cards);
+        const chars = allCardIds.filter(id => cards[id].category === "CHARACTER");
+        battleDeckState.selectedCharacter = chars[Math.floor(Math.random() * chars.length)];
+        renderBattleSlots();
+      }
       showToast("Hết 30 giây! Tự động hoàn thành lượt đấu.");
-      executeBattleTurn();
+      submitStatChoice(battleDeckState.playerStatChoice || "ATK");
     }
   }, 1000);
 }
 
-window.openPlayerDeckPicker = function() {
+window.openPlayerDeckPicker = function () {
+  if (battleDeckState.isResolvingTurn || battleDeckState.cardsFlipped) return;
   const profile = getProfile();
   const ownedCards = isAdmin ? Object.keys(cards) : (profile?.cards || []);
   const grid = $("deckPickerGrid");
@@ -1227,11 +1449,11 @@ window.openPlayerDeckPicker = function() {
   $("deckPickerModal").classList.remove("hidden");
 };
 
-window.closeDeckPicker = function() {
+window.closeDeckPicker = function () {
   $("deckPickerModal").classList.add("hidden");
 };
 
-window.pickCardToBoard = function(cardId) {
+window.pickCardToBoard = function (cardId) {
   const card = cards[cardId];
   if (!card) return;
 
@@ -1250,8 +1472,8 @@ window.pickCardToBoard = function(cardId) {
   renderBattleSlots();
 };
 
-window.clearSlot = function(category) {
-  if (battleDeckState.cardsFlipped) return;
+window.clearSlot = function (category) {
+  if (battleDeckState.cardsFlipped || battleDeckState.isResolvingTurn) return;
 
   if (category === "SKILL" && battleDeckState.selectedSkill) {
     battleDeckState.selectedSkill = null;
@@ -1273,13 +1495,13 @@ function renderBattleSlots() {
   if (skillBox) {
     if (battleDeckState.selectedSkill) {
       if (isFlipped) {
-        skillBox.innerHTML = `<div class="facedown-card-cover" style="background: #1e293b; border: 1px solid #8ef0c1;"><span>🎴</span><small style="font-size: 10px; color: #8ef0c1;">Đã úp</small></div>`;
-      } else {
         const c = cards[battleDeckState.selectedSkill];
         skillBox.innerHTML = `
           <img src="${c.file}" alt="${c.name}" class="placed-card-img">
           <div class="placed-card-caption">${c.name}</div>
         `;
+      } else {
+        skillBox.innerHTML = `<div class="facedown-card-cover" style="background: #1e293b; border: 1px solid #8ef0c1;"><span>🎴</span><small style="font-size: 10px; color: #8ef0c1;">Đã úp</small></div>`;
       }
     } else {
       skillBox.innerHTML = `<small style="color: var(--muted); font-size: 11px;">Trống</small>`;
@@ -1290,13 +1512,13 @@ function renderBattleSlots() {
   if (charBox) {
     if (battleDeckState.selectedCharacter) {
       if (isFlipped) {
-        charBox.innerHTML = `<div class="facedown-card-cover" style="background: #1e293b; border: 1px solid #ffd700;"><span>🎴</span><small style="font-size: 10px; color: #ffd700;">Đã úp</small></div>`;
-      } else {
         const c = cards[battleDeckState.selectedCharacter];
         charBox.innerHTML = `
           <img src="${c.file}" alt="${c.name}" class="placed-card-img">
           <div class="placed-card-caption">${c.name}</div>
         `;
+      } else {
+        charBox.innerHTML = `<div class="facedown-card-cover" style="background: #1e293b; border: 1px solid #ffd700;"><span>🎴</span><small style="font-size: 10px; color: #ffd700;">Đã úp</small></div>`;
       }
     } else {
       charBox.innerHTML = `<small style="color: var(--muted); font-size: 11px;">Trống</small>`;
@@ -1307,13 +1529,13 @@ function renderBattleSlots() {
   if (sitBox) {
     if (battleDeckState.selectedSituation) {
       if (isFlipped) {
-        sitBox.innerHTML = `<div class="facedown-card-cover" style="background: #1e293b; border: 1px solid #00d2ff;"><span>🎴</span><small style="font-size: 10px; color: #00d2ff;">Đã úp</small></div>`;
-      } else {
         const c = cards[battleDeckState.selectedSituation];
         sitBox.innerHTML = `
           <img src="${c.file}" alt="${c.name}" class="placed-card-img">
           <div class="placed-card-caption">${c.name}</div>
         `;
+      } else {
+        sitBox.innerHTML = `<div class="facedown-card-cover" style="background: #1e293b; border: 1px solid #00d2ff;"><span>🎴</span><small style="font-size: 10px; color: #00d2ff;">Đã úp</small></div>`;
       }
     } else {
       sitBox.innerHTML = `<small style="color: var(--muted); font-size: 11px;">Trống</small>`;
@@ -1375,8 +1597,8 @@ function renderBattleSlots() {
   if ($("playerHpText")) $("playerHpText").textContent = `${battleDeckState.playerHp} / ${battleDeckState.maxPlayerHp}`;
 }
 
-window.executeBattleTurn = function() {
-  if (battleDeckState.botHp <= 0 || battleDeckState.playerHp <= 0) return;
+window.executeBattleTurn = function () {
+  if (battleDeckState.isResolvingTurn || battleDeckState.botHp <= 0 || battleDeckState.playerHp <= 0) return;
 
   if (!battleDeckState.selectedCharacter) {
     return showToast("Bạn phải đặt thẻ Nhân vật vào sân trước khi hoàn thành!");
@@ -1390,21 +1612,91 @@ window.executeBattleTurn = function() {
   $("statChoiceModal").classList.remove("hidden");
 };
 
-window.submitStatChoice = function(choice) {
+window.submitStatChoice = function (choice) {
+  if (battleDeckState.isResolvingTurn) return;
+  battleDeckState.isResolvingTurn = true;
   battleDeckState.playerStatChoice = choice;
   $("statChoiceModal").classList.add("hidden");
 
   battleDeckState.cardsFlipped = true;
   renderBattleSlots();
+  resetBattleScoreHud(true);
 
-  logAdvancedBattle(`[Hệ thống] Bạn chọn điểm ${choice}. Cả bộ bài của bạn và Bot đã lật lên! Tính toán giao tranh...`);
+  logAdvancedBattle(`[Hệ thống] Bạn chọn điểm ${choice}. Cả bộ bài của bạn và Bot đã lật lên! Bắt đầu cộng điểm từng lá...`);
 
   setTimeout(() => {
     resolveBattleClash();
-  }, 1200);
+  }, 600);
 };
 
-function resolveBattleClash() {
+function buildSideCalcSteps({ charKey, skillKey, sitKey, ownChoice, oppChoice }) {
+  const charCard = cards[charKey];
+  const baseStat = ownChoice === "ATK" ? (charCard.atk ?? 50) : (charCard.def ?? 50);
+
+  let current = baseStat;
+  const steps = [
+    {
+      slot: "CHAR",
+      nextScore: current,
+      badge: `${charCard.name}: ${baseStat}`,
+      tone: "gold"
+    }
+  ];
+
+  // Bước 2: Hiệu ứng lá Skill
+  if (skillKey === "muaQuat" && ownChoice === "ATK") {
+    const beforeSkill = current;
+    current = charKey === "kha" ? current * 2 : current + 20;
+    const delta = current - beforeSkill;
+    steps.push({
+      slot: "SKILL",
+      nextScore: current,
+      badge: delta >= 0 ? `+${delta} (Múa Quạt)` : `${delta} (Múa Quạt)`,
+      tone: delta >= 0 ? "positive" : "negative"
+    });
+  } else if (skillKey === "chuCap5Cu" && ownChoice === "DEF") {
+    const beforeSkill = current;
+    current = charKey === "jack" ? current * 5 : Math.round(current * 1.5);
+    const delta = current - beforeSkill;
+    steps.push({
+      slot: "SKILL",
+      nextScore: current,
+      badge: delta >= 0 ? `+${delta} (5 Củ)` : `${delta} (5 Củ)`,
+      tone: delta >= 0 ? "positive" : "negative"
+    });
+  } else if (skillKey) {
+    steps.push({
+      slot: "SKILL",
+      nextScore: current,
+      badge: `+0 (${cards[skillKey].name})`,
+      tone: "positive"
+    });
+  }
+
+  // Bước 3: Hiệu ứng lá Tình huống
+  if (sitKey === "vaoTu") {
+    const beforeSit = current;
+    current = Math.max(0, current - 15);
+    const delta = current - beforeSit;
+    steps.push({
+      slot: "SIT",
+      nextScore: current,
+      badge: `${delta} (Vào Tù)`,
+      tone: "negative"
+    });
+  } else if (sitKey) {
+    steps.push({
+      slot: "SIT",
+      nextScore: current,
+      badge: `+0 (${cards[sitKey].name})`,
+      tone: "positive"
+    });
+  }
+
+  return { steps, finalScore: current, oppChoice };
+}
+
+async function resolveBattleClash() {
   const pCharKey = battleDeckState.selectedCharacter;
   const pSkillKey = battleDeckState.selectedSkill;
   const pSitKey = battleDeckState.selectedSituation;
@@ -1486,8 +1778,32 @@ function resolveBattleClash() {
     }
   }
 
-  let pScore = (pChoice === "ATK") ? pAtk : pDef;
-  let bScore = (bChoice === "ATK") ? bAtk : bDef;
+  const playerCalc = buildSideCalcSteps({
+    charKey: pCharKey,
+    skillKey: pSkillKey,
+    sitKey: pSitKey,
+    ownChoice: pChoice,
+    oppChoice: bChoice
+  });
+
+  const botCalc = buildSideCalcSteps({
+    charKey: bCharKey,
+    skillKey: bSkillKey,
+    sitKey: bSitKey,
+    ownChoice: bChoice,
+    oppChoice: pChoice
+  });
+
+  await Promise.all([
+    runSideStepByStepAnimation("player", playerCalc.steps),
+    runSideStepByStepAnimation("bot", botCalc.steps)
+  ]);
+
+  let pScore = pChoice === "ATK" ? pAtk : pDef;
+  let bScore = bChoice === "ATK" ? bAtk : bDef;
+
+  if ($("playerCalcTotal")) $("playerCalcTotal").textContent = String(pScore);
+  if ($("botCalcTotal")) $("botCalcTotal").textContent = String(bScore);
 
   logAdvancedBattle(`📊 Điểm số so tài: Bạn (${pChoice}: ${pScore}) vs Bot (${bChoice}: ${bScore})`);
 
@@ -1511,13 +1827,19 @@ function resolveBattleClash() {
       saveState();
       renderProfile();
     }
-    setTimeout(() => quitPveBattle(), 3500);
+    setTimeout(() => {
+      battleDeckState.isResolvingTurn = false;
+      quitPveBattle();
+    }, 3500);
     return;
   }
 
   if (battleDeckState.playerHp <= 0) {
     logAdvancedBattle("💥 THẤT BẠI! Bạn đã hết HP.");
-    setTimeout(() => quitPveBattle(), 3500);
+    setTimeout(() => {
+      battleDeckState.isResolvingTurn = false;
+      quitPveBattle();
+    }, 3500);
     return;
   }
 
@@ -1526,6 +1848,8 @@ function resolveBattleClash() {
     battleDeckState.selectedCharacter = null;
     battleDeckState.selectedSituation = null;
     battleDeckState.cardsFlipped = false;
+    battleDeckState.isResolvingTurn = false;
+    resetBattleScoreHud(false);
 
     const allCardIds = Object.keys(cards);
     const botChars = allCardIds.filter(id => cards[id].category === "CHARACTER");
@@ -1540,7 +1864,7 @@ function resolveBattleClash() {
     renderBattleSlots();
     logAdvancedBattle("[Hệ thống] Lượt đấu mới bắt đầu! Hãy chọn bài và có 30s để hoàn thành.");
     startTurnTimer();
-  }, 3000);
+  }, 2400);
 }
 
 function logAdvancedBattle(msg) {
@@ -1550,8 +1874,10 @@ function logAdvancedBattle(msg) {
   box.scrollTop = box.scrollHeight;
 }
 
-window.quitPveBattle = function() {
+window.quitPveBattle = function () {
   if (battleDeckState.timerInterval) clearInterval(battleDeckState.timerInterval);
+  battleDeckState.isResolvingTurn = false;
+  resetBattleScoreHud(false);
   showScreen("gameScreen");
 };
 
@@ -1586,7 +1912,7 @@ if (state.active && state.users[state.active]) {
   switchPanel("loginPanel");
 }
 
-window.openProfileModal = function() {
+window.openProfileModal = function () {
   const profile = getProfile();
   if (!profile && !isAdmin) return;
 
@@ -1608,14 +1934,14 @@ window.openProfileModal = function() {
   $("profileModal").classList.remove("hidden");
 };
 
-window.closeProfileModal = function() {
+window.closeProfileModal = function () {
   $("profileModal").classList.add("hidden");
 };
 
-window.changeAvatar = function(avatarSrc) {
+window.changeAvatar = function (avatarSrc) {
   const profile = getProfile();
   if (!profile && !isAdmin) return;
-  
+
   if (isAdmin) {
     state.adminAvatar = avatarSrc;
   } else {
@@ -1629,7 +1955,7 @@ window.changeAvatar = function(avatarSrc) {
   showToast("Đã đổi avatar thành công!");
 };
 
-window.saveProfileInfo = function() {
+window.saveProfileInfo = function () {
   if (isAdmin) {
     showToast("Không thể sửa thông tin của Admin!");
     return;
@@ -1661,19 +1987,19 @@ window.saveProfileInfo = function() {
   closeProfileModal();
 };
 
-window.switchProfileTab = function(tabId, btn) {
-  document.querySelectorAll('.profile-tab-pane').forEach(pane => {
-    pane.classList.toggle('hidden', pane.id !== tabId);
+window.switchProfileTab = function (tabId, btn) {
+  document.querySelectorAll(".profile-tab-pane").forEach(pane => {
+    pane.classList.toggle("hidden", pane.id !== tabId);
   });
-  document.querySelectorAll('.profile-tab').forEach(b => {
-    b.style.background = 'transparent';
-    b.style.color = 'var(--muted)';
+  document.querySelectorAll(".profile-tab").forEach(b => {
+    b.style.background = "transparent";
+    b.style.color = "var(--muted)";
   });
-  btn.style.background = 'var(--panel-border)';
-  btn.style.color = 'var(--text)';
+  btn.style.background = "var(--panel-border)";
+  btn.style.color = "var(--text)";
 };
 
-window.redeemGiftCode = function() {
+window.redeemGiftCode = function () {
   if (isAdmin) {
     return showToast("Admin không cần nhập code nhận quà!");
   }
@@ -1693,7 +2019,7 @@ window.redeemGiftCode = function() {
   }
 
   profile.redeemedCodes.push("HAPPYBIRTHDAY");
-  
+
   profile.bag.push("premium", "premium", "basic", "basic");
   saveState();
   renderProfile();
