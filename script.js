@@ -371,6 +371,7 @@ $("logoutBtn").addEventListener("click", () => {
 
   if (battleDeckState.timerInterval) clearInterval(battleDeckState.timerInterval);
   cleanupBattleFxOverlays(true);
+  removeJack3DStage();
 
   document.body.classList.remove("logged-in", "starter-active");
   $("starterOverlay").classList.add("hidden");
@@ -1485,7 +1486,7 @@ async function triggerSamSoEffect(sourceSkillSlotKey, opponentCharSlotKey, oppSi
   `;
 
   fxWrap.innerHTML = `
-    <svg viewBox="0 0 140 80" width="104" height="60" style="filter: drop-shadow(0 6px 14px rgba(244, 114, 182, 0.55));">
+    <svg viewBox="0 0 140 80" width="104" height="60">
       <defs>
         <radialGradient id="skinShade" cx="42%" cy="35%" r="65%">
           <stop offset="0%" stop-color="#ffe4d6"/>
@@ -1501,7 +1502,7 @@ async function triggerSamSoEffect(sourceSkillSlotKey, opponentCharSlotKey, oppSi
       <circle cx="98" cy="44" r="6" fill="#d97b74" opacity="0.85"/>
       <circle cx="98" cy="44" r="2.4" fill="#b85650"/>
     </svg>
-    <span class="sam-so-hand" style="position:absolute; right:8px; bottom:2px; font-size:34px; transform-origin:center; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.45));">✋</span>
+    <span class="sam-so-hand" style="position:absolute; right:8px; bottom:2px; font-size:34px; transform-origin:center;">✋</span>
   `;
 
   document.body.appendChild(fxWrap);
@@ -1802,6 +1803,7 @@ function startAdvancedPveBattle() {
   }
 
   cleanupBattleFxOverlays(true);
+  removeJack3DStage();
 
   battleDeckState.botHp = 250;
   battleDeckState.maxBotHp = 250;
@@ -1872,6 +1874,10 @@ function startTurnTimer() {
   }, 1000);
 }
 
+/* ========================================================================== */
+/* BỐC BÀI CHIA THÀNH 3 PHẦN: NHÂN VẬT / SKILL / TÌNH HUỐNG                   */
+/* ========================================================================== */
+
 window.openPlayerDeckPicker = function () {
   if (battleDeckState.isResolvingTurn || battleDeckState.cardsFlipped) return;
   const profile = getProfile();
@@ -1880,16 +1886,43 @@ window.openPlayerDeckPicker = function () {
 
   if (!grid) return;
 
-  grid.innerHTML = ownedCards.map(cid => {
-    const card = cards[cid];
-    if (!card) return "";
-    const catLabel = CATEGORY_LABELS[card.category] || card.category;
+  const sections = [
+    { key: "CHARACTER", title: "⚔️ NHÂN VẬT", accent: "#ffd700" },
+    { key: "SKILL", title: "✨ SKILL", accent: "#8ef0c1" },
+    { key: "SITUATION", title: "🎭 TÌNH HUỐNG", accent: "#38bdf8" }
+  ];
+
+  grid.innerHTML = sections.map(sec => {
+    const groupIds = ownedCards.filter(cid => cards[cid] && cards[cid].category === sec.key);
+
+    const cardsHtml = groupIds.length > 0
+      ? groupIds.map(cid => {
+          const card = cards[cid];
+          const isSelected =
+            (sec.key === "CHARACTER" && battleDeckState.selectedCharacter === cid) ||
+            (sec.key === "SKILL" && battleDeckState.selectedSkill === cid) ||
+            (sec.key === "SITUATION" && battleDeckState.selectedSituation === cid);
+
+          const statLine = sec.key === "CHARACTER"
+            ? `ATK ${card.atk ?? 0} · DEF ${card.def ?? 0}`
+            : card.rarity;
+
+          return `
+            <div onclick="pickCardToBoard('${cid}')" style="background: rgba(0,0,0,0.55); border: 1.5px solid ${isSelected ? sec.accent : "var(--panel-border)"}; border-radius: 8px; padding: 6px; text-align: center; cursor: pointer; transition: transform 0.15s;">
+              <img src="${card.file}" alt="${card.name}" style="width: 100%; height: 82px; object-fit: cover; border-radius: 4px; display: block; margin: 0 auto;">
+              <strong style="font-size: 10px; display: block; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${card.name}</strong>
+              <small style="font-size: 9px; color: var(--muted); display: block;">${statLine}</small>
+            </div>
+          `;
+        }).join("")
+      : `<div style="grid-column: 1 / -1; font-size: 11px; color: var(--muted); padding: 6px 4px;">Chưa có thẻ thuộc nhóm này</div>`;
+
     return `
-      <div onclick="pickCardToBoard('${cid}')" style="background: rgba(0,0,0,0.5); border: 1px solid var(--panel-border); border-radius: 8px; padding: 6px; text-align: center; cursor: pointer; transition: transform 0.15s;">
-        <img src="${card.file}" alt="${card.name}" style="width: 100%; height: 85px; object-fit: cover; border-radius: 4px; display: block; margin: 0 auto;">
-        <strong style="font-size: 10px; display: block; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${card.name}</strong>
-        <small style="font-size: 9px; color: var(--muted); display: block;">${card.rarity} · ${catLabel}</small>
+      <div style="grid-column: 1 / -1; margin-top: 6px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.12); display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 11px; font-weight: 800; color: ${sec.accent}; letter-spacing: 0.4px;">${sec.title}</span>
+        <small style="font-size: 10px; color: var(--muted);">${groupIds.length} thẻ</small>
       </div>
+      ${cardsHtml}
     `;
   }).join("");
 
@@ -1910,6 +1943,11 @@ window.pickCardToBoard = function (cardId) {
   } else if (card.category === "CHARACTER") {
     battleDeckState.selectedCharacter = cardId;
     showToast(`Đã đưa [${card.name}] vào ô Nhân vật!`);
+    if (cardId === "jack") {
+      showJack3DShowcase("NHÂN VẬT");
+    } else {
+      removeJack3DStage();
+    }
   } else if (card.category === "SITUATION") {
     battleDeckState.selectedSituation = cardId;
     showToast(`Đã đưa [${card.name}] vào ô Tình huống!`);
@@ -1926,7 +1964,9 @@ window.clearSlot = function (category) {
     battleDeckState.selectedSkill = null;
     showToast("Đã gỡ thẻ khỏi ô Skill!");
   } else if (category === "CHARACTER" && battleDeckState.selectedCharacter) {
+    const wasJack = battleDeckState.selectedCharacter === "jack";
     battleDeckState.selectedCharacter = null;
+    if (wasJack) removeJack3DStage();
     showToast("Đã gỡ thẻ khỏi ô Nhân vật!");
   } else if (category === "SITUATION" && battleDeckState.selectedSituation) {
     battleDeckState.selectedSituation = null;
@@ -2069,6 +2109,10 @@ window.submitStatChoice = function (choice) {
   renderBattleSlots();
   resetBattleScoreHud(true);
   syncArenaRainWeatherOverlay();
+
+  if (battleDeckState.selectedCharacter === "jack" || battleDeckState.botSelectedCharacter === "jack") {
+    showJack3DShowcase("LẬT BÀI");
+  }
 
   logAdvancedBattle(`[Hệ thống] Bạn chọn điểm ${choice}. Cả bộ bài của bạn và Bot đã lật lên! Bắt đầu tính điểm từng lá...`);
 
@@ -2433,6 +2477,7 @@ async function resolveBattleClash() {
 
   setTimeout(() => {
     cleanupBattleFxOverlays(false);
+    removeJack3DStage();
     syncArenaRainWeatherOverlay();
     battleDeckState.selectedSkill = null;
     battleDeckState.selectedCharacter = null;
@@ -2467,6 +2512,7 @@ function logAdvancedBattle(msg) {
 window.quitPveBattle = function () {
   if (battleDeckState.timerInterval) clearInterval(battleDeckState.timerInterval);
   cleanupBattleFxOverlays(true);
+  removeJack3DStage();
   battleDeckState.isResolvingTurn = false;
   resetBattleScoreHud(false);
   showScreen("gameScreen");
@@ -2619,3 +2665,182 @@ window.redeemGiftCode = function () {
   showToast("🎁 Nhập code thành công! Đã nhận 2 Premium Pack & 2 Basic Pack vào Balo!");
   closeProfileModal();
 };
+
+/* ========================================================================== */
+/* HIỆU ỨNG 3D GỌN NHẸ KHI CHỌN LÁ JACK (KHÔNG ĐỔ BÓNG)                    */
+/* ========================================================================== */
+
+function ensureJack3DStyles() {
+  if ($("jack3DShowcaseStyle")) return;
+  const style = document.createElement("style");
+  style.id = "jack3DShowcaseStyle";
+  style.textContent = `
+    @keyframes jack3DFloatIn {
+      0% {
+        opacity: 0;
+        transform: perspective(800px) translateY(18px) scale(0.88) rotateY(-12deg);
+      }
+      100% {
+        opacity: 1;
+        transform: perspective(800px) translateY(0) scale(1) rotateY(0deg);
+      }
+    }
+
+    .jack-3d-stage {
+      position: fixed;
+      right: 18px;
+      bottom: 86px;
+      z-index: 9995;
+      width: 170px;
+      perspective: 800px;
+      animation: jack3DFloatIn 0.35s ease-out forwards;
+    }
+
+    .jack-3d-card {
+      position: relative;
+      border-radius: 12px;
+      padding: 8px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1.5px solid rgba(250, 204, 21, 0.75);
+      transform-style: preserve-3d;
+      transition: transform 0.12s ease-out;
+    }
+
+    .jack-3d-img-wrap {
+      border-radius: 8px;
+      overflow: hidden;
+      transform: translateZ(20px);
+    }
+
+    .jack-3d-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .jack-3d-meta {
+      margin-top: 8px;
+      transform: translateZ(28px);
+      text-align: center;
+    }
+
+    .jack-3d-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 999px;
+      color: #fef08a;
+      background: rgba(168, 85, 247, 0.3);
+      border: 1px solid rgba(250, 204, 21, 0.5);
+      margin-bottom: 4px;
+    }
+
+    .jack-3d-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .jack-3d-stats {
+      margin-top: 4px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #8ef0c1;
+    }
+
+    .jack-3d-close {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      z-index: 5;
+      width: 22px;
+      height: 22px;
+      border: none;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      color: #fff;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      .jack-3d-stage {
+        width: 132px;
+        right: 10px;
+        bottom: 78px;
+      }
+      .jack-3d-img {
+        height: 140px;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function removeJack3DStage() {
+  const stage = $("jack3DShowcaseStage");
+  if (stage) stage.remove();
+}
+
+function showJack3DShowcase(sourceLabel = "ĐÃ CHỌN") {
+  const jackCard = cards.jack;
+  if (!jackCard) return;
+
+  ensureJack3DStyles();
+  removeJack3DStage();
+
+  const stage = document.createElement("div");
+  stage.id = "jack3DShowcaseStage";
+  stage.className = "jack-3d-stage";
+
+  stage.innerHTML = `
+    <div class="jack-3d-card" id="jack3DCardBox">
+      <button type="button" class="jack-3d-close" aria-label="Đóng" onclick="removeJack3DStage()">✕</button>
+      <div class="jack-3d-img-wrap">
+        <img src="${jackCard.file}" alt="${jackCard.name}" class="jack-3d-img" onerror="this.style.display='none'">
+      </div>
+      <div class="jack-3d-meta">
+        <span class="jack-3d-badge">3D · ${sourceLabel}</span>
+        <div class="jack-3d-title">${jackCard.name}</div>
+        <div class="jack-3d-stats">
+          <span>ATK ${jackCard.atk}</span>
+          <span>DEF ${jackCard.def}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(stage);
+
+  const cardBox = $("jack3DCardBox");
+  if (cardBox) {
+    const applyTilt = (clientX, clientY) => {
+      const rect = cardBox.getBoundingClientRect();
+      const nx = (clientX - rect.left) / rect.width - 0.5;
+      const ny = (clientY - rect.top) / rect.height - 0.5;
+      const rotY = nx * 26;
+      const rotX = -ny * 22;
+      cardBox.style.transform = `rotateX(${rotX.toFixed(1)}deg) rotateY(${rotY.toFixed(1)}deg)`;
+    };
+
+    cardBox.addEventListener("mousemove", e => applyTilt(e.clientX, e.clientY));
+    cardBox.addEventListener("touchmove", e => {
+      if (e.touches && e.touches[0]) {
+        applyTilt(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+    cardBox.addEventListener("mouseleave", () => {
+      cardBox.style.transform = "rotateX(0deg) rotateY(0deg)";
+    });
+    cardBox.addEventListener("touchend", () => {
+      cardBox.style.transform = "rotateX(0deg) rotateY(0deg)";
+    });
+  }
+}
+
+window.removeJack3DStage = removeJack3DStage;
