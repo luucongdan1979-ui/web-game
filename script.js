@@ -51,6 +51,12 @@ const cards = {
     rarity: "LEGENDARY",
     category: "SITUATION"
   },
+  boCon: {
+    name: "Bỏ Con",
+    file: "bỏ con th.png",
+    rarity: "LEGENDARY",
+    category: "SITUATION"
+  },
   muaQuat: {
     name: "Múa Quạt",
     file: "mua quat skill.png",
@@ -1145,167 +1151,19 @@ window.importDataBackup = async function (event) {
 };
 
 /* ========================================================================== */
-/* HỆ THỐNG CHIẾN ĐẤU: PHÓNG TO TỪNG LÁ, SỐ BAY RA MÀN HÌNH, LỒNG SẮT & 0 DEF */
+/* HỆ THỐNG CHIẾN ĐẤU: HIỆU ỨNG TỪNG LÁ, CHU CẤP 5 TRIỆU, BỎ CON & MÚA QUẠT    */
 /* ========================================================================== */
 
-function ensureBattleFxStyles() {
-  if ($("battleFxStyleSheet")) return;
-  const style = document.createElement("style");
-  style.id = "battleFxStyleSheet";
-  style.textContent = `
-    .card-zoom-active {
-      transform: scale(1.16) translateY(-8px) !important;
-      border-color: #ffd76e !important;
-      box-shadow: 0 14px 32px rgba(255, 215, 110, 0.65) !important;
-      z-index: 25 !important;
-    }
-    .screen-floating-number {
-      position: fixed;
-      transform: translate(-50%, -50%);
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-family: 'Be Vietnam Pro', sans-serif;
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: 0.4px;
-      pointer-events: none;
-      z-index: 9999;
-      white-space: nowrap;
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.65);
-      animation: screenNumberFly 1.15s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-    .screen-floating-number.pos {
-      background: linear-gradient(135deg, #8ef0c1, #38b6ff);
-      color: #090b1b;
-      border: 2px solid #ffffffaa;
-    }
-    .screen-floating-number.gold {
-      background: linear-gradient(135deg, #ffe58c, #ff9f43);
-      color: #090b1b;
-      border: 2px solid #fff8d6;
-    }
-    .screen-floating-number.neg {
-      background: linear-gradient(135deg, #ff5e7e, #c9184a);
-      color: #ffffff;
-      border: 2px solid #ffb3c1;
-    }
-    @keyframes screenNumberFly {
-      0% {
-        opacity: 0;
-        transform: translate(-50%, 6px) scale(0.55);
-      }
-      22% {
-        opacity: 1;
-        transform: translate(-50%, -18px) scale(1.22);
-      }
-      75% {
-        opacity: 1;
-        transform: translate(-50%, -44px) scale(1);
-      }
-      100% {
-        opacity: 0;
-        transform: translate(-50%, -66px) scale(0.9);
-      }
-    }
-    .zero-def-fx-badge {
-      position: fixed;
-      transform: translate(-50%, -50%);
-      padding: 8px 16px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #ff3366, #ff9900);
-      color: #ffffff;
-      font-weight: 900;
-      font-size: 16px;
-      letter-spacing: 1px;
-      border: 2px solid #ffe58c;
-      box-shadow: 0 0 28px rgba(255, 51, 102, 0.85);
-      z-index: 9999;
-      pointer-events: none;
-      animation: zeroDefPulsePop 1.25s ease-out forwards;
-    }
-    @keyframes zeroDefPulsePop {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotate(-8deg); }
-      25% { opacity: 1; transform: translate(-50%, -50%) scale(1.28) rotate(4deg); }
-      70% { opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(0deg); }
-      100% { opacity: 0; transform: translate(-50%, -68%) scale(0.85); }
-    }
-    .jail-cage-overlay {
-      position: fixed;
-      pointer-events: none;
-      z-index: 9995;
-      border-radius: 10px;
-      border: 4px solid #cbd5e1;
-      background: repeating-linear-gradient(
-        90deg,
-        transparent 0px,
-        transparent 14px,
-        rgba(226, 232, 240, 0.88) 14px,
-        rgba(226, 232, 240, 0.88) 18px
-      );
-      box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.75), 0 10px 25px rgba(0, 0, 0, 0.7);
-      animation: cageDropLock 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-    .jail-cage-label {
-      position: absolute;
-      bottom: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(15, 23, 42, 0.92);
-      color: #ffd76e;
-      border: 1px solid #ffd76e;
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-size: 10px;
-      font-weight: 900;
-      letter-spacing: 1px;
-      white-space: nowrap;
-    }
-    @keyframes cageDropLock {
-      0% { opacity: 0; transform: translateY(-48px) scale(1.08); }
-      75% { opacity: 1; transform: translateY(4px) scale(1); }
-      100% { opacity: 1; transform: translateY(0px) scale(1); }
-    }
-    .calc-scoreboard-strip {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 14px;
-      border-radius: 12px;
-      background: rgba(9, 11, 27, 0.72);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      font-size: 12px;
-      font-weight: 800;
-    }
-    .calc-score-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.06);
-      transition: transform 0.22s ease, background 0.22s ease;
-    }
-    .calc-score-pill.bump {
-      transform: scale(1.18);
-      background: rgba(142, 240, 193, 0.22);
-    }
-    .calc-score-value {
-      font-size: 16px;
-      font-weight: 900;
-      color: #ffd76e;
-    }
-  `;
-  document.head.appendChild(style);
-}
-
 function cleanupBattleFxOverlays() {
-  document.querySelectorAll(".screen-floating-number, .zero-def-fx-badge, .jail-cage-overlay").forEach(el => el.remove());
-  document.querySelectorAll(".card-zoom-active").forEach(el => el.classList.remove("card-zoom-active"));
+  document.querySelectorAll(
+    ".screen-floating-number, .zero-def-fx-badge, .jail-cage-overlay, .money-stack-fx, .smoke-cloud-fx, .baby-abandon-fx, .fan-hand-fx"
+  ).forEach(el => el.remove());
+  document.querySelectorAll(".card-zoom-active, .card-blink-hit, .card-blown-away").forEach(el => {
+    el.classList.remove("card-zoom-active", "card-blink-hit", "card-blown-away");
+  });
 }
 
 function ensureBattleScoreHud() {
-  ensureBattleFxStyles();
   const boardMain = document.querySelector(".tcg-board-main");
   if (!boardMain || $("battleCalcHud")) return;
 
@@ -1414,7 +1272,7 @@ async function zoomCardAndFloatScore({ slotKey, targetSide, prevScore, nextScore
   }
 
   animateScoreNumber(totalEl, prevScore, nextScore, 420);
-  await sleep(650);
+  await sleep(620);
 
   if (slotEl) {
     slotEl.classList.remove("card-zoom-active");
@@ -1422,40 +1280,168 @@ async function zoomCardAndFloatScore({ slotKey, targetSide, prevScore, nextScore
   if (pillEl) {
     pillEl.classList.remove("bump");
   }
-  await sleep(180);
+  await sleep(160);
 }
 
-async function triggerZeroDefEffectOnOpponent(opponentCharSlotKey, oppSide, prevScore, nextScore) {
-  const oppCharEl = getSlotElementByKey(opponentCharSlotKey);
+/* 1. HIỆU ỨNG CHU CẤP 5 TRIỆU: Xấp tiền 5 TRIỆU bay tới lá NV đối phương -> Tan thành khói + Lá NV nhấp nháy */
+async function triggerFiveMillionMoneyEffect(sourceSkillSlotKey, opponentCharSlotKey, oppSide, prevScore, nextScore, zeroDefApplied) {
+  const sourceEl = getSlotElementByKey(sourceSkillSlotKey);
+  const targetEl = getSlotElementByKey(opponentCharSlotKey);
+  if (!sourceEl || !targetEl) return;
+
+  const sRect = sourceEl.getBoundingClientRect();
+  const tRect = targetEl.getBoundingClientRect();
+
+  const startX = sRect.left + sRect.width / 2;
+  const startY = sRect.top + sRect.height / 2;
+  const endX = tRect.left + tRect.width / 2;
+  const endY = tRect.top + tRect.height / 2;
+
+  const moneyEl = document.createElement("div");
+  moneyEl.className = "money-stack-fx";
+  moneyEl.innerHTML = `<span class="money-bill-icon">💵</span><span class="money-bill-text">5 TRIỆU</span>`;
+  moneyEl.style.left = `${startX}px`;
+  moneyEl.style.top = `${startY}px`;
+  document.body.appendChild(moneyEl);
+
+  await sleep(140);
+
+  moneyEl.style.transition = "left 0.65s cubic-bezier(0.22, 1, 0.36, 1), top 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s ease";
+  moneyEl.style.left = `${endX}px`;
+  moneyEl.style.top = `${endY}px`;
+  moneyEl.style.transform = "translate(-50%, -50%) scale(1.22) rotate(8deg)";
+
+  await sleep(660);
+
+  // Xấp tiền biến thành làn khói tan ra
+  moneyEl.remove();
+  const smokeEl = document.createElement("div");
+  smokeEl.className = "smoke-cloud-fx";
+  smokeEl.style.left = `${endX}px`;
+  smokeEl.style.top = `${endY}px`;
+  smokeEl.innerHTML = `<span>💨</span><span>☁️</span><span>💨</span>`;
+  document.body.appendChild(smokeEl);
+  setTimeout(() => smokeEl.remove(), 950);
+
+  // Đồng thời lá nhân vật đối phương bị nhấp nháy
+  targetEl.classList.add("card-blink-hit");
+
+  if (zeroDefApplied) {
+    const totalEl = $(oppSide === "player" ? "playerCalcTotal" : "botCalcTotal");
+    const formulaEl = $(oppSide === "player" ? "playerCalcFormula" : "botCalcFormula");
+    const pillEl = $(oppSide === "player" ? "playerCalcPill" : "botCalcPill");
+
+    const zeroBadge = document.createElement("div");
+    zeroBadge.className = "zero-def-fx-badge";
+    zeroBadge.style.left = `${endX}px`;
+    zeroBadge.style.top = `${endY - 26}px`;
+    zeroBadge.textContent = "⚡ 0 DEF!";
+    document.body.appendChild(zeroBadge);
+    setTimeout(() => zeroBadge.remove(), 1200);
+
+    if (pillEl) pillEl.classList.add("bump");
+    if (formulaEl) {
+      formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} (0 DEF)` : "(0 DEF)";
+    }
+    animateScoreNumber(totalEl, prevScore, nextScore, 420);
+  }
+
+  await sleep(950);
+  targetEl.classList.remove("card-blink-hit");
+  const pillEl = $(oppSide === "player" ? "playerCalcPill" : "botCalcPill");
+  if (pillEl) pillEl.classList.remove("bump");
+  await sleep(140);
+}
+
+/* 2. HIỆU ỨNG MÚA QUẠT: Bàn tay múa quạt -> Thổi bay lá nhân vật đối phương trong 1s rồi quay lại */
+async function triggerFanBlowAwayEffect(sourceSkillSlotKey, opponentCharSlotKey) {
+  const sourceEl = getSlotElementByKey(sourceSkillSlotKey);
+  const targetEl = getSlotElementByKey(opponentCharSlotKey);
+  if (!sourceEl || !targetEl) return;
+
+  const sRect = sourceEl.getBoundingClientRect();
+  const fanHand = document.createElement("div");
+  fanHand.className = "fan-hand-fx";
+  fanHand.style.left = `${sRect.left + sRect.width / 2}px`;
+  fanHand.style.top = `${sRect.top + sRect.height / 2}px`;
+  fanHand.innerHTML = `<span class="fan-hand-emoji">🤚🪭</span><span class="fan-wind-gust">🌬️💨</span>`;
+  document.body.appendChild(fanHand);
+
+  // Bàn tay múa quạt trong 0.55s
+  await sleep(550);
+
+  // Thổi bay lá nhân vật đối phương trong đúng 1s
+  targetEl.classList.add("card-blown-away");
+  spawnScreenFloatingNumber(targetEl, "💨 THỔI BAY!", "neg", -14);
+
+  await sleep(1000);
+
+  // Lá đối phương quay trở lại
+  targetEl.classList.remove("card-blown-away");
+  fanHand.remove();
+  await sleep(220);
+}
+
+/* 3. HIỆU ỨNG BỎ CON: 1 đứa bé bay đến lá NV đối phương -> Dấu X đỏ đè lên -> Biến mất cùng đứa bé */
+async function triggerAbandonBabyEffect(sourceSitSlotKey, opponentCharSlotKey, oppSide, prevScore, nextScore, delta) {
+  const sourceEl = getSlotElementByKey(sourceSitSlotKey);
+  const targetEl = getSlotElementByKey(opponentCharSlotKey);
+  if (!sourceEl || !targetEl) return;
+
+  const sRect = sourceEl.getBoundingClientRect();
+  const tRect = targetEl.getBoundingClientRect();
+
+  const startX = sRect.left + sRect.width / 2;
+  const startY = sRect.top + sRect.height / 2;
+  const endX = tRect.left + tRect.width / 2;
+  const endY = tRect.top + tRect.height / 2;
+
+  const babyWrap = document.createElement("div");
+  babyWrap.className = "baby-abandon-fx";
+  babyWrap.style.left = `${startX}px`;
+  babyWrap.style.top = `${startY}px`;
+  babyWrap.innerHTML = `
+    <span class="baby-emoji">👶</span>
+    <span class="baby-red-x">❌</span>
+  `;
+  document.body.appendChild(babyWrap);
+
+  await sleep(120);
+
+  // Đứa bé bay đến lá nhân vật của đối phương
+  babyWrap.style.transition = "left 0.6s cubic-bezier(0.22, 1, 0.36, 1), top 0.6s cubic-bezier(0.22, 1, 0.36, 1)";
+  babyWrap.style.left = `${endX}px`;
+  babyWrap.style.top = `${endY}px`;
+
+  await sleep(620);
+
+  // Hiện dấu X đỏ đè lên đứa bé
+  const redX = babyWrap.querySelector(".baby-red-x");
+  if (redX) redX.classList.add("stamp-in");
+
   const totalEl = $(oppSide === "player" ? "playerCalcTotal" : "botCalcTotal");
   const formulaEl = $(oppSide === "player" ? "playerCalcFormula" : "botCalcFormula");
   const pillEl = $(oppSide === "player" ? "playerCalcPill" : "botCalcPill");
 
-  if (oppCharEl) {
-    oppCharEl.classList.add("card-zoom-active");
-    const rect = oppCharEl.getBoundingClientRect();
-    const zeroBadge = document.createElement("div");
-    zeroBadge.className = "zero-def-fx-badge";
-    zeroBadge.style.left = `${rect.left + rect.width / 2}px`;
-    zeroBadge.style.top = `${rect.top + rect.height / 2}px`;
-    zeroBadge.textContent = "⚡ 0 DEF!";
-    document.body.appendChild(zeroBadge);
-    setTimeout(() => zeroBadge.remove(), 1280);
-  }
-
+  spawnScreenFloatingNumber(targetEl, `${delta} (Bỏ Con)`, "neg", -16);
   if (pillEl) pillEl.classList.add("bump");
   if (formulaEl) {
-    formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} (0 DEF)` : "(0 DEF)";
+    formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} ${delta}` : `${delta}`;
   }
-
   animateScoreNumber(totalEl, prevScore, nextScore, 420);
-  await sleep(850);
 
-  if (oppCharEl) oppCharEl.classList.remove("card-zoom-active");
+  await sleep(550);
+
+  // Dấu X đỏ biến mất cùng đứa bé
+  babyWrap.classList.add("vanish-out");
+  await sleep(420);
+  babyWrap.remove();
+
   if (pillEl) pillEl.classList.remove("bump");
-  await sleep(160);
+  await sleep(140);
 }
 
+/* 4. HIỆU ỨNG VÀO TÙ: Lồng sắt nhốt lá nhân vật đối phương */
 async function triggerJailCageOnOpponentChar(opponentCharSlotKey, oppSide, prevScore, nextScore, delta) {
   const oppCharEl = getSlotElementByKey(opponentCharSlotKey);
   const totalEl = $(oppSide === "player" ? "playerCalcTotal" : "botCalcTotal");
@@ -1812,11 +1798,10 @@ async function resolveBattleClash() {
     tone: "gold"
   });
 
-  // 3. Lá Skill của Bạn phóng to & cộng điểm / kích hoạt hiệu ứng
+  // 3. Lá Skill của Bạn phóng to & kích hoạt hiệu ứng đặc biệt
   if (pSkillKey) {
     const prevP = pScore;
     let skillBadge = "+0";
-    let skillTone = "pos";
 
     if (pSkillKey === "muaQuat") {
       if (pChoice === "ATK") {
@@ -1852,19 +1837,26 @@ async function resolveBattleClash() {
       prevScore: prevP,
       nextScore: pScore,
       badgeText: skillBadge,
-      tone: skillTone
+      tone: "pos"
     });
 
-    // Hiệu ứng biến điểm DEF của đối phương thành 0 khi dùng Chu Cấp 5 Củ và đối phương chọn DEF
-    if (pSkillKey === "chuCap5Cu" && bChoice === "DEF" && bScore > 0) {
+    if (pSkillKey === "chuCap5Cu") {
       const prevB = bScore;
-      bScore = 0;
-      logAdvancedBattle(`👑 [Chu Cấp 5 Củ] Biến điểm DEF của Bot thành 0!`);
-      await triggerZeroDefEffectOnOpponent("B_CHAR", "bot", prevB, 0);
+      const zeroDefApplied = bChoice === "DEF" && bScore > 0;
+      if (zeroDefApplied) {
+        bScore = 0;
+        logAdvancedBattle(`💵 [Chu Cấp 5 Triệu] Xấp tiền bay tới đối phương tan thành khói & biến DEF của Bot thành 0!`);
+      } else {
+        logAdvancedBattle(`💵 [Chu Cấp 5 Triệu] Xấp tiền 5 triệu bay tới làm đối phương choáng váng nhấp nháy!`);
+      }
+      await triggerFiveMillionMoneyEffect("P_SKILL", "B_CHAR", "bot", prevB, bScore, zeroDefApplied);
+    } else if (pSkillKey === "muaQuat") {
+      logAdvancedBattle(`🪭 [Múa Quạt] Thổi bay lá Nhân vật của Bot trong 1 giây!`);
+      await triggerFanBlowAwayEffect("P_SKILL", "B_CHAR");
     }
   }
 
-  // 4. Lá Skill của Bot phóng to & cộng điểm / kích hoạt hiệu ứng
+  // 4. Lá Skill của Bot phóng to & kích hoạt hiệu ứng đặc biệt
   if (bSkillKey) {
     const prevB = bScore;
     let botSkillBadge = "+0";
@@ -1898,15 +1890,23 @@ async function resolveBattleClash() {
       tone: "pos"
     });
 
-    if (bSkillKey === "chuCap5Cu" && pChoice === "DEF" && pScore > 0) {
+    if (bSkillKey === "chuCap5Cu") {
       const prevP = pScore;
-      pScore = 0;
-      logAdvancedBattle(`👑 Bot dùng [Chu Cấp 5 Củ] biến điểm DEF của bạn thành 0!`);
-      await triggerZeroDefEffectOnOpponent("P_CHAR", "player", prevP, 0);
+      const zeroDefApplied = pChoice === "DEF" && pScore > 0;
+      if (zeroDefApplied) {
+        pScore = 0;
+        logAdvancedBattle(`💵 Bot dùng [Chu Cấp 5 Triệu] biến điểm DEF của bạn thành 0!`);
+      } else {
+        logAdvancedBattle(`💵 Bot dùng [Chu Cấp 5 Triệu] làm lá Nhân vật của bạn nhấp nháy!`);
+      }
+      await triggerFiveMillionMoneyEffect("B_SKILL", "P_CHAR", "player", prevP, pScore, zeroDefApplied);
+    } else if (bSkillKey === "muaQuat") {
+      logAdvancedBattle(`🪭 Bot dùng [Múa Quạt] thổi bay lá Nhân vật của bạn trong 1 giây!`);
+      await triggerFanBlowAwayEffect("B_SKILL", "P_CHAR");
     }
   }
 
-  // 5. Lá Tình huống của Bạn phóng to & hiệu ứng lên đối phương (Lồng sắt nhốt nhân vật nếu là Vào Tù)
+  // 5. Lá Tình huống của Bạn phóng to & hiệu ứng lên đối phương
   if (pSitKey) {
     await zoomCardAndFloatScore({
       slotKey: "P_SIT",
@@ -1923,10 +1923,16 @@ async function resolveBattleClash() {
       const delta = bScore - prevB;
       logAdvancedBattle(`🔒 [Vào Tù] Nhốt nhân vật Bot vào lồng sắt, trừ điểm Bot (${delta}) -> ${bScore}`);
       await triggerJailCageOnOpponentChar("B_CHAR", "bot", prevB, bScore, delta);
+    } else if (pSitKey === "boCon") {
+      const prevB = bScore;
+      bScore = Math.max(0, bScore - 25);
+      const delta = bScore - prevB;
+      logAdvancedBattle(`👶❌ [Bỏ Con] Đứa bé bay đến lá Bot rồi bị dấu X đỏ gạch bỏ (${delta}) -> ${bScore}`);
+      await triggerAbandonBabyEffect("P_SIT", "B_CHAR", "bot", prevB, bScore, delta);
     }
   }
 
-  // 6. Lá Tình huống của Bot phóng to & hiệu ứng lên bạn (Lồng sắt nhốt nhân vật nếu là Vào Tù)
+  // 6. Lá Tình huống của Bot phóng to & hiệu ứng lên bạn
   if (bSitKey) {
     await zoomCardAndFloatScore({
       slotKey: "B_SIT",
@@ -1943,6 +1949,12 @@ async function resolveBattleClash() {
       const delta = pScore - prevP;
       logAdvancedBattle(`🔒 Bot dùng [Vào Tù] nhốt nhân vật của bạn vào lồng sắt (${delta}) -> ${pScore}`);
       await triggerJailCageOnOpponentChar("P_CHAR", "player", prevP, pScore, delta);
+    } else if (bSitKey === "boCon") {
+      const prevP = pScore;
+      pScore = Math.max(0, pScore - 25);
+      const delta = pScore - prevP;
+      logAdvancedBattle(`👶❌ Bot dùng [Bỏ Con] lên nhân vật của bạn (${delta}) -> ${pScore}`);
+      await triggerAbandonBabyEffect("B_SIT", "P_CHAR", "player", prevP, pScore, delta);
     }
   }
 
