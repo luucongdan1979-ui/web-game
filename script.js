@@ -67,7 +67,7 @@ const cards = {
   },
   hoiChieuTroiMua: {
     name: "Hồi Chiều Trời Mưa",
-    file: "hoi chieu troi mua.png",
+    file: "tgth.png",
     rarity: "MYTHICAL",
     category: "SITUATION"
   },
