@@ -1367,23 +1367,20 @@ async function triggerFanBlowAwayEffect(sourceSkillSlotKey, opponentCharSlotKey)
   fanHand.innerHTML = `<span class="fan-hand-emoji">🤚🪭</span><span class="fan-wind-gust">🌬️💨</span>`;
   document.body.appendChild(fanHand);
 
-  // Bàn tay múa quạt trong 0.55s
   await sleep(550);
 
-  // Thổi bay lá nhân vật đối phương trong đúng 1s
   targetEl.classList.add("card-blown-away");
   spawnScreenFloatingNumber(targetEl, "💨 THỔI BAY!", "neg", -14);
 
   await sleep(1000);
 
-  // Lá đối phương quay trở lại
   targetEl.classList.remove("card-blown-away");
   fanHand.remove();
   await sleep(220);
 }
 
-/* 3. HIỆU ỨNG BỎ CON: 1 đứa bé bay đến lá NV đối phương -> Dấu X đỏ đè lên -> Biến mất cùng đứa bé */
-async function triggerAbandonBabyEffect(sourceSitSlotKey, opponentCharSlotKey, oppSide, prevScore, nextScore, delta) {
+/* 3. HIỆU ỨNG BỎ CON: Trừ 30 ATK/DEF nếu đối phương là Jack, trừ 20 ATK/DEF nếu đối phương là nhân vật bình thường */
+async function triggerAbandonBabyEffect(sourceSitSlotKey, opponentCharSlotKey, oppSide, oppStatChoice, prevScore, nextScore, penaltyAmount) {
   const sourceEl = getSlotElementByKey(sourceSitSlotKey);
   const targetEl = getSlotElementByKey(opponentCharSlotKey);
   if (!sourceEl || !targetEl) return;
@@ -1408,14 +1405,12 @@ async function triggerAbandonBabyEffect(sourceSitSlotKey, opponentCharSlotKey, o
 
   await sleep(120);
 
-  // Đứa bé bay đến lá nhân vật của đối phương
   babyWrap.style.transition = "left 0.6s cubic-bezier(0.22, 1, 0.36, 1), top 0.6s cubic-bezier(0.22, 1, 0.36, 1)";
   babyWrap.style.left = `${endX}px`;
   babyWrap.style.top = `${endY}px`;
 
   await sleep(620);
 
-  // Hiện dấu X đỏ đè lên đứa bé
   const redX = babyWrap.querySelector(".baby-red-x");
   if (redX) redX.classList.add("stamp-in");
 
@@ -1423,16 +1418,16 @@ async function triggerAbandonBabyEffect(sourceSitSlotKey, opponentCharSlotKey, o
   const formulaEl = $(oppSide === "player" ? "playerCalcFormula" : "botCalcFormula");
   const pillEl = $(oppSide === "player" ? "playerCalcPill" : "botCalcPill");
 
-  spawnScreenFloatingNumber(targetEl, `${delta} (Bỏ Con)`, "neg", -16);
+  const labelText = `-${penaltyAmount} ${oppStatChoice}`;
+  spawnScreenFloatingNumber(targetEl, labelText, "neg", -16);
   if (pillEl) pillEl.classList.add("bump");
   if (formulaEl) {
-    formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} ${delta}` : `${delta}`;
+    formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} (-${penaltyAmount})` : `(-${penaltyAmount})`;
   }
   animateScoreNumber(totalEl, prevScore, nextScore, 420);
 
   await sleep(550);
 
-  // Dấu X đỏ biến mất cùng đứa bé
   babyWrap.classList.add("vanish-out");
   await sleep(420);
   babyWrap.remove();
@@ -1925,10 +1920,14 @@ async function resolveBattleClash() {
       await triggerJailCageOnOpponentChar("B_CHAR", "bot", prevB, bScore, delta);
     } else if (pSitKey === "boCon") {
       const prevB = bScore;
-      bScore = Math.max(0, bScore - 25);
-      const delta = bScore - prevB;
-      logAdvancedBattle(`👶❌ [Bỏ Con] Đứa bé bay đến lá Bot rồi bị dấu X đỏ gạch bỏ (${delta}) -> ${bScore}`);
-      await triggerAbandonBabyEffect("P_SIT", "B_CHAR", "bot", prevB, bScore, delta);
+      const penalty = bCharKey === "jack" ? 30 : 20;
+      bScore = Math.max(0, bScore - penalty);
+      logAdvancedBattle(
+        bCharKey === "jack"
+          ? `👶❌ [Bỏ Con] Đối phương là Jack nên trừ 30 điểm ${bChoice} -> ${bScore}`
+          : `👶❌ [Bỏ Con] Đối phương là nhân vật thường nên trừ 20 điểm ${bChoice} -> ${bScore}`
+      );
+      await triggerAbandonBabyEffect("P_SIT", "B_CHAR", "bot", bChoice, prevB, bScore, penalty);
     }
   }
 
@@ -1951,10 +1950,14 @@ async function resolveBattleClash() {
       await triggerJailCageOnOpponentChar("P_CHAR", "player", prevP, pScore, delta);
     } else if (bSitKey === "boCon") {
       const prevP = pScore;
-      pScore = Math.max(0, pScore - 25);
-      const delta = pScore - prevP;
-      logAdvancedBattle(`👶❌ Bot dùng [Bỏ Con] lên nhân vật của bạn (${delta}) -> ${pScore}`);
-      await triggerAbandonBabyEffect("B_SIT", "P_CHAR", "player", prevP, pScore, delta);
+      const penalty = pCharKey === "jack" ? 30 : 20;
+      pScore = Math.max(0, pScore - penalty);
+      logAdvancedBattle(
+        pCharKey === "jack"
+          ? `👶❌ Bot dùng [Bỏ Con] lên Jack của bạn, trừ 30 điểm ${pChoice} -> ${pScore}`
+          : `👶❌ Bot dùng [Bỏ Con] lên nhân vật của bạn, trừ 20 điểm ${pChoice} -> ${pScore}`
+      );
+      await triggerAbandonBabyEffect("B_SIT", "P_CHAR", "player", pChoice, prevP, pScore, penalty);
     }
   }
 
