@@ -1854,10 +1854,6 @@ body.starter-active .bottom-nav {
   line-height: 1.5;
 }
 
-/* ========================================================================== */
-/* SÂN ĐẤU PVE & HIỆU ỨNG TÍNH ĐIỂM TỪNG BƯỚC (SCORE CALCULATION ANIMATION)   */
-/* ========================================================================== */
-
 .tcg-arena-wrapper {
   display: flex;
   gap: 18px;
@@ -1876,7 +1872,6 @@ body.starter-active .bottom-nav {
   flex-direction: column;
   gap: 14px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  position: relative;
 }
 
 .tcg-log-sidebar {
@@ -1936,7 +1931,6 @@ body.starter-active .bottom-nav {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  position: relative;
 }
 
 .slot-label {
@@ -1955,8 +1949,8 @@ body.starter-active .bottom-nav {
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: visible;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  overflow: hidden;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease, border-color 0.22s ease;
 }
 
 .board-slot-vertical.player-slot {
@@ -2017,173 +2011,162 @@ body.starter-active .bottom-nav {
   font-weight: 800;
 }
 
-/* Huy hiệu điểm số hiển thị trực tiếp trên thẻ bài khi tính điểm */
-.card-score-badge {
-  position: absolute;
-  top: -12px;
-  right: -10px;
-  z-index: 30;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 13px;
+/* Hiệu ứng chiến đấu: Phóng to lá bài, số bay ra màn hình, 0 DEF & lồng sắt */
+.card-zoom-active {
+  transform: scale(1.16) translateY(-8px) !important;
+  border-color: #ffd76e !important;
+  box-shadow: 0 14px 32px rgba(255, 215, 110, 0.65) !important;
+  z-index: 25 !important;
+}
+
+.screen-floating-number {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 18px;
   font-weight: 900;
   letter-spacing: 0.4px;
+  pointer-events: none;
+  z-index: 9999;
   white-space: nowrap;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.75);
-  animation: scoreBadgePop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  pointer-events: none;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.65);
+  animation: screenNumberFly 1.15s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-.card-score-badge.atk-badge {
-  background: linear-gradient(135deg, #ff3b6b, #ff7b54);
-  border: 2px solid #ffe082;
+.screen-floating-number.pos {
+  background: linear-gradient(135deg, #8ef0c1, #38b6ff);
+  color: #090b1b;
+  border: 2px solid #ffffffaa;
+}
+
+.screen-floating-number.gold {
+  background: linear-gradient(135deg, #ffe58c, #ff9f43);
+  color: #090b1b;
+  border: 2px solid #fff8d6;
+}
+
+.screen-floating-number.neg {
+  background: linear-gradient(135deg, #ff5e7e, #c9184a);
   color: #ffffff;
+  border: 2px solid #ffb3c1;
 }
 
-.card-score-badge.def-badge {
-  background: linear-gradient(135deg, #0099ff, #00e5ff);
-  border: 2px solid #ffffff;
-  color: #061224;
-}
-
-.card-score-badge.skill-badge {
-  background: linear-gradient(135deg, #9b78ff, #ff5ea8);
-  border: 2px solid #ffd76e;
-  color: #ffffff;
-}
-
-.card-score-badge.sit-badge {
-  background: linear-gradient(135deg, #ff9f1c, #ff3b3b);
-  border: 2px solid #fff3b0;
-  color: #ffffff;
-}
-
-/* Hiệu ứng số bay cộng dồn (+20, x2, -15...) */
-.floating-delta-num {
-  position: fixed;
-  z-index: 999;
-  font-size: 22px;
-  font-weight: 900;
-  padding: 4px 12px;
-  border-radius: 20px;
-  pointer-events: none;
-  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.85);
-  transform: translate(-50%, -50%) scale(0.6);
-  opacity: 0;
-  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-              left 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-              top 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-              opacity 0.65s ease;
-}
-
-.floating-delta-num.plus {
-  color: #8ef0c1;
-  background: rgba(16, 42, 35, 0.9);
-  border: 1.5px solid #8ef0c1;
-  box-shadow: 0 0 20px rgba(142, 240, 193, 0.6);
-}
-
-.floating-delta-num.minus {
-  color: #ff6b8b;
-  background: rgba(54, 14, 26, 0.9);
-  border: 1.5px solid #ff6b8b;
-  box-shadow: 0 0 20px rgba(255, 107, 139, 0.6);
-}
-
-.floating-delta-num.active {
-  transform: translate(-50%, -50%) scale(1.15);
-  opacity: 1;
-}
-
-.floating-delta-num.fade-out {
-  transform: translate(-50%, -85%) scale(0.85);
-  opacity: 0;
-}
-
-/* Hiệu ứng phát sáng khi lá bài kích hoạt kỹ năng / cộng điểm */
-.slot-card-pulse {
-  animation: slotGlowPulse 0.6s ease;
-}
-
-.slot-card-shake {
-  animation: slotHitShake 0.45s ease;
-}
-
-.slot-card-flip-reveal {
-  animation: cardFlipReveal 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.score-bump {
-  animation: scoreBumpScale 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes scoreBadgePop {
+@keyframes screenNumberFly {
   0% {
-    transform: scale(0.2) translateY(12px);
     opacity: 0;
+    transform: translate(-50%, 6px) scale(0.55);
   }
-  70% {
-    transform: scale(1.22) translateY(-3px);
+  22% {
     opacity: 1;
+    transform: translate(-50%, -18px) scale(1.22);
+  }
+  75% {
+    opacity: 1;
+    transform: translate(-50%, -44px) scale(1);
   }
   100% {
-    transform: scale(1) translateY(0);
-    opacity: 1;
+    opacity: 0;
+    transform: translate(-50%, -66px) scale(0.9);
   }
 }
 
-@keyframes scoreBumpScale {
-  0% { transform: scale(1); }
-  45% { transform: scale(1.38); filter: brightness(1.35); }
-  100% { transform: scale(1); filter: brightness(1); }
-}
-
-@keyframes slotGlowPulse {
-  0% { transform: scale(1); box-shadow: 0 0 0 rgba(255, 215, 110, 0); }
-  50% { transform: scale(1.07); box-shadow: 0 0 28px rgba(255, 215, 110, 0.85); }
-  100% { transform: scale(1); box-shadow: 0 0 0 rgba(255, 215, 110, 0); }
-}
-
-@keyframes slotHitShake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-7px) rotate(-2deg); box-shadow: 0 0 24px rgba(255, 82, 82, 0.85); }
-  40% { transform: translateX(7px) rotate(2deg); }
-  60% { transform: translateX(-5px) rotate(-1deg); }
-  80% { transform: translateX(5px) rotate(1deg); }
-}
-
-@keyframes cardFlipReveal {
-  0% { transform: rotateY(90deg) scale(0.92); opacity: 0.5; }
-  100% { transform: rotateY(0deg) scale(1); opacity: 1; }
-}
-
-/* Bảng tổng kết so điểm ở giữa bàn đấu */
-.clash-summary-banner {
-  background: linear-gradient(90deg, rgba(142, 240, 193, 0.16), rgba(155, 120, 255, 0.25), rgba(255, 82, 82, 0.16));
-  border: 1px solid rgba(255, 215, 110, 0.65);
-  border-radius: 30px;
-  padding: 6px 18px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-size: 13px;
+.zero-def-fx-badge {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff3366, #ff9900);
+  color: #ffffff;
   font-weight: 900;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-  animation: scoreBadgePop 0.4s ease forwards;
-}
-
-.clash-p-score {
-  color: #8ef0c1;
-}
-
-.clash-b-score {
-  color: #ff7b89;
-}
-
-.clash-vs-tag {
-  color: #ffd76e;
-  font-size: 11px;
+  font-size: 16px;
   letter-spacing: 1px;
+  border: 2px solid #ffe58c;
+  box-shadow: 0 0 28px rgba(255, 51, 102, 0.85);
+  z-index: 9999;
+  pointer-events: none;
+  animation: zeroDefPulsePop 1.25s ease-out forwards;
+}
+
+@keyframes zeroDefPulsePop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotate(-8deg); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scale(1.28) rotate(4deg); }
+  70% { opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(0deg); }
+  100% { opacity: 0; transform: translate(-50%, -68%) scale(0.85); }
+}
+
+.jail-cage-overlay {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9995;
+  border-radius: 10px;
+  border: 4px solid #cbd5e1;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 14px,
+    rgba(226, 232, 240, 0.88) 14px,
+    rgba(226, 232, 240, 0.88) 18px
+  );
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.75), 0 10px 25px rgba(0, 0, 0, 0.7);
+  animation: cageDropLock 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.jail-cage-label {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.92);
+  color: #ffd76e;
+  border: 1px solid #ffd76e;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+@keyframes cageDropLock {
+  0% { opacity: 0; transform: translateY(-48px) scale(1.08); }
+  75% { opacity: 1; transform: translateY(4px) scale(1); }
+  100% { opacity: 1; transform: translateY(0px) scale(1); }
+}
+
+.calc-scoreboard-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(9, 11, 27, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.calc-score-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  transition: transform 0.22s ease, background 0.22s ease;
+}
+
+.calc-score-pill.bump {
+  transform: scale(1.18);
+  background: rgba(142, 240, 193, 0.22);
+}
+
+.calc-score-value {
+  font-size: 16px;
+  font-weight: 900;
+  color: #ffd76e;
 }
 
 @media (max-width: 920px) {
