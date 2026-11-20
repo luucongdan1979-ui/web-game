@@ -158,7 +158,6 @@
         <!-- Chú hề Chibi tóc xoăn -->
         <div class="chibi-clown-home hidden" id="chibiClownHome">
           <div class="arena-layout-flex">
-            
             <div class="chibi-clown-stage">
               <div class="clown-speech-bubble">Đấu trường sẵn sàng rồi!</div>
 
@@ -249,7 +248,6 @@
                 </button>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -270,10 +268,8 @@
 
       <!-- BỐ CỤC CHÍNH 2 CỘT: BÀN ĐẤU (TRÁI) & THUẬT LẠI TRẬN ĐẤU (PHẢI) -->
       <div class="tcg-arena-wrapper">
-        
         <!-- CỘT TRÁI: BÀN ĐẤU CHÍNH -->
         <div class="tcg-board-main">
-          
           <!-- KHU VỰC ĐỐI THỦ (BOT) -->
           <div class="opponent-zone" style="background: rgba(255, 50, 50, 0.08); border: 1px solid rgba(255, 82, 82, 0.35); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -325,7 +321,6 @@
 
           <!-- KHU VỰC NGƯỜI CHƠI -->
           <div class="player-zone" style="background: rgba(142, 240, 193, 0.08); border: 1px solid rgba(142, 240, 193, 0.35); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
-            
             <div class="board-slots-row">
               <div class="slot-column">
                 <span class="slot-label" style="color: #8ef0c1;">✨ Ô SKILL</span>
@@ -368,9 +363,7 @@
 
               <button id="confirmBattleTurnBtn" class="primary-btn" onclick="executeBattleTurn()" style="padding: 12px 22px; font-size: 12px;">⚔️ HOÀN THÀNH & TẤN CÔNG</button>
             </div>
-
           </div>
-
         </div>
 
         <!-- CỘT PHẢI: KHUNG THUẬT LẠI TRẬN ĐẤU -->
@@ -383,7 +376,6 @@
             [Hệ thống] Vào trận! Nhấn vào chồng bài của bạn ở góc dưới để chọn thẻ bài ra sân. Bạn có 30s để chọn bài.
           </div>
         </aside>
-
       </div>
     </section>
 
@@ -745,9 +737,7 @@
       <p class="eyebrow">YOUR COLLECTION</p>
       <h2>Chồng bài sở hữu</h2>
       <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Nhấn vào thẻ bài bên dưới để đưa lên bàn đấu:</p>
-      
-      <div id="deckPickerGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; max-height: 280px; overflow-y: auto; padding: 4px;">
-      </div>
+      <div id="deckPickerGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; max-height: 280px; overflow-y: auto; padding: 4px;"></div>
     </div>
   </div>
 
@@ -757,7 +747,7 @@
       <button id="closeProfileModal" class="close-btn" onclick="closeProfileModal()">×</button>
       <p class="eyebrow">USER PROFILE</p>
       <h2>Tài khoản của bạn</h2>
-      
+
       <div class="profile-avatar-box">
         <img id="modalAvatarImg" src="" alt="Avatar" class="profile-avatar-preview">
         <h3 id="modalUsername" style="margin-top: 10px; font-size: 18px;">Tên tài khoản</h3>
@@ -783,8 +773,7 @@
         <div id="avatarTab" class="profile-tab-pane hidden">
           <div class="profile-section-item">
             <label>Chọn Avatar</label>
-            <div id="avatarPresetsContainer" class="avatar-presets" style="display: flex; gap: 10px; margin: 8px 0; flex-wrap: wrap;">
-            </div>
+            <div id="avatarPresetsContainer" class="avatar-presets" style="display: flex; gap: 10px; margin: 8px 0; flex-wrap: wrap;"></div>
           </div>
         </div>
 
