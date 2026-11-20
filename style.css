@@ -2301,3 +2301,168 @@ body.starter-active .bottom-nav {
   border-color: var(--success);
   transform: scale(1.05);
 }
+/* ========================================================================== */
+/* HIỆU ỨNG ĐẶC BIỆT: CHU CẤP 5 TRIỆU, BỎ CON, MÚA QUẠT, VÀO TÙ               */
+/* ========================================================================== */
+
+/* 1. Xấp tiền 5 TRIỆU bay tới & Khói tan + Nhấp nháy lá đối phương */
+.money-stack-fx {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2ec4b6, #16a34a);
+  border: 2px solid #bbf7d0;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: 0.6px;
+  box-shadow: 0 10px 28px rgba(22, 163, 74, 0.7);
+  white-space: nowrap;
+}
+
+.money-bill-icon {
+  font-size: 20px;
+}
+
+.smoke-cloud-fx {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 34px;
+  animation: smokeDissipate 0.95s ease-out forwards;
+}
+
+@keyframes smokeDissipate {
+  0% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(0.6);
+    filter: blur(0px);
+  }
+  45% {
+    opacity: 0.85;
+    transform: translate(-50%, -62%) scale(1.45);
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -88%) scale(2.1);
+    filter: blur(5px);
+  }
+}
+
+.card-blink-hit {
+  animation: cardHitBlink 0.16s ease-in-out infinite alternate !important;
+  border-color: #ffe58c !important;
+  box-shadow: 0 0 24px rgba(255, 229, 140, 0.9) !important;
+}
+
+@keyframes cardHitBlink {
+  0% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  100% {
+    opacity: 0.25;
+    filter: brightness(1.85);
+  }
+}
+
+/* 2. Hiệu ứng Bỏ Con: Em bé bay tới + Dấu X đỏ đóng đè lên + Biến mất */
+.baby-abandon-fx {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  pointer-events: none;
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+}
+
+.baby-emoji {
+  font-size: 46px;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.75));
+  animation: babyBob 0.35s ease-in-out infinite alternate;
+}
+
+@keyframes babyBob {
+  from { transform: translateY(-2px) rotate(-6deg); }
+  to { transform: translateY(2px) rotate(6deg); }
+}
+
+.baby-red-x {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 52px;
+  opacity: 0;
+  transform: scale(2.2);
+  filter: drop-shadow(0 0 12px rgba(255, 51, 102, 0.95));
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.baby-red-x.stamp-in {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.baby-abandon-fx.vanish-out {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.25);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* 3. Hiệu ứng Múa Quạt: Bàn tay múa quạt & Thổi bay lá đối phương trong 1s */
+.fan-hand-fx {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 2px solid #69e4ff;
+  box-shadow: 0 0 24px rgba(105, 228, 255, 0.75);
+}
+
+.fan-hand-emoji {
+  font-size: 32px;
+  display: inline-block;
+  transform-origin: bottom center;
+  animation: fanWaveMotion 0.16s ease-in-out infinite alternate;
+}
+
+.fan-wind-gust {
+  font-size: 24px;
+  animation: windGustPulse 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes fanWaveMotion {
+  0% { transform: rotate(-22deg) scale(1.05); }
+  100% { transform: rotate(22deg) scale(1.12); }
+}
+
+@keyframes windGustPulse {
+  0% { opacity: 0.5; transform: translateX(0px); }
+  100% { opacity: 1; transform: translateX(8px); }
+}
+
+.card-blown-away {
+  transform: translate(260px, -180px) rotate(540deg) scale(0.25) !important;
+  opacity: 0 !important;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.45s ease !important;
+}
