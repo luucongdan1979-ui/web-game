@@ -1202,7 +1202,7 @@ window.importDataBackup = async function (event) {
 
 /* ========================================================================== */
 /* HỆ THỐNG CHIẾN ĐẤU: HIỆU ỨNG TỪNG LÁ, CHU CẤP 5 TRIỆU, BỎ CON, MÚA QUẠT,  */
-/* SÀM SỠ (CẶP NGỰC + BÀN TAY XOA) & HỒI CHIỀU TRỜI MƯA (MƯA RƠI 3 VÒNG)    */
+/* SÀM SỠ (SVG + BÀN TAY XOA) & HỒI CHIỀU TRỜI MƯA (MƯA RƠI 3 VÒNG)         */
 /* ========================================================================== */
 
 let rainOverlayInterval = null;
@@ -1479,13 +1479,29 @@ async function triggerSamSoEffect(sourceSkillSlotKey, opponentCharSlotKey, oppSi
     transform: translate(-50%, -50%);
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 28px;
+    justify-content: center;
+    width: 110px;
+    height: 70px;
   `;
 
   fxWrap.innerHTML = `
-    <span class="sam-so-chest" style="display:inline-flex;align-items:center;gap:1px;padding:4px 8px;border-radius:14px;background:rgba(255,182,193,0.92);border:2px solid #f472b6;box-shadow:0 4px 14px rgba(244,114,182,0.45);">🍒🍒</span>
-    <span class="sam-so-hand" style="display:inline-block;font-size:30px;transform-origin:center;">✋</span>
+    <svg viewBox="0 0 140 80" width="104" height="60" style="filter: drop-shadow(0 6px 14px rgba(244, 114, 182, 0.55));">
+      <defs>
+        <radialGradient id="skinShade" cx="42%" cy="35%" r="65%">
+          <stop offset="0%" stop-color="#ffe4d6"/>
+          <stop offset="65%" stop-color="#f7bea5"/>
+          <stop offset="100%" stop-color="#df9678"/>
+        </radialGradient>
+      </defs>
+      <circle cx="44" cy="42" r="28" fill="url(#skinShade)" stroke="#c97a5b" stroke-width="2"/>
+      <circle cx="96" cy="42" r="28" fill="url(#skinShade)" stroke="#c97a5b" stroke-width="2"/>
+      <path d="M 67 24 Q 70 44 67 60" fill="none" stroke="#c97a5b" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="42" cy="44" r="6" fill="#d97b74" opacity="0.85"/>
+      <circle cx="42" cy="44" r="2.4" fill="#b85650"/>
+      <circle cx="98" cy="44" r="6" fill="#d97b74" opacity="0.85"/>
+      <circle cx="98" cy="44" r="2.4" fill="#b85650"/>
+    </svg>
+    <span class="sam-so-hand" style="position:absolute; right:8px; bottom:2px; font-size:34px; transform-origin:center; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.45));">✋</span>
   `;
 
   document.body.appendChild(fxWrap);
@@ -1502,9 +1518,9 @@ async function triggerSamSoEffect(sourceSkillSlotKey, opponentCharSlotKey, oppSi
   if (handEl) {
     handEl.style.transition = "transform 0.22s ease-in-out";
     for (let i = 0; i < 3; i++) {
-      handEl.style.transform = "translate(-10px, -6px) rotate(-14deg) scale(1.12)";
+      handEl.style.transform = "translate(-26px, -8px) rotate(-16deg) scale(1.14)";
       await sleep(220);
-      handEl.style.transform = "translate(10px, 6px) rotate(14deg) scale(1.12)";
+      handEl.style.transform = "translate(6px, 6px) rotate(14deg) scale(1.14)";
       await sleep(220);
     }
     handEl.style.transform = "translate(0, 0) rotate(0deg) scale(1)";
