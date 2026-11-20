@@ -342,6 +342,7 @@ $("logoutBtn").addEventListener("click", () => {
   saveState();
 
   if (battleDeckState.timerInterval) clearInterval(battleDeckState.timerInterval);
+  cleanupBattleFxOverlays();
 
   document.body.classList.remove("logged-in", "starter-active");
   $("starterOverlay").classList.add("hidden");
@@ -1144,50 +1145,125 @@ window.importDataBackup = async function (event) {
 };
 
 /* ========================================================================== */
-/* HỆ THỐNG CHIẾN ĐẤU & HIỆU ỨNG CỘNG ĐIỂM TỪNG LÁ BÀI (NGƯỜI CHƠI & BOT) */
+/* HỆ THỐNG CHIẾN ĐẤU: PHÓNG TO TỪNG LÁ, SỐ BAY RA MÀN HÌNH, LỒNG SẮT & 0 DEF */
 /* ========================================================================== */
 
-function ensureScoreAnimationStyles() {
-  if ($("battleScoreAnimStyle")) return;
+function ensureBattleFxStyles() {
+  if ($("battleFxStyleSheet")) return;
   const style = document.createElement("style");
-  style.id = "battleScoreAnimStyle";
+  style.id = "battleFxStyleSheet";
   style.textContent = `
-    .slot-calc-highlight {
-      transform: translateY(-6px) scale(1.06) !important;
-      box-shadow: 0 0 22px rgba(255, 215, 110, 0.85) !important;
+    .card-zoom-active {
+      transform: scale(1.16) translateY(-8px) !important;
       border-color: #ffd76e !important;
-      z-index: 15;
+      box-shadow: 0 14px 32px rgba(255, 215, 110, 0.65) !important;
+      z-index: 25 !important;
     }
-    .battle-floating-score {
+    .screen-floating-number {
+      position: fixed;
+      transform: translate(-50%, -50%);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.4px;
+      pointer-events: none;
+      z-index: 9999;
+      white-space: nowrap;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.65);
+      animation: screenNumberFly 1.15s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .screen-floating-number.pos {
+      background: linear-gradient(135deg, #8ef0c1, #38b6ff);
+      color: #090b1b;
+      border: 2px solid #ffffffaa;
+    }
+    .screen-floating-number.gold {
+      background: linear-gradient(135deg, #ffe58c, #ff9f43);
+      color: #090b1b;
+      border: 2px solid #fff8d6;
+    }
+    .screen-floating-number.neg {
+      background: linear-gradient(135deg, #ff5e7e, #c9184a);
+      color: #ffffff;
+      border: 2px solid #ffb3c1;
+    }
+    @keyframes screenNumberFly {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 6px) scale(0.55);
+      }
+      22% {
+        opacity: 1;
+        transform: translate(-50%, -18px) scale(1.22);
+      }
+      75% {
+        opacity: 1;
+        transform: translate(-50%, -44px) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -66px) scale(0.9);
+      }
+    }
+    .zero-def-fx-badge {
+      position: fixed;
+      transform: translate(-50%, -50%);
+      padding: 8px 16px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ff3366, #ff9900);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 16px;
+      letter-spacing: 1px;
+      border: 2px solid #ffe58c;
+      box-shadow: 0 0 28px rgba(255, 51, 102, 0.85);
+      z-index: 9999;
+      pointer-events: none;
+      animation: zeroDefPulsePop 1.25s ease-out forwards;
+    }
+    @keyframes zeroDefPulsePop {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotate(-8deg); }
+      25% { opacity: 1; transform: translate(-50%, -50%) scale(1.28) rotate(4deg); }
+      70% { opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(0deg); }
+      100% { opacity: 0; transform: translate(-50%, -68%) scale(0.85); }
+    }
+    .jail-cage-overlay {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9995;
+      border-radius: 10px;
+      border: 4px solid #cbd5e1;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 14px,
+        rgba(226, 232, 240, 0.88) 14px,
+        rgba(226, 232, 240, 0.88) 18px
+      );
+      box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.75), 0 10px 25px rgba(0, 0, 0, 0.7);
+      animation: cageDropLock 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .jail-cage-label {
       position: absolute;
-      top: 10px;
+      bottom: 8px;
       left: 50%;
       transform: translateX(-50%);
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 15px;
+      background: rgba(15, 23, 42, 0.92);
+      color: #ffd76e;
+      border: 1px solid #ffd76e;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 10px;
       font-weight: 900;
-      color: #090b1b;
-      background: #8ef0c1;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
-      z-index: 30;
-      pointer-events: none;
+      letter-spacing: 1px;
       white-space: nowrap;
-      animation: battleFloatUp 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
-    .battle-floating-score.negative {
-      background: #ff5e7e;
-      color: #ffffff;
-    }
-    .battle-floating-score.gold {
-      background: #ffd76e;
-      color: #090b1b;
-    }
-    @keyframes battleFloatUp {
-      0% { opacity: 0; transform: translate(-50%, 10px) scale(0.6); }
-      25% { opacity: 1; transform: translate(-50%, -8px) scale(1.18); }
-      75% { opacity: 1; transform: translate(-50%, -24px) scale(1); }
-      100% { opacity: 0; transform: translate(-50%, -38px) scale(0.92); }
+    @keyframes cageDropLock {
+      0% { opacity: 0; transform: translateY(-48px) scale(1.08); }
+      75% { opacity: 1; transform: translateY(4px) scale(1); }
+      100% { opacity: 1; transform: translateY(0px) scale(1); }
     }
     .calc-scoreboard-strip {
       display: flex;
@@ -1223,8 +1299,13 @@ function ensureScoreAnimationStyles() {
   document.head.appendChild(style);
 }
 
+function cleanupBattleFxOverlays() {
+  document.querySelectorAll(".screen-floating-number, .zero-def-fx-badge, .jail-cage-overlay").forEach(el => el.remove());
+  document.querySelectorAll(".card-zoom-active").forEach(el => el.classList.remove("card-zoom-active"));
+}
+
 function ensureBattleScoreHud() {
-  ensureScoreAnimationStyles();
+  ensureBattleFxStyles();
   const boardMain = document.querySelector(".tcg-board-main");
   if (!boardMain || $("battleCalcHud")) return;
 
@@ -1233,14 +1314,14 @@ function ensureBattleScoreHud() {
   hud.className = "calc-scoreboard-strip hidden";
   hud.innerHTML = `
     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-      <span style="color: #8ef0c1;">TỔNG ĐIỂM BẠN:</span>
+      <span style="color: #8ef0c1;">ĐIỂM BẠN:</span>
       <span id="playerCalcPill" class="calc-score-pill">
         <span id="playerCalcTotal" class="calc-score-value">0</span>
         <small id="playerCalcFormula" style="color: var(--muted); font-size: 11px;"></small>
       </span>
     </div>
     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-      <span style="color: #ff6b8b;">TỔNG ĐIỂM BOT:</span>
+      <span style="color: #ff6b8b;">ĐIỂM BOT:</span>
       <span id="botCalcPill" class="calc-score-pill">
         <span id="botCalcTotal" class="calc-score-value">0</span>
         <small id="botCalcFormula" style="color: var(--muted); font-size: 11px;"></small>
@@ -1283,37 +1364,60 @@ function animateScoreNumber(el, startVal, endVal, duration = 420) {
   requestAnimationFrame(frame);
 }
 
-async function showCardPointStep({ slotContentId, totalElId, formulaElId, pillElId, prevScore, nextScore, badgeText, tone = "positive" }) {
-  const contentEl = $(slotContentId);
-  const slotCardEl = contentEl ? contentEl.closest(".board-slot-vertical") : null;
-  const totalEl = $(totalElId);
-  const formulaEl = $(formulaElId);
-  const pillEl = $(pillElId);
+function getSlotElementByKey(slotKey) {
+  const map = {
+    P_CHAR: "placedCharacterContent",
+    P_SKILL: "placedSkillContent",
+    P_SIT: "placedSituationContent",
+    B_CHAR: "botPlacedCharacterContent",
+    B_SKILL: "botPlacedSkillContent",
+    B_SIT: "botPlacedSituationContent"
+  };
+  const inner = $(map[slotKey]);
+  return inner ? inner.closest(".board-slot-vertical") : null;
+}
 
-  if (slotCardEl) {
-    slotCardEl.classList.add("slot-calc-highlight");
+function spawnScreenFloatingNumber(targetSlotEl, text, tone = "pos", offsetY = -12) {
+  if (!targetSlotEl) return;
+  const rect = targetSlotEl.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + offsetY;
+
+  const badge = document.createElement("div");
+  badge.className = `screen-floating-number ${tone}`;
+  badge.style.left = `${centerX}px`;
+  badge.style.top = `${centerY}px`;
+  badge.textContent = text;
+
+  document.body.appendChild(badge);
+  setTimeout(() => badge.remove(), 1180);
+}
+
+async function zoomCardAndFloatScore({ slotKey, targetSide, prevScore, nextScore, badgeText, tone = "pos" }) {
+  const slotEl = getSlotElementByKey(slotKey);
+  const totalEl = $(targetSide === "player" ? "playerCalcTotal" : "botCalcTotal");
+  const formulaEl = $(targetSide === "player" ? "playerCalcFormula" : "botCalcFormula");
+  const pillEl = $(targetSide === "player" ? "playerCalcPill" : "botCalcPill");
+
+  if (slotEl) {
+    slotEl.classList.add("card-zoom-active");
+  }
+  await sleep(220);
+
+  if (slotEl && badgeText) {
+    spawnScreenFloatingNumber(slotEl, badgeText, tone, -10);
   }
 
-  if (contentEl && badgeText) {
-    const floatEl = document.createElement("div");
-    floatEl.className = `battle-floating-score ${tone}`;
-    floatEl.textContent = badgeText;
-    contentEl.appendChild(floatEl);
-    setTimeout(() => floatEl.remove(), 1100);
-  }
-
-  if (pillEl) {
-    pillEl.classList.add("bump");
-  }
+  if (pillEl) pillEl.classList.add("bump");
   if (formulaEl && badgeText) {
     formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} ${badgeText}` : badgeText;
   }
 
   animateScoreNumber(totalEl, prevScore, nextScore, 420);
-  await sleep(680);
+  await sleep(650);
 
-  if (slotCardEl) {
-    slotCardEl.classList.remove("slot-calc-highlight");
+  if (slotEl) {
+    slotEl.classList.remove("card-zoom-active");
   }
   if (pillEl) {
     pillEl.classList.remove("bump");
@@ -1321,33 +1425,73 @@ async function showCardPointStep({ slotContentId, totalElId, formulaElId, pillEl
   await sleep(180);
 }
 
-async function runSideStepByStepAnimation(side, steps) {
-  const isPlayer = side === "player";
-  const slotMap = {
-    CHAR: isPlayer ? "placedCharacterContent" : "botPlacedCharacterContent",
-    SKILL: isPlayer ? "placedSkillContent" : "botPlacedSkillContent",
-    SIT: isPlayer ? "placedSituationContent" : "botPlacedSituationContent"
-  };
-  const totalElId = isPlayer ? "playerCalcTotal" : "botCalcTotal";
-  const formulaElId = isPlayer ? "playerCalcFormula" : "botCalcFormula";
-  const pillElId = isPlayer ? "playerCalcPill" : "botCalcPill";
+async function triggerZeroDefEffectOnOpponent(opponentCharSlotKey, oppSide, prevScore, nextScore) {
+  const oppCharEl = getSlotElementByKey(opponentCharSlotKey);
+  const totalEl = $(oppSide === "player" ? "playerCalcTotal" : "botCalcTotal");
+  const formulaEl = $(oppSide === "player" ? "playerCalcFormula" : "botCalcFormula");
+  const pillEl = $(oppSide === "player" ? "playerCalcPill" : "botCalcPill");
 
-  let runningScore = 0;
-  for (const step of steps) {
-    const nextScore = Math.max(0, step.nextScore);
-    await showCardPointStep({
-      slotContentId: slotMap[step.slot],
-      totalElId,
-      formulaElId,
-      pillElId,
-      prevScore: runningScore,
-      nextScore,
-      badgeText: step.badge,
-      tone: step.tone || "positive"
-    });
-    runningScore = nextScore;
+  if (oppCharEl) {
+    oppCharEl.classList.add("card-zoom-active");
+    const rect = oppCharEl.getBoundingClientRect();
+    const zeroBadge = document.createElement("div");
+    zeroBadge.className = "zero-def-fx-badge";
+    zeroBadge.style.left = `${rect.left + rect.width / 2}px`;
+    zeroBadge.style.top = `${rect.top + rect.height / 2}px`;
+    zeroBadge.textContent = "⚡ 0 DEF!";
+    document.body.appendChild(zeroBadge);
+    setTimeout(() => zeroBadge.remove(), 1280);
   }
-  return runningScore;
+
+  if (pillEl) pillEl.classList.add("bump");
+  if (formulaEl) {
+    formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} (0 DEF)` : "(0 DEF)";
+  }
+
+  animateScoreNumber(totalEl, prevScore, nextScore, 420);
+  await sleep(850);
+
+  if (oppCharEl) oppCharEl.classList.remove("card-zoom-active");
+  if (pillEl) pillEl.classList.remove("bump");
+  await sleep(160);
+}
+
+async function triggerJailCageOnOpponentChar(opponentCharSlotKey, oppSide, prevScore, nextScore, delta) {
+  const oppCharEl = getSlotElementByKey(opponentCharSlotKey);
+  const totalEl = $(oppSide === "player" ? "playerCalcTotal" : "botCalcTotal");
+  const formulaEl = $(oppSide === "player" ? "playerCalcFormula" : "botCalcFormula");
+  const pillEl = $(oppSide === "player" ? "playerCalcPill" : "botCalcPill");
+
+  let cageEl = null;
+  if (oppCharEl) {
+    const rect = oppCharEl.getBoundingClientRect();
+    cageEl = document.createElement("div");
+    cageEl.className = "jail-cage-overlay";
+    cageEl.style.left = `${rect.left}px`;
+    cageEl.style.top = `${rect.top}px`;
+    cageEl.style.width = `${rect.width}px`;
+    cageEl.style.height = `${rect.height}px`;
+    cageEl.innerHTML = `<span class="jail-cage-label">🔒 VÀO TÙ</span>`;
+    document.body.appendChild(cageEl);
+
+    spawnScreenFloatingNumber(oppCharEl, `${delta} (Bị nhốt)`, "neg", -14);
+  }
+
+  if (pillEl) pillEl.classList.add("bump");
+  if (formulaEl) {
+    formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} ${delta}` : `${delta}`;
+  }
+
+  animateScoreNumber(totalEl, prevScore, nextScore, 420);
+  await sleep(900);
+
+  if (pillEl) pillEl.classList.remove("bump");
+  if (cageEl) {
+    cageEl.style.transition = "opacity 0.35s ease";
+    cageEl.style.opacity = "0";
+    setTimeout(() => cageEl.remove(), 360);
+  }
+  await sleep(180);
 }
 
 function startAdvancedPveBattle() {
@@ -1357,6 +1501,8 @@ function startAdvancedPveBattle() {
   if (ownedCards.length === 0) {
     return showToast("Bạn cần có ít nhất 1 thẻ bài trong Album để vào sân đấu!");
   }
+
+  cleanupBattleFxOverlays();
 
   battleDeckState.botHp = 250;
   battleDeckState.maxBotHp = 250;
@@ -1622,79 +1768,12 @@ window.submitStatChoice = function (choice) {
   renderBattleSlots();
   resetBattleScoreHud(true);
 
-  logAdvancedBattle(`[Hệ thống] Bạn chọn điểm ${choice}. Cả bộ bài của bạn và Bot đã lật lên! Bắt đầu cộng điểm từng lá...`);
+  logAdvancedBattle(`[Hệ thống] Bạn chọn điểm ${choice}. Cả bộ bài của bạn và Bot đã lật lên! Bắt đầu tính điểm từng lá...`);
 
   setTimeout(() => {
     resolveBattleClash();
-  }, 600);
+  }, 550);
 };
-
-function buildSideCalcSteps({ charKey, skillKey, sitKey, ownChoice, oppChoice }) {
-  const charCard = cards[charKey];
-  const baseStat = ownChoice === "ATK" ? (charCard.atk ?? 50) : (charCard.def ?? 50);
-
-  let current = baseStat;
-  const steps = [
-    {
-      slot: "CHAR",
-      nextScore: current,
-      badge: `${charCard.name}: ${baseStat}`,
-      tone: "gold"
-    }
-  ];
-
-  // Bước 2: Hiệu ứng lá Skill
-  if (skillKey === "muaQuat" && ownChoice === "ATK") {
-    const beforeSkill = current;
-    current = charKey === "kha" ? current * 2 : current + 20;
-    const delta = current - beforeSkill;
-    steps.push({
-      slot: "SKILL",
-      nextScore: current,
-      badge: delta >= 0 ? `+${delta} (Múa Quạt)` : `${delta} (Múa Quạt)`,
-      tone: delta >= 0 ? "positive" : "negative"
-    });
-  } else if (skillKey === "chuCap5Cu" && ownChoice === "DEF") {
-    const beforeSkill = current;
-    current = charKey === "jack" ? current * 5 : Math.round(current * 1.5);
-    const delta = current - beforeSkill;
-    steps.push({
-      slot: "SKILL",
-      nextScore: current,
-      badge: delta >= 0 ? `+${delta} (5 Củ)` : `${delta} (5 Củ)`,
-      tone: delta >= 0 ? "positive" : "negative"
-    });
-  } else if (skillKey) {
-    steps.push({
-      slot: "SKILL",
-      nextScore: current,
-      badge: `+0 (${cards[skillKey].name})`,
-      tone: "positive"
-    });
-  }
-
-  // Bước 3: Hiệu ứng lá Tình huống
-  if (sitKey === "vaoTu") {
-    const beforeSit = current;
-    current = Math.max(0, current - 15);
-    const delta = current - beforeSit;
-    steps.push({
-      slot: "SIT",
-      nextScore: current,
-      badge: `${delta} (Vào Tù)`,
-      tone: "negative"
-    });
-  } else if (sitKey) {
-    steps.push({
-      slot: "SIT",
-      nextScore: current,
-      badge: `+0 (${cards[sitKey].name})`,
-      tone: "positive"
-    });
-  }
-
-  return { steps, finalScore: current, oppChoice };
-}
 
 async function resolveBattleClash() {
   const pCharKey = battleDeckState.selectedCharacter;
@@ -1710,97 +1789,162 @@ async function resolveBattleClash() {
   const pChar = cards[pCharKey];
   const bChar = cards[bCharKey];
 
-  let pAtk = pChar.atk || 50;
-  let pDef = pChar.def || 50;
-  let bAtk = bChar.atk || 50;
-  let bDef = bChar.def || 50;
+  let pScore = pChoice === "ATK" ? (pChar.atk ?? 50) : (pChar.def ?? 50);
+  let bScore = bChoice === "ATK" ? (bChar.atk ?? 50) : (bChar.def ?? 50);
 
-  if (pSkillKey === "muaQuat") {
-    if (pCharKey === "kha") {
-      pAtk *= 2;
-      logAdvancedBattle(`✨ [Múa Quạt] x2 điểm ATK cho Khá Bảnh -> ATK: ${pAtk}`);
-    } else {
-      pAtk += 20;
-      logAdvancedBattle(`✨ [Múa Quạt] +20 điểm ATK cho nhân vật khác -> ATK: ${pAtk}`);
-    }
-  }
-
-  if (bSkillKey === "muaQuat") {
-    if (bCharKey === "kha") {
-      bAtk *= 2;
-    } else {
-      bAtk += 20;
-    }
-  }
-
-  if (pSkillKey === "chuCap5Cu") {
-    if (pCharKey === "jack") {
-      pDef *= 5;
-      logAdvancedBattle(`👑 [Chu Cấp 5 Củ] x5 điểm DEF cho Jack -> DEF: ${pDef}`);
-    } else {
-      pDef = Math.round(pDef * 1.5);
-      logAdvancedBattle(`👑 [Chu Cấp 5 Củ] x1.5 điểm DEF cho nhân vật khác -> DEF: ${pDef}`);
-    }
-    if (bChoice === "ATK") {
-      bDef = 0;
-      logAdvancedBattle(`👑 Đối thủ chọn ATK, [Chu Cấp 5 Củ] đưa điểm DEF của đối thủ về 0!`);
-    }
-  }
-
-  if (bSkillKey === "chuCap5Cu") {
-    if (bCharKey === "jack") {
-      bDef *= 5;
-    } else {
-      bDef = Math.round(bDef * 1.5);
-    }
-    if (pChoice === "ATK") {
-      pDef = 0;
-    }
-  }
-
-  if (pSitKey === "vaoTu") {
-    if (bChoice === "ATK") {
-      bAtk = Math.max(0, bAtk - 15);
-      logAdvancedBattle(`📜 [Vào Tù] Đối thủ vào tù, trừ 15 điểm ATK -> ATK Bot: ${bAtk}`);
-    } else {
-      bDef = Math.max(0, bDef - 15);
-      logAdvancedBattle(`📜 [Vào Tù] Đối thủ vào tù, trừ 15 điểm DEF -> DEF Bot: ${bDef}`);
-    }
-  }
-
-  if (bSitKey === "vaoTu") {
-    if (pChoice === "ATK") {
-      pAtk = Math.max(0, pAtk - 15);
-      logAdvancedBattle(`📜 [Vào Tù] Bạn vào tù, trừ 15 điểm ATK -> ATK bạn: ${pAtk}`);
-    } else {
-      pDef = Math.max(0, pDef - 15);
-      logAdvancedBattle(`📜 [Vào Tù] Bạn vào tù, trừ 15 điểm DEF -> DEF bạn: ${pDef}`);
-    }
-  }
-
-  const playerCalc = buildSideCalcSteps({
-    charKey: pCharKey,
-    skillKey: pSkillKey,
-    sitKey: pSitKey,
-    ownChoice: pChoice,
-    oppChoice: bChoice
+  // 1. Lá Nhân vật của Bạn phóng to & hiện điểm bay ra màn hình
+  await zoomCardAndFloatScore({
+    slotKey: "P_CHAR",
+    targetSide: "player",
+    prevScore: 0,
+    nextScore: pScore,
+    badgeText: `${pChoice}: ${pScore}`,
+    tone: "gold"
   });
 
-  const botCalc = buildSideCalcSteps({
-    charKey: bCharKey,
-    skillKey: bSkillKey,
-    sitKey: bSitKey,
-    ownChoice: bChoice,
-    oppChoice: pChoice
+  // 2. Lá Nhân vật của Bot phóng to & hiện điểm bay ra màn hình
+  await zoomCardAndFloatScore({
+    slotKey: "B_CHAR",
+    targetSide: "bot",
+    prevScore: 0,
+    nextScore: bScore,
+    badgeText: `${bChoice}: ${bScore}`,
+    tone: "gold"
   });
 
-  await Promise.all([
-    runSideStepByStepAnimation("player", playerCalc.steps),
-    runSideStepByStepAnimation("bot", botCalc.steps)
-  ]);
+  // 3. Lá Skill của Bạn phóng to & cộng điểm / kích hoạt hiệu ứng
+  if (pSkillKey) {
+    const prevP = pScore;
+    let skillBadge = "+0";
+    let skillTone = "pos";
 
-  let pScore = pChoice === "ATK" ? pAtk : pDef;
-  let bScore = bChoice === "ATK" ? bAtk : bDef;
+    if (pSkillKey === "muaQuat") {
+      if (pChoice === "ATK") {
+        pScore = pCharKey === "kha" ? pScore * 2 : pScore + 20;
+        const delta = pScore - prevP;
+        skillBadge = delta >= 0 ? `+${delta}` : `${delta}`;
+        logAdvancedBattle(
+          pCharKey === "kha"
+            ? `✨ [Múa Quạt] x2 điểm ATK cho Khá Bảnh -> ${pScore}`
+            : `✨ [Múa Quạt] +20 điểm ATK -> ${pScore}`
+        );
+      } else {
+        skillBadge = "ATK Only";
+      }
+    } else if (pSkillKey === "chuCap5Cu") {
+      if (pChoice === "DEF") {
+        pScore = pCharKey === "jack" ? pScore * 5 : Math.round(pScore * 1.5);
+        const delta = pScore - prevP;
+        skillBadge = delta >= 0 ? `+${delta}` : `${delta}`;
+        logAdvancedBattle(
+          pCharKey === "jack"
+            ? `👑 [Chu Cấp 5 Củ] x5 điểm DEF cho Jack -> ${pScore}`
+            : `👑 [Chu Cấp 5 Củ] x1.5 điểm DEF -> ${pScore}`
+        );
+      } else {
+        skillBadge = "DEF Only";
+      }
+    }
+
+    await zoomCardAndFloatScore({
+      slotKey: "P_SKILL",
+      targetSide: "player",
+      prevScore: prevP,
+      nextScore: pScore,
+      badgeText: skillBadge,
+      tone: skillTone
+    });
+
+    // Hiệu ứng biến điểm DEF của đối phương thành 0 khi dùng Chu Cấp 5 Củ và đối phương chọn DEF
+    if (pSkillKey === "chuCap5Cu" && bChoice === "DEF" && bScore > 0) {
+      const prevB = bScore;
+      bScore = 0;
+      logAdvancedBattle(`👑 [Chu Cấp 5 Củ] Biến điểm DEF của Bot thành 0!`);
+      await triggerZeroDefEffectOnOpponent("B_CHAR", "bot", prevB, 0);
+    }
+  }
+
+  // 4. Lá Skill của Bot phóng to & cộng điểm / kích hoạt hiệu ứng
+  if (bSkillKey) {
+    const prevB = bScore;
+    let botSkillBadge = "+0";
+
+    if (bSkillKey === "muaQuat") {
+      if (bChoice === "ATK") {
+        bScore = bCharKey === "kha" ? bScore * 2 : bScore + 20;
+        const delta = bScore - prevB;
+        botSkillBadge = delta >= 0 ? `+${delta}` : `${delta}`;
+        logAdvancedBattle(`✨ Bot kích hoạt [Múa Quạt] -> Điểm Bot: ${bScore}`);
+      } else {
+        botSkillBadge = "ATK Only";
+      }
+    } else if (bSkillKey === "chuCap5Cu") {
+      if (bChoice === "DEF") {
+        bScore = bCharKey === "jack" ? bScore * 5 : Math.round(bScore * 1.5);
+        const delta = bScore - prevB;
+        botSkillBadge = delta >= 0 ? `+${delta}` : `${delta}`;
+        logAdvancedBattle(`👑 Bot kích hoạt [Chu Cấp 5 Củ] -> Điểm Bot: ${bScore}`);
+      } else {
+        botSkillBadge = "DEF Only";
+      }
+    }
+
+    await zoomCardAndFloatScore({
+      slotKey: "B_SKILL",
+      targetSide: "bot",
+      prevScore: prevB,
+      nextScore: bScore,
+      badgeText: botSkillBadge,
+      tone: "pos"
+    });
+
+    if (bSkillKey === "chuCap5Cu" && pChoice === "DEF" && pScore > 0) {
+      const prevP = pScore;
+      pScore = 0;
+      logAdvancedBattle(`👑 Bot dùng [Chu Cấp 5 Củ] biến điểm DEF của bạn thành 0!`);
+      await triggerZeroDefEffectOnOpponent("P_CHAR", "player", prevP, 0);
+    }
+  }
+
+  // 5. Lá Tình huống của Bạn phóng to & hiệu ứng lên đối phương (Lồng sắt nhốt nhân vật nếu là Vào Tù)
+  if (pSitKey) {
+    await zoomCardAndFloatScore({
+      slotKey: "P_SIT",
+      targetSide: "player",
+      prevScore: pScore,
+      nextScore: pScore,
+      badgeText: cards[pSitKey].name,
+      tone: "pos"
+    });
+
+    if (pSitKey === "vaoTu") {
+      const prevB = bScore;
+      bScore = Math.max(0, bScore - 15);
+      const delta = bScore - prevB;
+      logAdvancedBattle(`🔒 [Vào Tù] Nhốt nhân vật Bot vào lồng sắt, trừ điểm Bot (${delta}) -> ${bScore}`);
+      await triggerJailCageOnOpponentChar("B_CHAR", "bot", prevB, bScore, delta);
+    }
+  }
+
+  // 6. Lá Tình huống của Bot phóng to & hiệu ứng lên bạn (Lồng sắt nhốt nhân vật nếu là Vào Tù)
+  if (bSitKey) {
+    await zoomCardAndFloatScore({
+      slotKey: "B_SIT",
+      targetSide: "bot",
+      prevScore: bScore,
+      nextScore: bScore,
+      badgeText: cards[bSitKey].name,
+      tone: "pos"
+    });
+
+    if (bSitKey === "vaoTu") {
+      const prevP = pScore;
+      pScore = Math.max(0, pScore - 15);
+      const delta = pScore - prevP;
+      logAdvancedBattle(`🔒 Bot dùng [Vào Tù] nhốt nhân vật của bạn vào lồng sắt (${delta}) -> ${pScore}`);
+      await triggerJailCageOnOpponentChar("P_CHAR", "player", prevP, pScore, delta);
+    }
+  }
 
   if ($("playerCalcTotal")) $("playerCalcTotal").textContent = String(pScore);
   if ($("botCalcTotal")) $("botCalcTotal").textContent = String(bScore);
@@ -1844,6 +1988,7 @@ async function resolveBattleClash() {
   }
 
   setTimeout(() => {
+    cleanupBattleFxOverlays();
     battleDeckState.selectedSkill = null;
     battleDeckState.selectedCharacter = null;
     battleDeckState.selectedSituation = null;
@@ -1876,6 +2021,7 @@ function logAdvancedBattle(msg) {
 
 window.quitPveBattle = function () {
   if (battleDeckState.timerInterval) clearInterval(battleDeckState.timerInterval);
+  cleanupBattleFxOverlays();
   battleDeckState.isResolvingTurn = false;
   resetBattleScoreHud(false);
   showScreen("gameScreen");
