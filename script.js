@@ -1207,6 +1207,25 @@ window.importDataBackup = async function (event) {
 
 let rainOverlayInterval = null;
 
+function ensureRainKeyframes() {
+  if ($("arenaRainKeyframesStyle")) return;
+  const style = document.createElement("style");
+  style.id = "arenaRainKeyframesStyle";
+  style.textContent = `
+    @keyframes arenaRainFall {
+      0% {
+        transform: translate3d(0, -30px, 0) rotate(12deg);
+        opacity: 0.9;
+      }
+      100% {
+        transform: translate3d(-24px, calc(100vh + 40px), 0) rotate(12deg);
+        opacity: 0.25;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 function removeArenaRainOverlay() {
   if (rainOverlayInterval) {
     clearInterval(rainOverlayInterval);
@@ -1214,6 +1233,8 @@ function removeArenaRainOverlay() {
   }
   const layer = $("arenaRainWeatherOverlay");
   if (layer) layer.remove();
+  const hudBadge = $("arenaRainHudBadge");
+  if (hudBadge) hudBadge.remove();
 }
 
 function syncArenaRainWeatherOverlay() {
@@ -1223,9 +1244,9 @@ function syncArenaRainWeatherOverlay() {
     return;
   }
 
-  const arenaContainer = $("pveBattleScreen") || document.querySelector(".tcg-board-main") || document.body;
-  let layer = $("arenaRainWeatherOverlay");
+  ensureRainKeyframes();
 
+  let layer = $("arenaRainWeatherOverlay");
   if (!layer) {
     layer = document.createElement("div");
     layer.id = "arenaRainWeatherOverlay";
@@ -1233,75 +1254,72 @@ function syncArenaRainWeatherOverlay() {
       position: fixed;
       inset: 0;
       pointer-events: none;
-      z-index: 9990;
+      z-index: 9996;
       overflow: hidden;
-      background: linear-gradient(180deg, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.14) 100%);
+      background: linear-gradient(180deg, rgba(14, 165, 233, 0.14) 0%, rgba(15, 23, 42, 0.22) 100%);
     `;
     document.body.appendChild(layer);
   }
 
   if (!rainOverlayInterval) {
     const spawnDrop = () => {
-      if (!$("arenaRainWeatherOverlay")) return;
+      const currentLayer = $("arenaRainWeatherOverlay");
+      if (!currentLayer) return;
+
       const drop = document.createElement("div");
       const leftPct = Math.random() * 100;
-      const duration = 550 + Math.random() * 450;
-      const height = 14 + Math.random() * 16;
-      const opacity = 0.35 + Math.random() * 0.45;
+      const durationMs = 550 + Math.random() * 450;
+      const heightPx = 18 + Math.random() * 18;
+      const delayMs = -(Math.random() * 400);
 
       drop.style.cssText = `
-        position: fixed;
-        left: ${leftPct}vw;
-        top: -28px;
-        width: 2px;
-        height: ${height}px;
+        position: absolute;
+        left: ${leftPct}%;
+        top: 0;
+        width: 3px;
+        height: ${heightPx}px;
         border-radius: 999px;
-        background: rgba(125, 211, 252, ${opacity});
+        background: linear-gradient(180deg, rgba(224, 242, 254, 0.95), rgba(56, 189, 248, 0.55));
+        box-shadow: 0 0 6px rgba(125, 211, 252, 0.7);
         pointer-events: none;
-        transform: rotate(12deg);
-        transition: top ${duration}ms linear, opacity ${duration}ms linear;
+        animation: arenaRainFall ${durationMs}ms linear ${delayMs}ms infinite;
       `;
 
-      layer.appendChild(drop);
-      requestAnimationFrame(() => {
-        drop.style.top = `${window.innerHeight + 30}px`;
-        drop.style.opacity = "0.1";
-      });
-      setTimeout(() => drop.remove(), duration + 80);
+      currentLayer.appendChild(drop);
+      setTimeout(() => drop.remove(), 4500);
     };
 
-    for (let i = 0; i < 24; i++) {
-      setTimeout(spawnDrop, i * 35);
+    for (let i = 0; i < 45; i++) {
+      spawnDrop();
     }
+
     rainOverlayInterval = setInterval(() => {
-      for (let i = 0; i < 4; i++) spawnDrop();
-    }, 85);
+      for (let i = 0; i < 6; i++) spawnDrop();
+    }, 120);
   }
 
-  if (arenaContainer && !$("arenaRainHudBadge")) {
-    const badge = document.createElement("div");
+  let badge = $("arenaRainHudBadge");
+  if (!badge) {
+    badge = document.createElement("div");
     badge.id = "arenaRainHudBadge";
     badge.style.cssText = `
       position: fixed;
       top: 14px;
       right: 14px;
-      z-index: 9995;
+      z-index: 9997;
       pointer-events: none;
       padding: 6px 12px;
       border-radius: 999px;
-      background: rgba(14, 116, 144, 0.9);
-      border: 1px solid rgba(125, 211, 252, 0.6);
-      color: #e0f2fe;
+      background: rgba(2, 132, 199, 0.92);
+      border: 1px solid rgba(186, 230, 253, 0.8);
+      color: #f0f9ff;
       font-size: 12px;
       font-weight: 700;
     `;
     document.body.appendChild(badge);
   }
 
-  const hudBadge = $("arenaRainHudBadge");
-  if (hudBadge) {
-    hudBadge.textContent = `🌧️ Trời Mưa — Bạn: ${battleDeckState.playerRainTurnsLeft}v | Bot: ${battleDeckState.botRainTurnsLeft}v`;
-  }
+  badge.textContent = `🌧️ Trời Mưa — Bạn: ${battleDeckState.playerRainTurnsLeft}v | Bot: ${battleDeckState.botRainTurnsLeft}v`;
 }
 
 function cleanupBattleFxOverlays(forceRemoveRain = false) {
@@ -1313,8 +1331,6 @@ function cleanupBattleFxOverlays(forceRemoveRain = false) {
   });
   if (forceRemoveRain) {
     removeArenaRainOverlay();
-    const hudBadge = $("arenaRainHudBadge");
-    if (hudBadge) hudBadge.remove();
   }
 }
 
@@ -1564,11 +1580,7 @@ async function applyRainWeatherBonus(side, charSlotKey, currentScore) {
   await sleep(620);
   if (pillEl) pillEl.classList.remove("bump");
 
-  if (remainingAfter === 0) {
-    syncArenaRainWeatherOverlay();
-  } else {
-    syncArenaRainWeatherOverlay();
-  }
+  syncArenaRainWeatherOverlay();
 
   await sleep(140);
 
@@ -2071,7 +2083,6 @@ async function resolveBattleClash() {
   let pScore = pChoice === "ATK" ? pAtk : pDef;
   let bScore = bChoice === "ATK" ? bAtk : bDef;
 
-  // 1. Lá Nhân vật của Bạn
   await zoomCardAndFloatScore({
     slotKey: "P_CHAR",
     targetSide: "player",
@@ -2081,7 +2092,6 @@ async function resolveBattleClash() {
     tone: "gold"
   });
 
-  // 2. Lá Nhân vật của Bot
   await zoomCardAndFloatScore({
     slotKey: "B_CHAR",
     targetSide: "bot",
@@ -2091,7 +2101,6 @@ async function resolveBattleClash() {
     tone: "gold"
   });
 
-  // 3. Lá Skill của Bạn
   if (pSkillKey) {
     const prevP = pScore;
     let skillBadge = "+0";
@@ -2171,7 +2180,6 @@ async function resolveBattleClash() {
     }
   }
 
-  // 4. Lá Skill của Bot
   if (bSkillKey) {
     const prevB = bScore;
     let botSkillBadge = "+0";
@@ -2247,7 +2255,6 @@ async function resolveBattleClash() {
     }
   }
 
-  // 5. Lá Tình huống của Bạn
   if (pSitKey) {
     const prevP = pScore;
     let pSitBadge = cards[pSitKey].name;
@@ -2306,7 +2313,6 @@ async function resolveBattleClash() {
     }
   }
 
-  // 6. Lá Tình huống của Bot
   if (bSitKey) {
     const prevB = bScore;
     let bSitBadge = cards[bSitKey].name;
@@ -2365,7 +2371,6 @@ async function resolveBattleClash() {
     }
   }
 
-  // 7. Áp dụng hiệu ứng Trời Mưa kéo dài 3 vòng (+10 điểm mỗi vòng cho phe có hiệu ứng)
   pScore = await applyRainWeatherBonus("player", "P_CHAR", pScore);
   bScore = await applyRainWeatherBonus("bot", "B_CHAR", bScore);
 
