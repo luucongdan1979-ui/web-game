@@ -370,7 +370,7 @@ $("logoutBtn").addEventListener("click", () => {
   saveState();
 
   if (battleDeckState.timerInterval) clearInterval(battleDeckState.timerInterval);
-  cleanupBattleFxOverlays();
+  cleanupBattleFxOverlays(true);
 
   document.body.classList.remove("logged-in", "starter-active");
   $("starterOverlay").classList.add("hidden");
@@ -449,7 +449,6 @@ function getRandomCardByPackType(packType) {
   let targetRarity = "RARE";
 
   if (packType === "premium") {
-    // Premium Pack: 25% RARE, 40% LEGENDARY, 35% MYTHICAL
     if (rand < 0.25) {
       targetRarity = "RARE";
     } else if (rand < 0.65) {
@@ -458,7 +457,6 @@ function getRandomCardByPackType(packType) {
       targetRarity = "MYTHICAL";
     }
   } else {
-    // Basic Pack: 50% RARE, 30% LEGENDARY, 20% MYTHICAL
     if (rand < 0.50) {
       targetRarity = "RARE";
     } else if (rand < 0.80) {
@@ -1204,16 +1202,120 @@ window.importDataBackup = async function (event) {
 
 /* ========================================================================== */
 /* HỆ THỐNG CHIẾN ĐẤU: HIỆU ỨNG TỪNG LÁ, CHU CẤP 5 TRIỆU, BỎ CON, MÚA QUẠT,  */
-/* SÀM SỠ & HỒI CHIỀU TRỜI MƯA (3 VÒNG +10 ĐIỂM)                             */
+/* SÀM SỠ (CẶP NGỰC + BÀN TAY XOA) & HỒI CHIỀU TRỜI MƯA (MƯA RƠI 3 VÒNG)    */
 /* ========================================================================== */
 
-function cleanupBattleFxOverlays() {
+let rainOverlayInterval = null;
+
+function removeArenaRainOverlay() {
+  if (rainOverlayInterval) {
+    clearInterval(rainOverlayInterval);
+    rainOverlayInterval = null;
+  }
+  const layer = $("arenaRainWeatherOverlay");
+  if (layer) layer.remove();
+}
+
+function syncArenaRainWeatherOverlay() {
+  const hasActiveRain = battleDeckState.playerRainTurnsLeft > 0 || battleDeckState.botRainTurnsLeft > 0;
+  if (!hasActiveRain) {
+    removeArenaRainOverlay();
+    return;
+  }
+
+  const arenaContainer = $("pveBattleScreen") || document.querySelector(".tcg-board-main") || document.body;
+  let layer = $("arenaRainWeatherOverlay");
+
+  if (!layer) {
+    layer = document.createElement("div");
+    layer.id = "arenaRainWeatherOverlay";
+    layer.style.cssText = `
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9990;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.14) 100%);
+    `;
+    document.body.appendChild(layer);
+  }
+
+  if (!rainOverlayInterval) {
+    const spawnDrop = () => {
+      if (!$("arenaRainWeatherOverlay")) return;
+      const drop = document.createElement("div");
+      const leftPct = Math.random() * 100;
+      const duration = 550 + Math.random() * 450;
+      const height = 14 + Math.random() * 16;
+      const opacity = 0.35 + Math.random() * 0.45;
+
+      drop.style.cssText = `
+        position: fixed;
+        left: ${leftPct}vw;
+        top: -28px;
+        width: 2px;
+        height: ${height}px;
+        border-radius: 999px;
+        background: rgba(125, 211, 252, ${opacity});
+        pointer-events: none;
+        transform: rotate(12deg);
+        transition: top ${duration}ms linear, opacity ${duration}ms linear;
+      `;
+
+      layer.appendChild(drop);
+      requestAnimationFrame(() => {
+        drop.style.top = `${window.innerHeight + 30}px`;
+        drop.style.opacity = "0.1";
+      });
+      setTimeout(() => drop.remove(), duration + 80);
+    };
+
+    for (let i = 0; i < 24; i++) {
+      setTimeout(spawnDrop, i * 35);
+    }
+    rainOverlayInterval = setInterval(() => {
+      for (let i = 0; i < 4; i++) spawnDrop();
+    }, 85);
+  }
+
+  if (arenaContainer && !$("arenaRainHudBadge")) {
+    const badge = document.createElement("div");
+    badge.id = "arenaRainHudBadge";
+    badge.style.cssText = `
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 9995;
+      pointer-events: none;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(14, 116, 144, 0.9);
+      border: 1px solid rgba(125, 211, 252, 0.6);
+      color: #e0f2fe;
+      font-size: 12px;
+      font-weight: 700;
+    `;
+    document.body.appendChild(badge);
+  }
+
+  const hudBadge = $("arenaRainHudBadge");
+  if (hudBadge) {
+    hudBadge.textContent = `🌧️ Trời Mưa — Bạn: ${battleDeckState.playerRainTurnsLeft}v | Bot: ${battleDeckState.botRainTurnsLeft}v`;
+  }
+}
+
+function cleanupBattleFxOverlays(forceRemoveRain = false) {
   document.querySelectorAll(
-    ".screen-floating-number, .zero-def-fx-badge, .jail-cage-overlay, .money-stack-fx, .smoke-cloud-fx, .baby-abandon-fx, .fan-hand-fx"
+    ".screen-floating-number, .zero-def-fx-badge, .jail-cage-overlay, .money-stack-fx, .smoke-cloud-fx, .baby-abandon-fx, .fan-hand-fx, .sam-so-fx-layer"
   ).forEach(el => el.remove());
   document.querySelectorAll(".card-zoom-active, .card-blink-hit, .card-blown-away").forEach(el => {
     el.classList.remove("card-zoom-active", "card-blink-hit", "card-blown-away");
   });
+  if (forceRemoveRain) {
+    removeArenaRainOverlay();
+    const hudBadge = $("arenaRainHudBadge");
+    if (hudBadge) hudBadge.remove();
+  }
 }
 
 function ensureBattleScoreHud() {
@@ -1336,14 +1438,64 @@ async function zoomCardAndFloatScore({ slotKey, targetSide, prevScore, nextScore
   await sleep(160);
 }
 
-/* Hiệu ứng Sàm Sỡ: trừ điểm chỉ số đang chọn của đối phương */
+/* Hiệu ứng Sàm Sỡ: cặp ngực đi tới đối phương và có bàn tay xoa lên mục tiêu */
 async function triggerSamSoEffect(sourceSkillSlotKey, opponentCharSlotKey, oppSide, oppStatChoice, prevScore, nextScore, actualDelta) {
   const sourceEl = getSlotElementByKey(sourceSkillSlotKey);
   const targetEl = getSlotElementByKey(opponentCharSlotKey);
   if (!sourceEl || !targetEl) return;
 
+  const sRect = sourceEl.getBoundingClientRect();
+  const tRect = targetEl.getBoundingClientRect();
+
+  const startX = sRect.left + sRect.width / 2;
+  const startY = sRect.top + sRect.height / 2;
+  const endX = tRect.left + tRect.width / 2;
+  const endY = tRect.top + tRect.height / 2;
+
+  const fxWrap = document.createElement("div");
+  fxWrap.className = "sam-so-fx-layer";
+  fxWrap.style.cssText = `
+    position: fixed;
+    left: ${startX}px;
+    top: ${startY}px;
+    z-index: 9998;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 28px;
+  `;
+
+  fxWrap.innerHTML = `
+    <span class="sam-so-chest" style="display:inline-flex;align-items:center;gap:1px;padding:4px 8px;border-radius:14px;background:rgba(255,182,193,0.92);border:2px solid #f472b6;box-shadow:0 4px 14px rgba(244,114,182,0.45);">🍒🍒</span>
+    <span class="sam-so-hand" style="display:inline-block;font-size:30px;transform-origin:center;">✋</span>
+  `;
+
+  document.body.appendChild(fxWrap);
+
+  await sleep(120);
+
+  fxWrap.style.transition = "left 0.65s cubic-bezier(0.22, 1, 0.36, 1), top 0.65s cubic-bezier(0.22, 1, 0.36, 1)";
+  fxWrap.style.left = `${endX}px`;
+  fxWrap.style.top = `${endY}px`;
+
+  await sleep(660);
+
+  const handEl = fxWrap.querySelector(".sam-so-hand");
+  if (handEl) {
+    handEl.style.transition = "transform 0.22s ease-in-out";
+    for (let i = 0; i < 3; i++) {
+      handEl.style.transform = "translate(-10px, -6px) rotate(-14deg) scale(1.12)";
+      await sleep(220);
+      handEl.style.transform = "translate(10px, 6px) rotate(14deg) scale(1.12)";
+      await sleep(220);
+    }
+    handEl.style.transform = "translate(0, 0) rotate(0deg) scale(1)";
+  }
+
   targetEl.classList.add("card-blink-hit");
-  spawnScreenFloatingNumber(targetEl, `😳 ${actualDelta} ${oppStatChoice}`, "neg", -16);
+  spawnScreenFloatingNumber(targetEl, `😳 ${actualDelta} ${oppStatChoice}`, "neg", -18);
 
   const totalEl = $(oppSide === "player" ? "playerCalcTotal" : "botCalcTotal");
   const formulaEl = $(oppSide === "player" ? "playerCalcFormula" : "botCalcFormula");
@@ -1355,7 +1507,14 @@ async function triggerSamSoEffect(sourceSkillSlotKey, opponentCharSlotKey, oppSi
   }
   animateScoreNumber(totalEl, prevScore, nextScore, 420);
 
-  await sleep(750);
+  await sleep(550);
+
+  fxWrap.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+  fxWrap.style.opacity = "0";
+  fxWrap.style.transform = "translate(-50%, -65%) scale(0.8)";
+  await sleep(320);
+
+  fxWrap.remove();
   targetEl.classList.remove("card-blink-hit");
   if (pillEl) pillEl.classList.remove("bump");
   await sleep(140);
@@ -1365,7 +1524,12 @@ async function triggerSamSoEffect(sourceSkillSlotKey, opponentCharSlotKey, oppSi
 async function applyRainWeatherBonus(side, charSlotKey, currentScore) {
   const isPlayer = side === "player";
   const turnsLeft = isPlayer ? battleDeckState.playerRainTurnsLeft : battleDeckState.botRainTurnsLeft;
-  if (turnsLeft <= 0) return currentScore;
+  if (turnsLeft <= 0) {
+    syncArenaRainWeatherOverlay();
+    return currentScore;
+  }
+
+  syncArenaRainWeatherOverlay();
 
   const prevScore = currentScore;
   const nextScore = currentScore + 10;
@@ -1399,6 +1563,13 @@ async function applyRainWeatherBonus(side, charSlotKey, currentScore) {
 
   await sleep(620);
   if (pillEl) pillEl.classList.remove("bump");
+
+  if (remainingAfter === 0) {
+    syncArenaRainWeatherOverlay();
+  } else {
+    syncArenaRainWeatherOverlay();
+  }
+
   await sleep(140);
 
   return nextScore;
@@ -1602,7 +1773,7 @@ function startAdvancedPveBattle() {
     return showToast("Bạn cần có ít nhất 1 thẻ bài trong Album để vào sân đấu!");
   }
 
-  cleanupBattleFxOverlays();
+  cleanupBattleFxOverlays(true);
 
   battleDeckState.botHp = 250;
   battleDeckState.maxBotHp = 250;
@@ -1869,6 +2040,7 @@ window.submitStatChoice = function (choice) {
   battleDeckState.cardsFlipped = true;
   renderBattleSlots();
   resetBattleScoreHud(true);
+  syncArenaRainWeatherOverlay();
 
   logAdvancedBattle(`[Hệ thống] Bạn chọn điểm ${choice}. Cả bộ bài của bạn và Bot đã lật lên! Bắt đầu tính điểm từng lá...`);
 
@@ -2090,6 +2262,7 @@ async function resolveBattleClash() {
         pScore = pDef;
       }
       battleDeckState.playerRainTurnsLeft = 3;
+      syncArenaRainWeatherOverlay();
       pSitBadge = `+${bonus} ${pChoice} & Mưa 3v`;
       logAdvancedBattle(
         pCharKey === "truongGiang"
@@ -2148,6 +2321,7 @@ async function resolveBattleClash() {
         bScore = bDef;
       }
       battleDeckState.botRainTurnsLeft = 3;
+      syncArenaRainWeatherOverlay();
       bSitBadge = `+${bonus} ${bChoice} & Mưa 3v`;
       logAdvancedBattle(
         bCharKey === "truongGiang"
@@ -2237,7 +2411,8 @@ async function resolveBattleClash() {
   }
 
   setTimeout(() => {
-    cleanupBattleFxOverlays();
+    cleanupBattleFxOverlays(false);
+    syncArenaRainWeatherOverlay();
     battleDeckState.selectedSkill = null;
     battleDeckState.selectedCharacter = null;
     battleDeckState.selectedSituation = null;
@@ -2270,7 +2445,7 @@ function logAdvancedBattle(msg) {
 
 window.quitPveBattle = function () {
   if (battleDeckState.timerInterval) clearInterval(battleDeckState.timerInterval);
-  cleanupBattleFxOverlays();
+  cleanupBattleFxOverlays(true);
   battleDeckState.isResolvingTurn = false;
   resetBattleScoreHud(false);
   showScreen("gameScreen");
