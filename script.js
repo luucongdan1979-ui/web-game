@@ -1283,7 +1283,7 @@ async function zoomCardAndFloatScore({ slotKey, targetSide, prevScore, nextScore
   await sleep(160);
 }
 
-/* 1. HIỆU ỨNG CHU CẤP 5 TRIỆU: Xấp tiền 5 TRIỆU bay tới lá NV đối phương -> Tan thành khói + Lá NV nhấp nháy */
+/* 1. HIỆU ỨNG CHU CẤP 5 TRIỆU: Xấp tiền 5 TRIỆU bay tới lá NV đối phương -> Tan thành khói + Lá NV nhấp nháy + 0 DEF nếu đối phương chọn DEF */
 async function triggerFiveMillionMoneyEffect(sourceSkillSlotKey, opponentCharSlotKey, oppSide, prevScore, nextScore, zeroDefApplied) {
   const sourceEl = getSlotElementByKey(sourceSkillSlotKey);
   const targetEl = getSlotElementByKey(opponentCharSlotKey);
@@ -1333,13 +1333,13 @@ async function triggerFiveMillionMoneyEffect(sourceSkillSlotKey, opponentCharSlo
     zeroBadge.className = "zero-def-fx-badge";
     zeroBadge.style.left = `${endX}px`;
     zeroBadge.style.top = `${endY - 26}px`;
-    zeroBadge.textContent = "⚡ 0 DEF!";
+    zeroBadge.textContent = "⚡ DEF = 0!";
     document.body.appendChild(zeroBadge);
     setTimeout(() => zeroBadge.remove(), 1200);
 
     if (pillEl) pillEl.classList.add("bump");
     if (formulaEl) {
-      formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} (0 DEF)` : "(0 DEF)";
+      formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} (DEF->0)` : "(DEF->0)";
     }
     animateScoreNumber(totalEl, prevScore, nextScore, 420);
   }
@@ -1823,8 +1823,8 @@ async function resolveBattleClash() {
         skillBadge = delta >= 0 ? `+${delta} DEF` : `${delta} DEF`;
         logAdvancedBattle(
           pCharKey === "jack"
-            ? `👑 [Chu Cấp 5 Củ] x5 điểm DEF cho Jack -> ${pScore}`
-            : `👑 [Chu Cấp 5 Củ] x1.5 điểm DEF -> ${pScore}`
+            ? `👑 [Chu Cấp 5 Triệu] x5 điểm DEF cho Jack -> ${pScore}`
+            : `👑 [Chu Cấp 5 Triệu] x1.5 điểm DEF cho ${pChar.name} -> ${pScore}`
         );
       } else {
         skillBadge = "DEF Only";
@@ -1842,13 +1842,13 @@ async function resolveBattleClash() {
 
     if (pSkillKey === "chuCap5Cu") {
       const prevB = bScore;
-      const zeroDefApplied = bChoice === "DEF" && bScore > 0;
+      const zeroDefApplied = bChoice === "DEF";
       if (zeroDefApplied) {
         bDef = 0;
         bScore = 0;
-        logAdvancedBattle(`💵 [Chu Cấp 5 Triệu] Xấp tiền bay tới đối phương tan thành khói & biến DEF của Bot thành 0!`);
+        logAdvancedBattle(`💵 [Chu Cấp 5 Triệu] Xấp tiền 5 triệu bay tới đối phương tan thành khói & đưa DEF của Bot về 0!`);
       } else {
-        logAdvancedBattle(`💵 [Chu Cấp 5 Triệu] Xấp tiền 5 triệu bay tới làm đối phương choáng váng nhấp nháy!`);
+        logAdvancedBattle(`💵 [Chu Cấp 5 Triệu] Xấp tiền 5 triệu bay tới làm đối phương nhấp nháy & tan thành khói!`);
       }
       await triggerFiveMillionMoneyEffect("P_SKILL", "B_CHAR", "bot", prevB, bScore, zeroDefApplied);
     } else if (pSkillKey === "muaQuat") {
@@ -1878,7 +1878,11 @@ async function resolveBattleClash() {
         bScore = bDef;
         const delta = bScore - prevB;
         botSkillBadge = delta >= 0 ? `+${delta} DEF` : `${delta} DEF`;
-        logAdvancedBattle(`👑 Bot kích hoạt [Chu Cấp 5 Củ] -> Điểm Bot: ${bScore}`);
+        logAdvancedBattle(
+          bCharKey === "jack"
+            ? `👑 Bot dùng [Chu Cấp 5 Triệu] x5 DEF cho Jack -> ${bScore}`
+            : `👑 Bot dùng [Chu Cấp 5 Triệu] x1.5 DEF cho ${bChar.name} -> ${bScore}`
+        );
       } else {
         botSkillBadge = "DEF Only";
       }
@@ -1895,13 +1899,13 @@ async function resolveBattleClash() {
 
     if (bSkillKey === "chuCap5Cu") {
       const prevP = pScore;
-      const zeroDefApplied = pChoice === "DEF" && pScore > 0;
+      const zeroDefApplied = pChoice === "DEF";
       if (zeroDefApplied) {
         pDef = 0;
         pScore = 0;
-        logAdvancedBattle(`💵 Bot dùng [Chu Cấp 5 Triệu] biến điểm DEF của bạn thành 0!`);
+        logAdvancedBattle(`💵 Bot dùng [Chu Cấp 5 Triệu] đưa điểm DEF của bạn về 0!`);
       } else {
-        logAdvancedBattle(`💵 Bot dùng [Chu Cấp 5 Triệu] làm lá Nhân vật của bạn nhấp nháy!`);
+        logAdvancedBattle(`💵 Bot dùng [Chu Cấp 5 Triệu] làm lá Nhân vật của bạn nhấp nháy & tan thành khói!`);
       }
       await triggerFiveMillionMoneyEffect("B_SKILL", "P_CHAR", "player", prevP, pScore, zeroDefApplied);
     } else if (bSkillKey === "muaQuat") {
