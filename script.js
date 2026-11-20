@@ -1817,12 +1817,13 @@ async function resolveBattleClash() {
       }
     } else if (pSkillKey === "chuCap5Cu") {
       if (pChoice === "DEF") {
-        pDef = pCharKey === "jack" ? pDef * 5 : Math.round(pDef * 1.5);
+        const isJack = pCharKey === "jack";
+        const mult = isJack ? 5 : 1.5;
+        pDef = isJack ? pDef * 5 : Math.round(pDef * 1.5);
         pScore = pDef;
-        const delta = pScore - prevP;
-        skillBadge = delta >= 0 ? `+${delta} DEF` : `${delta} DEF`;
+        skillBadge = isJack ? "x5 DEF" : "x1.5 DEF";
         logAdvancedBattle(
-          pCharKey === "jack"
+          isJack
             ? `👑 [Chu Cấp 5 Triệu] x5 điểm DEF cho Jack -> ${pScore}`
             : `👑 [Chu Cấp 5 Triệu] x1.5 điểm DEF cho ${pChar.name} -> ${pScore}`
         );
@@ -1874,12 +1875,12 @@ async function resolveBattleClash() {
       }
     } else if (bSkillKey === "chuCap5Cu") {
       if (bChoice === "DEF") {
-        bDef = bCharKey === "jack" ? bDef * 5 : Math.round(bDef * 1.5);
+        const isJack = bCharKey === "jack";
+        bDef = isJack ? bDef * 5 : Math.round(bDef * 1.5);
         bScore = bDef;
-        const delta = bScore - prevB;
-        botSkillBadge = delta >= 0 ? `+${delta} DEF` : `${delta} DEF`;
+        botSkillBadge = isJack ? "x5 DEF" : "x1.5 DEF";
         logAdvancedBattle(
-          bCharKey === "jack"
+          isJack
             ? `👑 Bot dùng [Chu Cấp 5 Triệu] x5 DEF cho Jack -> ${bScore}`
             : `👑 Bot dùng [Chu Cấp 5 Triệu] x1.5 DEF cho ${bChar.name} -> ${bScore}`
         );
