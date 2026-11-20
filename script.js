@@ -1313,7 +1313,6 @@ async function triggerFiveMillionMoneyEffect(sourceSkillSlotKey, opponentCharSlo
 
   await sleep(660);
 
-  // Xấp tiền biến thành làn khói tan ra
   moneyEl.remove();
   const smokeEl = document.createElement("div");
   smokeEl.className = "smoke-cloud-fx";
@@ -1323,7 +1322,6 @@ async function triggerFiveMillionMoneyEffect(sourceSkillSlotKey, opponentCharSlo
   document.body.appendChild(smokeEl);
   setTimeout(() => smokeEl.remove(), 950);
 
-  // Đồng thời lá nhân vật đối phương bị nhấp nháy
   targetEl.classList.add("card-blink-hit");
 
   if (zeroDefApplied) {
@@ -1379,8 +1377,8 @@ async function triggerFanBlowAwayEffect(sourceSkillSlotKey, opponentCharSlotKey)
   await sleep(220);
 }
 
-/* 3. HIỆU ỨNG BỎ CON: Trừ 30 ATK/DEF nếu đối phương là Jack, trừ 20 ATK/DEF nếu đối phương là nhân vật bình thường */
-async function triggerAbandonBabyEffect(sourceSitSlotKey, opponentCharSlotKey, oppSide, oppStatChoice, prevScore, nextScore, penaltyAmount) {
+/* 3. HIỆU ỨNG BỎ CON: Trừ 30 điểm ATK/DEF nếu đối phương là Jack, trừ 20 điểm ATK/DEF nếu đối phương là nhân vật khác */
+async function triggerAbandonBabyEffect(sourceSitSlotKey, opponentCharSlotKey, oppSide, oppStatChoice, prevScore, nextScore, actualDelta) {
   const sourceEl = getSlotElementByKey(sourceSitSlotKey);
   const targetEl = getSlotElementByKey(opponentCharSlotKey);
   if (!sourceEl || !targetEl) return;
@@ -1418,11 +1416,11 @@ async function triggerAbandonBabyEffect(sourceSitSlotKey, opponentCharSlotKey, o
   const formulaEl = $(oppSide === "player" ? "playerCalcFormula" : "botCalcFormula");
   const pillEl = $(oppSide === "player" ? "playerCalcPill" : "botCalcPill");
 
-  const labelText = `-${penaltyAmount} ${oppStatChoice}`;
+  const labelText = `${actualDelta} ${oppStatChoice}`;
   spawnScreenFloatingNumber(targetEl, labelText, "neg", -16);
   if (pillEl) pillEl.classList.add("bump");
   if (formulaEl) {
-    formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} (-${penaltyAmount})` : `(-${penaltyAmount})`;
+    formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} (${actualDelta})` : `(${actualDelta})`;
   }
   animateScoreNumber(totalEl, prevScore, nextScore, 420);
 
@@ -1770,8 +1768,13 @@ async function resolveBattleClash() {
   const pChar = cards[pCharKey];
   const bChar = cards[bCharKey];
 
-  let pScore = pChoice === "ATK" ? (pChar.atk ?? 50) : (pChar.def ?? 50);
-  let bScore = bChoice === "ATK" ? (bChar.atk ?? 50) : (bChar.def ?? 50);
+  let pAtk = pChar.atk ?? 50;
+  let pDef = pChar.def ?? 50;
+  let bAtk = bChar.atk ?? 50;
+  let bDef = bChar.def ?? 50;
+
+  let pScore = pChoice === "ATK" ? pAtk : pDef;
+  let bScore = bChoice === "ATK" ? bAtk : bDef;
 
   // 1. Lá Nhân vật của Bạn phóng to & hiện điểm bay ra màn hình
   await zoomCardAndFloatScore({
@@ -1800,9 +1803,10 @@ async function resolveBattleClash() {
 
     if (pSkillKey === "muaQuat") {
       if (pChoice === "ATK") {
-        pScore = pCharKey === "kha" ? pScore * 2 : pScore + 20;
+        pAtk = pCharKey === "kha" ? pAtk * 2 : pAtk + 20;
+        pScore = pAtk;
         const delta = pScore - prevP;
-        skillBadge = delta >= 0 ? `+${delta}` : `${delta}`;
+        skillBadge = delta >= 0 ? `+${delta} ATK` : `${delta} ATK`;
         logAdvancedBattle(
           pCharKey === "kha"
             ? `✨ [Múa Quạt] x2 điểm ATK cho Khá Bảnh -> ${pScore}`
@@ -1813,9 +1817,10 @@ async function resolveBattleClash() {
       }
     } else if (pSkillKey === "chuCap5Cu") {
       if (pChoice === "DEF") {
-        pScore = pCharKey === "jack" ? pScore * 5 : Math.round(pScore * 1.5);
+        pDef = pCharKey === "jack" ? pDef * 5 : Math.round(pDef * 1.5);
+        pScore = pDef;
         const delta = pScore - prevP;
-        skillBadge = delta >= 0 ? `+${delta}` : `${delta}`;
+        skillBadge = delta >= 0 ? `+${delta} DEF` : `${delta} DEF`;
         logAdvancedBattle(
           pCharKey === "jack"
             ? `👑 [Chu Cấp 5 Củ] x5 điểm DEF cho Jack -> ${pScore}`
@@ -1839,6 +1844,7 @@ async function resolveBattleClash() {
       const prevB = bScore;
       const zeroDefApplied = bChoice === "DEF" && bScore > 0;
       if (zeroDefApplied) {
+        bDef = 0;
         bScore = 0;
         logAdvancedBattle(`💵 [Chu Cấp 5 Triệu] Xấp tiền bay tới đối phương tan thành khói & biến DEF của Bot thành 0!`);
       } else {
@@ -1858,18 +1864,20 @@ async function resolveBattleClash() {
 
     if (bSkillKey === "muaQuat") {
       if (bChoice === "ATK") {
-        bScore = bCharKey === "kha" ? bScore * 2 : bScore + 20;
+        bAtk = bCharKey === "kha" ? bAtk * 2 : bAtk + 20;
+        bScore = bAtk;
         const delta = bScore - prevB;
-        botSkillBadge = delta >= 0 ? `+${delta}` : `${delta}`;
+        botSkillBadge = delta >= 0 ? `+${delta} ATK` : `${delta} ATK`;
         logAdvancedBattle(`✨ Bot kích hoạt [Múa Quạt] -> Điểm Bot: ${bScore}`);
       } else {
         botSkillBadge = "ATK Only";
       }
     } else if (bSkillKey === "chuCap5Cu") {
       if (bChoice === "DEF") {
-        bScore = bCharKey === "jack" ? bScore * 5 : Math.round(bScore * 1.5);
+        bDef = bCharKey === "jack" ? bDef * 5 : Math.round(bDef * 1.5);
+        bScore = bDef;
         const delta = bScore - prevB;
-        botSkillBadge = delta >= 0 ? `+${delta}` : `${delta}`;
+        botSkillBadge = delta >= 0 ? `+${delta} DEF` : `${delta} DEF`;
         logAdvancedBattle(`👑 Bot kích hoạt [Chu Cấp 5 Củ] -> Điểm Bot: ${bScore}`);
       } else {
         botSkillBadge = "DEF Only";
@@ -1889,6 +1897,7 @@ async function resolveBattleClash() {
       const prevP = pScore;
       const zeroDefApplied = pChoice === "DEF" && pScore > 0;
       if (zeroDefApplied) {
+        pDef = 0;
         pScore = 0;
         logAdvancedBattle(`💵 Bot dùng [Chu Cấp 5 Triệu] biến điểm DEF của bạn thành 0!`);
       } else {
@@ -1920,14 +1929,21 @@ async function resolveBattleClash() {
       await triggerJailCageOnOpponentChar("B_CHAR", "bot", prevB, bScore, delta);
     } else if (pSitKey === "boCon") {
       const prevB = bScore;
-      const penalty = bCharKey === "jack" ? 30 : 20;
-      bScore = Math.max(0, bScore - penalty);
+      const basePenalty = bCharKey === "jack" ? 30 : 20;
+      if (bChoice === "ATK") {
+        bAtk = Math.max(0, bAtk - basePenalty);
+        bScore = bAtk;
+      } else {
+        bDef = Math.max(0, bDef - basePenalty);
+        bScore = bDef;
+      }
+      const actualDelta = bScore - prevB;
       logAdvancedBattle(
         bCharKey === "jack"
-          ? `👶❌ [Bỏ Con] Đối phương là Jack nên trừ 30 điểm ${bChoice} -> ${bScore}`
-          : `👶❌ [Bỏ Con] Đối phương là nhân vật thường nên trừ 20 điểm ${bChoice} -> ${bScore}`
+          ? `👶❌ [Bỏ Con] Đối phương là Jack -> trừ 30 điểm ${bChoice} (${actualDelta}) -> ${bScore}`
+          : `👶❌ [Bỏ Con] Đối phương không phải Jack (${bChar.name}) -> trừ 20 điểm ${bChoice} (${actualDelta}) -> ${bScore}`
       );
-      await triggerAbandonBabyEffect("P_SIT", "B_CHAR", "bot", bChoice, prevB, bScore, penalty);
+      await triggerAbandonBabyEffect("P_SIT", "B_CHAR", "bot", bChoice, prevB, bScore, actualDelta);
     }
   }
 
@@ -1950,14 +1966,21 @@ async function resolveBattleClash() {
       await triggerJailCageOnOpponentChar("P_CHAR", "player", prevP, pScore, delta);
     } else if (bSitKey === "boCon") {
       const prevP = pScore;
-      const penalty = pCharKey === "jack" ? 30 : 20;
-      pScore = Math.max(0, pScore - penalty);
+      const basePenalty = pCharKey === "jack" ? 30 : 20;
+      if (pChoice === "ATK") {
+        pAtk = Math.max(0, pAtk - basePenalty);
+        pScore = pAtk;
+      } else {
+        pDef = Math.max(0, pDef - basePenalty);
+        pScore = pDef;
+      }
+      const actualDelta = pScore - prevP;
       logAdvancedBattle(
         pCharKey === "jack"
-          ? `👶❌ Bot dùng [Bỏ Con] lên Jack của bạn, trừ 30 điểm ${pChoice} -> ${pScore}`
-          : `👶❌ Bot dùng [Bỏ Con] lên nhân vật của bạn, trừ 20 điểm ${pChoice} -> ${pScore}`
+          ? `👶❌ Bot dùng [Bỏ Con] lên Jack -> trừ 30 điểm ${pChoice} (${actualDelta}) -> ${pScore}`
+          : `👶❌ Bot dùng [Bỏ Con] lên ${pChar.name} (không phải Jack) -> trừ 20 điểm ${pChoice} (${actualDelta}) -> ${pScore}`
       );
-      await triggerAbandonBabyEffect("B_SIT", "P_CHAR", "player", pChoice, prevP, pScore, penalty);
+      await triggerAbandonBabyEffect("B_SIT", "P_CHAR", "player", pChoice, prevP, pScore, actualDelta);
     }
   }
 
