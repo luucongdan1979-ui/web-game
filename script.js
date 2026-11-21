@@ -2665,3 +2665,182 @@ window.redeemGiftCode = function () {
   showToast("🎁 Nhập code thành công! Đã nhận 2 Premium Pack & 2 Basic Pack vào Balo!");
   closeProfileModal();
 };
+
+/* ========================================================================== */
+/* HIỆU ỨNG 3D GỌN NHẸ KHI CHỌN LÁ JACK (KHÔNG ĐỔ BÓNG)                    */
+/* ========================================================================== */
+
+function ensureJack3DStyles() {
+  if ($("jack3DShowcaseStyle")) return;
+  const style = document.createElement("style");
+  style.id = "jack3DShowcaseStyle";
+  style.textContent = `
+    @keyframes jack3DFloatIn {
+      0% {
+        opacity: 0;
+        transform: perspective(800px) translateY(18px) scale(0.88) rotateY(-12deg);
+      }
+      100% {
+        opacity: 1;
+        transform: perspective(800px) translateY(0) scale(1) rotateY(0deg);
+      }
+    }
+
+    .jack-3d-stage {
+      position: fixed;
+      right: 18px;
+      bottom: 86px;
+      z-index: 9995;
+      width: 170px;
+      perspective: 800px;
+      animation: jack3DFloatIn 0.35s ease-out forwards;
+    }
+
+    .jack-3d-card {
+      position: relative;
+      border-radius: 12px;
+      padding: 8px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1.5px solid rgba(250, 204, 21, 0.75);
+      transform-style: preserve-3d;
+      transition: transform 0.12s ease-out;
+    }
+
+    .jack-3d-img-wrap {
+      border-radius: 8px;
+      overflow: hidden;
+      transform: translateZ(20px);
+    }
+
+    .jack-3d-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .jack-3d-meta {
+      margin-top: 8px;
+      transform: translateZ(28px);
+      text-align: center;
+    }
+
+    .jack-3d-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 999px;
+      color: #fef08a;
+      background: rgba(168, 85, 247, 0.3);
+      border: 1px solid rgba(250, 204, 21, 0.5);
+      margin-bottom: 4px;
+    }
+
+    .jack-3d-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .jack-3d-stats {
+      margin-top: 4px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #8ef0c1;
+    }
+
+    .jack-3d-close {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      z-index: 5;
+      width: 22px;
+      height: 22px;
+      border: none;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      color: #fff;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      .jack-3d-stage {
+        width: 132px;
+        right: 10px;
+        bottom: 78px;
+      }
+      .jack-3d-img {
+        height: 140px;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function removeJack3DStage() {
+  const stage = $("jack3DShowcaseStage");
+  if (stage) stage.remove();
+}
+
+function showJack3DShowcase(sourceLabel = "ĐÃ CHỌN") {
+  const jackCard = cards.jack;
+  if (!jackCard) return;
+
+  ensureJack3DStyles();
+  removeJack3DStage();
+
+  const stage = document.createElement("div");
+  stage.id = "jack3DShowcaseStage";
+  stage.className = "jack-3d-stage";
+
+  stage.innerHTML = `
+    <div class="jack-3d-card" id="jack3DCardBox">
+      <button type="button" class="jack-3d-close" aria-label="Đóng" onclick="removeJack3DStage()">✕</button>
+      <div class="jack-3d-img-wrap">
+        <img src="${jackCard.file}" alt="${jackCard.name}" class="jack-3d-img" onerror="this.style.display='none'">
+      </div>
+      <div class="jack-3d-meta">
+        <span class="jack-3d-badge">3D · ${sourceLabel}</span>
+        <div class="jack-3d-title">${jackCard.name}</div>
+        <div class="jack-3d-stats">
+          <span>ATK ${jackCard.atk}</span>
+          <span>DEF ${jackCard.def}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(stage);
+
+  const cardBox = $("jack3DCardBox");
+  if (cardBox) {
+    const applyTilt = (clientX, clientY) => {
+      const rect = cardBox.getBoundingClientRect();
+      const nx = (clientX - rect.left) / rect.width - 0.5;
+      const ny = (clientY - rect.top) / rect.height - 0.5;
+      const rotY = nx * 26;
+      const rotX = -ny * 22;
+      cardBox.style.transform = `rotateX(${rotX.toFixed(1)}deg) rotateY(${rotY.toFixed(1)}deg)`;
+    };
+
+    cardBox.addEventListener("mousemove", e => applyTilt(e.clientX, e.clientY));
+    cardBox.addEventListener("touchmove", e => {
+      if (e.touches && e.touches[0]) {
+        applyTilt(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+    cardBox.addEventListener("mouseleave", () => {
+      cardBox.style.transform = "rotateX(0deg) rotateY(0deg)";
+    });
+    cardBox.addEventListener("touchend", () => {
+      cardBox.style.transform = "rotateX(0deg) rotateY(0deg)";
+    });
+  }
+}
+
+window.removeJack3DStage = removeJack3DStage;
