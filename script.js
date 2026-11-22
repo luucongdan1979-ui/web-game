@@ -53,6 +53,14 @@ const cards = {
     atk: 100,
     def: 50
   },
+  ronaldo: {
+    name: "Ronaldo",
+    file: "ronaldo.png",
+    rarity: "MYTHICAL",
+    category: "CHARACTER",
+    atk: 130,
+    def: 67
+  },
   vaoTu: {
     name: "Vào Tù",
     file: "Vào Tù Th.png",
@@ -93,6 +101,12 @@ const cards = {
     name: "Đổi Trắng Thay Đen",
     file: "trade.png",
     rarity: "LEGENDARY",
+    category: "SKILL"
+  },
+  longBaoSo7: {
+    name: "Long Bào Số 7",
+    file: "long bù.png",
+    rarity: "MYTHICAL",
     category: "SKILL"
   }
 };
@@ -1207,7 +1221,7 @@ window.importDataBackup = async function (event) {
 };
 
 /* ========================================================================== */
-/* HỆ THỐNG CHIẾN ĐẤU: HIỆU ỨNG TỪNG LÁ, ĐỔI TRẮNG THAY ĐEN, CHU CẤP 5M,  */
+/* HỆ THỐNG CHIẾN ĐẤU: LONG BÀO SỐ 7, ĐỔI TRẮNG THAY ĐEN, CHU CẤP 5M,      */
 /* BỎ CON, MÚA QUẠT, SÀM SỠ & HỒI CHIỀU TRỜI MƯA (MƯA RƠI 3 VÒNG)           */
 /* ========================================================================== */
 
@@ -1330,7 +1344,7 @@ function syncArenaRainWeatherOverlay() {
 
 function cleanupBattleFxOverlays(forceRemoveRain = false) {
   document.querySelectorAll(
-    ".screen-floating-number, .zero-def-fx-badge, .jail-cage-overlay, .money-stack-fx, .smoke-cloud-fx, .baby-abandon-fx, .fan-hand-fx, .sam-so-fx-layer, .swap-cards-fx-layer"
+    ".screen-floating-number, .zero-def-fx-badge, .jail-cage-overlay, .money-stack-fx, .smoke-cloud-fx, .baby-abandon-fx, .fan-hand-fx, .sam-so-fx-layer, .swap-cards-fx-layer, .long-bao-fx-layer"
   ).forEach(el => el.remove());
   document.querySelectorAll(".card-zoom-active, .card-blink-hit, .card-blown-away").forEach(el => {
     el.classList.remove("card-zoom-active", "card-blink-hit", "card-blown-away");
@@ -1458,6 +1472,101 @@ async function zoomCardAndFloatScore({ slotKey, targetSide, prevScore, nextScore
     pillEl.classList.remove("bump");
   }
   await sleep(160);
+}
+
+/* Hiệu ứng tách nhân vật ra khỏi lá bài và khoác long bào (Long Bào Số 7) */
+async function triggerLongBaoRobesEffect(charSlotKey, charId, targetSide, prevScore, nextScore, badgeText) {
+  const charEl = getSlotElementByKey(charSlotKey);
+  const charCard = cards[charId];
+  if (!charEl || !charCard) return;
+
+  const rect = charEl.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const baseY = rect.top + rect.height / 2;
+  const floatY = rect.top - 16;
+
+  const fxLayer = document.createElement("div");
+  fxLayer.className = "long-bao-fx-layer";
+  fxLayer.style.cssText = `
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+  `;
+
+  const charCutout = document.createElement("div");
+  charCutout.style.cssText = `
+    position: fixed;
+    left: ${centerX}px;
+    top: ${baseY}px;
+    width: ${Math.max(64, rect.width * 0.9)}px;
+    height: ${Math.max(84, rect.height * 0.9)}px;
+    transform: translate(-50%, -50%);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #facc15;
+    box-shadow: 0 0 22px rgba(250, 204, 21, 0.85);
+    background: #0f172a;
+    transition: top 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s ease;
+  `;
+  charCutout.innerHTML = `<img src="${charCard.file}" alt="${charCard.name}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+
+  const robeOverlay = document.createElement("div");
+  robeOverlay.style.cssText = `
+    position: fixed;
+    left: ${centerX}px;
+    top: ${floatY - 56}px;
+    transform: translate(-50%, -50%) scale(0.7);
+    opacity: 0;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(185, 28, 28, 0.95), rgba(202, 138, 4, 0.95));
+    border: 1.5px solid #fef08a;
+    color: #fffbeb;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+    box-shadow: 0 0 18px rgba(250, 204, 21, 0.9);
+    transition: top 0.45s ease, transform 0.45s ease, opacity 0.35s ease;
+  `;
+  robeOverlay.innerHTML = `👘 LONG BÀO SỐ 7`;
+
+  fxLayer.appendChild(charCutout);
+  fxLayer.appendChild(robeOverlay);
+  document.body.appendChild(fxLayer);
+
+  await sleep(90);
+
+  charCutout.style.top = `${floatY}px`;
+  charCutout.style.transform = "translate(-50%, -50%) scale(1.12)";
+
+  await sleep(420);
+
+  robeOverlay.style.opacity = "1";
+  robeOverlay.style.top = `${floatY + 12}px`;
+  robeOverlay.style.transform = "translate(-50%, -50%) scale(1.08)";
+
+  const totalEl = $(targetSide === "player" ? "playerCalcTotal" : "botCalcTotal");
+  const formulaEl = $(targetSide === "player" ? "playerCalcFormula" : "botCalcFormula");
+  const pillEl = $(targetSide === "player" ? "playerCalcPill" : "botCalcPill");
+
+  spawnScreenFloatingNumber(charEl, badgeText, "gold", -22);
+  if (pillEl) pillEl.classList.add("bump");
+  if (formulaEl && badgeText) {
+    formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} ${badgeText}` : badgeText;
+  }
+  animateScoreNumber(totalEl, prevScore, nextScore, 420);
+
+  await sleep(750);
+
+  robeOverlay.style.opacity = "0";
+  charCutout.style.top = `${baseY}px`;
+  charCutout.style.transform = "translate(-50%, -50%) scale(1)";
+
+  await sleep(420);
+  fxLayer.remove();
+  if (pillEl) pillEl.classList.remove("bump");
+  await sleep(140);
 }
 
 /* Hiệu ứng tráo đổi các lá trên bàn cờ khi dùng Đổi Trắng Thay Đen */
@@ -2264,8 +2373,33 @@ async function resolveBattleClash() {
   if (pSkillKey) {
     const prevP = pScore;
     let skillBadge = "+0";
+    let isLongBaoBuffApplied = false;
 
-    if (pSkillKey === "doiTrangThayDen") {
+    if (pSkillKey === "longBaoSo7") {
+      if (pCharKey === "ronaldo") {
+        if (pChoice === "DEF") {
+          pDef = pDef * 2;
+          pScore = pDef;
+          skillBadge = "x2 DEF";
+          isLongBaoBuffApplied = true;
+          logAdvancedBattle(`👘 [Long Bào Số 7] Khoác long bào cho Ronaldo -> x2 điểm DEF (${pScore})!`);
+        } else {
+          skillBadge = "DEF Only";
+          logAdvancedBattle(`👘 [Long Bào Số 7] Ronaldo chỉ x2 khi chọn DEF (hiện chọn ${pChoice}).`);
+        }
+      } else {
+        if (pChoice === "ATK") {
+          pAtk += 30;
+          pScore = pAtk;
+        } else {
+          pDef += 30;
+          pScore = pDef;
+        }
+        skillBadge = `+30 ${pChoice}`;
+        isLongBaoBuffApplied = true;
+        logAdvancedBattle(`👘 [Long Bào Số 7] Khoác long bào cho ${pChar.name} (không phải Ronaldo) -> +30 ${pChoice} (${pScore})!`);
+      }
+    } else if (pSkillKey === "doiTrangThayDen") {
       skillBadge = `🔄 ÉP ${pChoice}`;
       logAdvancedBattle(`🔄 [Đổi Trắng Thay Đen] Tráo bài trên sân và ép đối phương dùng đúng chỉ số ${pChoice}!`);
     } else if (pSkillKey === "muaQuat") {
@@ -2300,14 +2434,26 @@ async function resolveBattleClash() {
       skillBadge = bCharKey === "truongGiang" ? "-50 OPP" : "-25 OPP";
     }
 
-    await zoomCardAndFloatScore({
-      slotKey: "P_SKILL",
-      targetSide: "player",
-      prevScore: prevP,
-      nextScore: pScore,
-      badgeText: skillBadge,
-      tone: "pos"
-    });
+    if (pSkillKey === "longBaoSo7") {
+      await triggerLongBaoRobesEffect("P_SKILL", "P_SKILL", "player", prevP, prevP, "👘 LONG BÀO");
+      await triggerLongBaoRobesEffect(
+        "P_CHAR",
+        pCharKey,
+        "player",
+        prevP,
+        pScore,
+        isLongBaoBuffApplied ? skillBadge : "+0"
+      );
+    } else {
+      await zoomCardAndFloatScore({
+        slotKey: "P_SKILL",
+        targetSide: "player",
+        prevScore: prevP,
+        nextScore: pScore,
+        badgeText: skillBadge,
+        tone: "pos"
+      });
+    }
 
     if (pSkillKey === "doiTrangThayDen") {
       const swapPairs = [
@@ -2329,7 +2475,6 @@ async function resolveBattleClash() {
         swapPairs.push({ slotA: "P_SKILL", slotB: "B_SKILL", cardIdA: pSkillKey, cardIdB: tempBotSkill });
       }
 
-      /* Ép đối phương dùng đúng chỉ số (ATK hoặc DEF) mà người kích hoạt đã chọn */
       bChoice = pChoice;
       battleDeckState.botStatChoice = bChoice;
 
@@ -2394,8 +2539,32 @@ async function resolveBattleClash() {
   if (bSkillKey) {
     const prevB = bScore;
     let botSkillBadge = "+0";
+    let isBotLongBaoBuffApplied = false;
 
-    if (bSkillKey === "doiTrangThayDen") {
+    if (bSkillKey === "longBaoSo7") {
+      if (bCharKey === "ronaldo") {
+        if (bChoice === "DEF") {
+          bDef = bDef * 2;
+          bScore = bDef;
+          botSkillBadge = "x2 DEF";
+          isBotLongBaoBuffApplied = true;
+          logAdvancedBattle(`👘 Bot khoác [Long Bào Số 7] cho Ronaldo -> x2 DEF (${bScore})!`);
+        } else {
+          botSkillBadge = "DEF Only";
+        }
+      } else {
+        if (bChoice === "ATK") {
+          bAtk += 30;
+          bScore = bAtk;
+        } else {
+          bDef += 30;
+          bScore = bDef;
+        }
+        botSkillBadge = `+30 ${bChoice}`;
+        isBotLongBaoBuffApplied = true;
+        logAdvancedBattle(`👘 Bot khoác [Long Bào Số 7] cho ${bChar.name} -> +30 ${bChoice} (${bScore})!`);
+      }
+    } else if (bSkillKey === "doiTrangThayDen") {
       botSkillBadge = `🔄 ÉP ${bChoice}`;
       logAdvancedBattle(`🔄 Bot kích hoạt [Đổi Trắng Thay Đen] — tráo bài và ép bạn dùng đúng chỉ số ${bChoice}!`);
     } else if (bSkillKey === "muaQuat") {
@@ -2426,14 +2595,25 @@ async function resolveBattleClash() {
       botSkillBadge = pCharKey === "truongGiang" ? "-50 OPP" : "-25 OPP";
     }
 
-    await zoomCardAndFloatScore({
-      slotKey: "B_SKILL",
-      targetSide: "bot",
-      prevScore: prevB,
-      nextScore: bScore,
-      badgeText: botSkillBadge,
-      tone: "pos"
-    });
+    if (bSkillKey === "longBaoSo7") {
+      await triggerLongBaoRobesEffect(
+        "B_CHAR",
+        bCharKey,
+        "bot",
+        prevB,
+        bScore,
+        isBotLongBaoBuffApplied ? botSkillBadge : "+0"
+      );
+    } else {
+      await zoomCardAndFloatScore({
+        slotKey: "B_SKILL",
+        targetSide: "bot",
+        prevScore: prevB,
+        nextScore: bScore,
+        badgeText: botSkillBadge,
+        tone: "pos"
+      });
+    }
 
     if (bSkillKey === "doiTrangThayDen") {
       const swapPairs = [
@@ -2455,7 +2635,6 @@ async function resolveBattleClash() {
         swapPairs.push({ slotA: "P_SKILL", slotB: "B_SKILL", cardIdA: tempPlayerSkill, cardIdB: bSkillKey });
       }
 
-      /* Ép người chơi dùng đúng chỉ số (ATK hoặc DEF) mà Bot đã chọn */
       pChoice = bChoice;
       battleDeckState.playerStatChoice = pChoice;
 
