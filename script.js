@@ -88,6 +88,12 @@ const cards = {
     file: "tgsk.png",
     rarity: "MYTHICAL",
     category: "SKILL"
+  },
+  doiTrangThayDen: {
+    name: "Đổi Trắng Thay Đen",
+    file: "trade.png",
+    rarity: "LEGENDARY",
+    category: "SKILL"
   }
 };
 
@@ -1201,8 +1207,8 @@ window.importDataBackup = async function (event) {
 };
 
 /* ========================================================================== */
-/* HỆ THỐNG CHIẾN ĐẤU: HIỆU ỨNG TỪNG LÁ, CHU CẤP 5 TRIỆU, BỎ CON, MÚA QUẠT,  */
-/* SÀM SỠ (SVG + BÀN TAY XOA) & HỒI CHIỀU TRỜI MƯA (MƯA RƠI 3 VÒNG)         */
+/* HỆ THỐNG CHIẾN ĐẤU: HIỆU ỨNG TỪNG LÁ, ĐỔI TRẮNG THAY ĐEN, CHU CẤP 5M,  */
+/* BỎ CON, MÚA QUẠT, SÀM SỠ & HỒI CHIỀU TRỜI MƯA (MƯA RƠI 3 VÒNG)           */
 /* ========================================================================== */
 
 let rainOverlayInterval = null;
@@ -1324,7 +1330,7 @@ function syncArenaRainWeatherOverlay() {
 
 function cleanupBattleFxOverlays(forceRemoveRain = false) {
   document.querySelectorAll(
-    ".screen-floating-number, .zero-def-fx-badge, .jail-cage-overlay, .money-stack-fx, .smoke-cloud-fx, .baby-abandon-fx, .fan-hand-fx, .sam-so-fx-layer"
+    ".screen-floating-number, .zero-def-fx-badge, .jail-cage-overlay, .money-stack-fx, .smoke-cloud-fx, .baby-abandon-fx, .fan-hand-fx, .sam-so-fx-layer, .swap-cards-fx-layer"
   ).forEach(el => el.remove());
   document.querySelectorAll(".card-zoom-active, .card-blink-hit, .card-blown-away").forEach(el => {
     el.classList.remove("card-zoom-active", "card-blink-hit", "card-blown-away");
@@ -1452,6 +1458,113 @@ async function zoomCardAndFloatScore({ slotKey, targetSide, prevScore, nextScore
     pillEl.classList.remove("bump");
   }
   await sleep(160);
+}
+
+/* Hiệu ứng tráo đổi các lá trên bàn cờ khi dùng Đổi Trắng Thay Đen */
+async function triggerSwapBoardCardsEffect(pairs) {
+  const fxLayer = document.createElement("div");
+  fxLayer.className = "swap-cards-fx-layer";
+  fxLayer.style.cssText = `
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+  `;
+  document.body.appendChild(fxLayer);
+
+  const flyers = [];
+
+  for (const pair of pairs) {
+    const elA = getSlotElementByKey(pair.slotA);
+    const elB = getSlotElementByKey(pair.slotB);
+    if (!elA || !elB) continue;
+
+    const rA = elA.getBoundingClientRect();
+    const rB = elB.getBoundingClientRect();
+
+    if (pair.cardIdA && cards[pair.cardIdA]) {
+      const cA = cards[pair.cardIdA];
+      const flyA = document.createElement("div");
+      flyA.style.cssText = `
+        position: fixed;
+        left: ${rA.left}px;
+        top: ${rA.top}px;
+        width: ${rA.width}px;
+        height: ${rA.height}px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid #facc15;
+        background: #0f172a;
+        z-index: 9999;
+        transition: left 0.65s cubic-bezier(0.22, 1, 0.36, 1), top 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s ease;
+      `;
+      flyA.innerHTML = `<img src="${cA.file}" alt="${cA.name}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+      fxLayer.appendChild(flyA);
+      flyers.push({ el: flyA, targetX: rB.left, targetY: rB.top });
+    }
+
+    if (pair.cardIdB && cards[pair.cardIdB]) {
+      const cB = cards[pair.cardIdB];
+      const flyB = document.createElement("div");
+      flyB.style.cssText = `
+        position: fixed;
+        left: ${rB.left}px;
+        top: ${rB.top}px;
+        width: ${rB.width}px;
+        height: ${rB.height}px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid #38bdf8;
+        background: #0f172a;
+        z-index: 9999;
+        transition: left 0.65s cubic-bezier(0.22, 1, 0.36, 1), top 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s ease;
+      `;
+      flyB.innerHTML = `<img src="${cB.file}" alt="${cB.name}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+      fxLayer.appendChild(flyB);
+      flyers.push({ el: flyB, targetX: rA.left, targetY: rA.top });
+    }
+  }
+
+  const centerBadge = document.createElement("div");
+  centerBadge.style.cssText = `
+    position: fixed;
+    left: 50%;
+    top: 46%;
+    transform: translate(-50%, -50%) scale(0.85);
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.94);
+    border: 1.5px solid #facc15;
+    color: #fef08a;
+    font-size: 13px;
+    font-weight: 800;
+    z-index: 10000;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  `;
+  centerBadge.textContent = "🔄 ĐỔI TRẮNG THAY ĐEN";
+  fxLayer.appendChild(centerBadge);
+
+  await sleep(90);
+
+  centerBadge.style.transform = "translate(-50%, -50%) scale(1.08)";
+  flyers.forEach((item, idx) => {
+    const dir = idx % 2 === 0 ? 14 : -14;
+    item.el.style.left = `${item.targetX}px`;
+    item.el.style.top = `${item.targetY}px`;
+    item.el.style.transform = `rotate(${dir}deg) scale(1.06)`;
+  });
+
+  await sleep(680);
+
+  renderBattleSlots();
+
+  flyers.forEach(item => {
+    item.el.style.opacity = "0";
+  });
+  centerBadge.style.opacity = "0";
+
+  await sleep(280);
+  fxLayer.remove();
 }
 
 /* Hiệu ứng Sàm Sỡ: cặp ngực đi tới đối phương và có bàn tay xoa lên mục tiêu */
@@ -2109,18 +2222,18 @@ window.submitStatChoice = function (choice) {
 };
 
 async function resolveBattleClash() {
-  const pCharKey = battleDeckState.selectedCharacter;
-  const pSkillKey = battleDeckState.selectedSkill;
-  const pSitKey = battleDeckState.selectedSituation;
+  let pCharKey = battleDeckState.selectedCharacter;
+  let pSkillKey = battleDeckState.selectedSkill;
+  let pSitKey = battleDeckState.selectedSituation;
   const pChoice = battleDeckState.playerStatChoice;
 
-  const bCharKey = battleDeckState.botSelectedCharacter;
-  const bSkillKey = battleDeckState.botSelectedSkill;
-  const bSitKey = battleDeckState.botSelectedSituation;
+  let bCharKey = battleDeckState.botSelectedCharacter;
+  let bSkillKey = battleDeckState.botSelectedSkill;
+  let bSitKey = battleDeckState.botSelectedSituation;
   const bChoice = battleDeckState.botStatChoice;
 
-  const pChar = cards[pCharKey];
-  const bChar = cards[bCharKey];
+  let pChar = cards[pCharKey];
+  let bChar = cards[bCharKey];
 
   let pAtk = pChar.atk ?? 50;
   let pDef = pChar.def ?? 50;
@@ -2152,7 +2265,10 @@ async function resolveBattleClash() {
     const prevP = pScore;
     let skillBadge = "+0";
 
-    if (pSkillKey === "muaQuat") {
+    if (pSkillKey === "doiTrangThayDen") {
+      skillBadge = "🔄 ĐỔI BÀN";
+      logAdvancedBattle(`🔄 [Đổi Trắng Thay Đen] Tráo đổi các lá trên sân giữa Bạn và Bot!`);
+    } else if (pSkillKey === "muaQuat") {
       if (pChoice === "ATK") {
         pAtk = pCharKey === "kha" ? pAtk * 2 : pAtk + 20;
         pScore = pAtk;
@@ -2193,7 +2309,51 @@ async function resolveBattleClash() {
       tone: "pos"
     });
 
-    if (pSkillKey === "chuCap5Cu") {
+    if (pSkillKey === "doiTrangThayDen") {
+      const swapPairs = [
+        { slotA: "P_CHAR", slotB: "B_CHAR", cardIdA: pCharKey, cardIdB: bCharKey },
+        { slotA: "P_SIT", slotB: "B_SIT", cardIdA: pSitKey, cardIdB: bSitKey }
+      ];
+
+      const tempChar = pCharKey;
+      pCharKey = bCharKey;
+      bCharKey = tempChar;
+
+      const tempSit = pSitKey;
+      pSitKey = bSitKey;
+      bSitKey = tempSit;
+
+      const tempBotSkill = bSkillKey;
+      bSkillKey = null;
+      if (tempBotSkill) {
+        swapPairs.push({ slotA: "P_SKILL", slotB: "B_SKILL", cardIdA: pSkillKey, cardIdB: tempBotSkill });
+      }
+
+      battleDeckState.selectedCharacter = pCharKey;
+      battleDeckState.botSelectedCharacter = bCharKey;
+      battleDeckState.selectedSituation = pSitKey;
+      battleDeckState.botSelectedSituation = bSitKey;
+      battleDeckState.botSelectedSkill = null;
+
+      await triggerSwapBoardCardsEffect(swapPairs);
+
+      pChar = cards[pCharKey];
+      bChar = cards[bCharKey];
+      pAtk = pChar.atk ?? 50;
+      pDef = pChar.def ?? 50;
+      bAtk = bChar.atk ?? 50;
+      bDef = bChar.def ?? 50;
+
+      pScore = pChoice === "ATK" ? pAtk : pDef;
+      bScore = bChoice === "ATK" ? bAtk : bDef;
+
+      if ($("playerCalcTotal")) $("playerCalcTotal").textContent = String(pScore);
+      if ($("botCalcTotal")) $("botCalcTotal").textContent = String(bScore);
+      if ($("playerCalcFormula")) $("playerCalcFormula").textContent = `🔄 ${pChoice}: ${pScore}`;
+      if ($("botCalcFormula")) $("botCalcFormula").textContent = `🔄 ${bChoice}: ${bScore}`;
+
+      logAdvancedBattle(`🔄 Sau tráo đổi: Bạn có [${pChar.name}] (${pChoice}: ${pScore}) vs Bot có [${bChar.name}] (${bChoice}: ${bScore}).`);
+    } else if (pSkillKey === "chuCap5Cu") {
       const prevB = bScore;
       const zeroDefApplied = bChoice === "DEF";
       if (zeroDefApplied) {
@@ -2231,7 +2391,10 @@ async function resolveBattleClash() {
     const prevB = bScore;
     let botSkillBadge = "+0";
 
-    if (bSkillKey === "muaQuat") {
+    if (bSkillKey === "doiTrangThayDen") {
+      botSkillBadge = "🔄 ĐỔI BÀN";
+      logAdvancedBattle(`🔄 Bot kích hoạt [Đổi Trắng Thay Đen] — tráo đổi các lá trên sân!`);
+    } else if (bSkillKey === "muaQuat") {
       if (bChoice === "ATK") {
         bAtk = bCharKey === "kha" ? bAtk * 2 : bAtk + 20;
         bScore = bAtk;
@@ -2268,7 +2431,49 @@ async function resolveBattleClash() {
       tone: "pos"
     });
 
-    if (bSkillKey === "chuCap5Cu") {
+    if (bSkillKey === "doiTrangThayDen") {
+      const swapPairs = [
+        { slotA: "P_CHAR", slotB: "B_CHAR", cardIdA: pCharKey, cardIdB: bCharKey },
+        { slotA: "P_SIT", slotB: "B_SIT", cardIdA: pSitKey, cardIdB: bSitKey }
+      ];
+
+      const tempChar = pCharKey;
+      pCharKey = bCharKey;
+      bCharKey = tempChar;
+
+      const tempSit = pSitKey;
+      pSitKey = bSitKey;
+      bSitKey = tempSit;
+
+      const tempPlayerSkill = pSkillKey;
+      pSkillKey = null;
+      if (tempPlayerSkill) {
+        swapPairs.push({ slotA: "P_SKILL", slotB: "B_SKILL", cardIdA: tempPlayerSkill, cardIdB: bSkillKey });
+      }
+
+      battleDeckState.selectedCharacter = pCharKey;
+      battleDeckState.botSelectedCharacter = bCharKey;
+      battleDeckState.selectedSituation = pSitKey;
+      battleDeckState.botSelectedSituation = bSitKey;
+      battleDeckState.selectedSkill = null;
+
+      await triggerSwapBoardCardsEffect(swapPairs);
+
+      pChar = cards[pCharKey];
+      bChar = cards[bCharKey];
+      pAtk = pChar.atk ?? 50;
+      pDef = pChar.def ?? 50;
+      bAtk = bChar.atk ?? 50;
+      bDef = bChar.def ?? 50;
+
+      pScore = pChoice === "ATK" ? pAtk : pDef;
+      bScore = bChoice === "ATK" ? bAtk : bDef;
+
+      if ($("playerCalcTotal")) $("playerCalcTotal").textContent = String(pScore);
+      if ($("botCalcTotal")) $("botCalcTotal").textContent = String(bScore);
+      if ($("playerCalcFormula")) $("playerCalcFormula").textContent = `🔄 ${pChoice}: ${pScore}`;
+      if ($("botCalcFormula")) $("botCalcFormula").textContent = `🔄 ${bChoice}: ${bScore}`;
+    } else if (bSkillKey === "chuCap5Cu") {
       const prevP = pScore;
       const zeroDefApplied = pChoice === "DEF";
       if (zeroDefApplied) {
