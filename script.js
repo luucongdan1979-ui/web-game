@@ -1498,7 +1498,6 @@ async function triggerLongBaoRobesEffect(skillSlotKey, charSlotKey, charId, targ
     z-index: 9999;
   `;
 
-  /* 1. Tách nhân vật ra khỏi lá bài và bay nổi lên */
   const charCutout = document.createElement("div");
   const cutW = Math.max(68, cRect.width * 0.92);
   const cutH = Math.max(88, cRect.height * 0.92);
@@ -1519,7 +1518,6 @@ async function triggerLongBaoRobesEffect(skillSlotKey, charSlotKey, charId, targ
   `;
   charCutout.innerHTML = `<img src="${charCard.file}" alt="${charCard.name}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
 
-  /* 2. Long bào bay từ ô skill / phía trên tới và mở rộng ra */
   const robeCloak = document.createElement("div");
   robeCloak.style.cssText = `
     position: fixed;
@@ -1548,11 +1546,9 @@ async function triggerLongBaoRobesEffect(skillSlotKey, charSlotKey, charId, targ
 
   await sleep(80);
 
-  /* Nhân vật bay tách lên */
   charCutout.style.top = `${floatY}px`;
   charCutout.style.transform = "translate(-50%, -50%) scale(1.12)";
 
-  /* Long bào bay tới vị trí nhân vật & mở rộng ra */
   robeCloak.style.opacity = "0.95";
   robeCloak.style.left = `${centerX}px`;
   robeCloak.style.top = `${floatY - 6}px`;
@@ -1560,7 +1556,6 @@ async function triggerLongBaoRobesEffect(skillSlotKey, charSlotKey, charId, targ
 
   await sleep(520);
 
-  /* Long bào khép/khoác lên nhân vật */
   robeCloak.style.top = `${floatY + 4}px`;
   robeCloak.style.transform = "translate(-50%, -50%) scaleX(1.08) scaleY(1.04)";
   robeCloak.style.opacity = "0.78";
@@ -1578,7 +1573,6 @@ async function triggerLongBaoRobesEffect(skillSlotKey, charSlotKey, charId, targ
 
   await sleep(760);
 
-  /* Thu gọn & hạ nhân vật trở về sân */
   robeCloak.style.opacity = "0";
   robeCloak.style.transform = "translate(-50%, -50%) scale(0.75)";
   charCutout.style.top = `${baseY}px`;
@@ -2421,8 +2415,10 @@ async function resolveBattleClash() {
         logAdvancedBattle(`👘 [Long Bào Số 7] Mở long bào khoác lên ${pChar.name} -> +30 ${pChoice} (${pScore})!`);
       }
     } else if (pSkillKey === "doiTrangThayDen") {
-      skillBadge = `🔄 ÉP ${pChoice}`;
-      logAdvancedBattle(`🔄 [Đổi Trắng Thay Đen] Tráo bài trên sân và ép đối phương dùng đúng chỉ số ${pChoice}!`);
+      const nextPChoice = bChoice;
+      const nextBChoice = pChoice;
+      skillBadge = `🔄 ${nextPChoice}/${nextBChoice}`;
+      logAdvancedBattle(`🔄 [Đổi Trắng Thay Đen] Tráo bài & tráo chỉ số: Bạn buộc dùng ${nextPChoice}, đối phương buộc dùng ${nextBChoice}!`);
     } else if (pSkillKey === "muaQuat") {
       if (pChoice === "ATK") {
         pAtk = pCharKey === "kha" ? pAtk * 2 : pAtk + 20;
@@ -2490,13 +2486,17 @@ async function resolveBattleClash() {
       pSitKey = bSitKey;
       bSitKey = tempSit;
 
+      const tempChoice = pChoice;
+      pChoice = bChoice;
+      bChoice = tempChoice;
+
       const tempBotSkill = bSkillKey;
       bSkillKey = null;
       if (tempBotSkill) {
         swapPairs.push({ slotA: "P_SKILL", slotB: "B_SKILL", cardIdA: pSkillKey, cardIdB: tempBotSkill });
       }
 
-      bChoice = pChoice;
+      battleDeckState.playerStatChoice = pChoice;
       battleDeckState.botStatChoice = bChoice;
 
       battleDeckState.selectedCharacter = pCharKey;
@@ -2520,9 +2520,9 @@ async function resolveBattleClash() {
       if ($("playerCalcTotal")) $("playerCalcTotal").textContent = String(pScore);
       if ($("botCalcTotal")) $("botCalcTotal").textContent = String(bScore);
       if ($("playerCalcFormula")) $("playerCalcFormula").textContent = `🔄 ${pChoice}: ${pScore}`;
-      if ($("botCalcFormula")) $("botCalcFormula").textContent = `🔄 ÉP ${bChoice}: ${bScore}`;
+      if ($("botCalcFormula")) $("botCalcFormula").textContent = `🔄 ${bChoice}: ${bScore}`;
 
-      logAdvancedBattle(`🔄 Sau tráo đổi: Bạn có [${pChar.name}] (${pChoice}: ${pScore}) vs Bot nhận [${bChar.name}] buộc dùng ${bChoice}: ${bScore}.`);
+      logAdvancedBattle(`🔄 Sau tráo đổi: Bạn [${pChar.name}] buộc dùng ${pChoice} (${pScore}) vs Đối phương [${bChar.name}] buộc dùng ${bChoice} (${bScore}).`);
     } else if (pSkillKey === "chuCap5Cu") {
       const prevB = bScore;
       const zeroDefApplied = bChoice === "DEF";
@@ -2586,8 +2586,10 @@ async function resolveBattleClash() {
         logAdvancedBattle(`👘 Bot mở long bào khoác lên ${bChar.name} -> +30 ${bChoice} (${bScore})!`);
       }
     } else if (bSkillKey === "doiTrangThayDen") {
-      botSkillBadge = `🔄 ÉP ${bChoice}`;
-      logAdvancedBattle(`🔄 Bot kích hoạt [Đổi Trắng Thay Đen] — tráo bài và ép bạn dùng đúng chỉ số ${bChoice}!`);
+      const nextPChoice = bChoice;
+      const nextBChoice = pChoice;
+      botSkillBadge = `🔄 ${nextPChoice}/${nextBChoice}`;
+      logAdvancedBattle(`🔄 Bot kích hoạt [Đổi Trắng Thay Đen] — tráo bài & tráo chỉ số: Bạn buộc dùng ${nextPChoice}, Bot buộc dùng ${nextBChoice}!`);
     } else if (bSkillKey === "muaQuat") {
       if (bChoice === "ATK") {
         bAtk = bCharKey === "kha" ? bAtk * 2 : bAtk + 20;
@@ -2651,14 +2653,18 @@ async function resolveBattleClash() {
       pSitKey = bSitKey;
       bSitKey = tempSit;
 
+      const tempChoice = pChoice;
+      pChoice = bChoice;
+      bChoice = tempChoice;
+
       const tempPlayerSkill = pSkillKey;
       pSkillKey = null;
       if (tempPlayerSkill) {
         swapPairs.push({ slotA: "P_SKILL", slotB: "B_SKILL", cardIdA: tempPlayerSkill, cardIdB: bSkillKey });
       }
 
-      pChoice = bChoice;
       battleDeckState.playerStatChoice = pChoice;
+      battleDeckState.botStatChoice = bChoice;
 
       battleDeckState.selectedCharacter = pCharKey;
       battleDeckState.botSelectedCharacter = bCharKey;
@@ -2680,7 +2686,7 @@ async function resolveBattleClash() {
 
       if ($("playerCalcTotal")) $("playerCalcTotal").textContent = String(pScore);
       if ($("botCalcTotal")) $("botCalcTotal").textContent = String(bScore);
-      if ($("playerCalcFormula")) $("playerCalcFormula").textContent = `🔄 ÉP ${pChoice}: ${pScore}`;
+      if ($("playerCalcFormula")) $("playerCalcFormula").textContent = `🔄 ${pChoice}: ${pScore}`;
       if ($("botCalcFormula")) $("botCalcFormula").textContent = `🔄 ${bChoice}: ${bScore}`;
     } else if (bSkillKey === "chuCap5Cu") {
       const prevP = pScore;
