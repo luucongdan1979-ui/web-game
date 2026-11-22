@@ -146,7 +146,10 @@ let battleDeckState = {
   timerInterval: null,
   timeLeft: 30,
   playerRainTurnsLeft: 0,
-  botRainTurnsLeft: 0
+  botRainTurnsLeft: 0,
+  totalDamageDealt: 0,
+  totalDamageTaken: 0,
+  turnsPlayed: 0
 };
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -1222,10 +1225,76 @@ window.importDataBackup = async function (event) {
 
 /* ========================================================================== */
 /* HỆ THỐNG CHIẾN ĐẤU: LONG BÀO SỐ 7, ĐỔI TRẮNG THAY ĐEN, CHU CẤP 5M,      */
-/* BỎ CON, MÚA QUẠT, SÀM SỠ & HỒI CHIỀU TRỜI MƯA (MƯA RƠI 3 VÒNG)           */
+/* BỎ CON, MÚA QUẠT, SÀM SỠ, HỒI CHIỀU TRỜI MƯA & BẢNG TỔNG KẾT SÁT THƯƠNG */
 /* ========================================================================== */
 
 let rainOverlayInterval = null;
+
+function removeBattleSummaryModal() {
+  const existing = $("battleEndSummaryModal");
+  if (existing) existing.remove();
+}
+
+function showBattleSummaryModal({ isVictory, damageDealt, damageTaken, turnsPlayed, rewardCoins }) {
+  removeBattleSummaryModal();
+
+  const modal = document.createElement("div");
+  modal.id = "battleEndSummaryModal";
+  modal.style.cssText = `
+    position: fixed;
+    inset: 0;
+    z-index: 10020;
+    background: rgba(2, 6, 23, 0.82);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  `;
+
+  const accentColor = isVictory ? "#8ef0c1" : "#ff6b8b";
+  const borderColor = isVictory ? "rgba(142, 240, 193, 0.55)" : "rgba(255, 107, 139, 0.55)";
+  const titleText = isVictory ? "🎉 CHIẾN THẮNG TRẬN ĐẤU!" : "💥 THẤT BẠI TRẬN ĐẤU!";
+
+  modal.innerHTML = `
+    <div style="width: 100%; max-width: 380px; background: #0f172a; border: 2px solid ${borderColor}; border-radius: 18px; padding: 20px; color: #f8fafc; box-shadow: 0 20px 50px rgba(0,0,0,0.65); text-align: center;">
+      <div style="font-size: 11px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">TỔNG KẾT TRẬN ĐẤU</div>
+      <h2 style="margin: 0 0 14px; font-size: 20px; color: ${accentColor};">${titleText}</h2>
+
+      <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(250, 204, 21, 0.45); border-radius: 14px; padding: 14px; margin-bottom: 12px;">
+        <div style="font-size: 12px; color: #fde047; margin-bottom: 4px;">⚔️ SÁT THƯƠNG BẠN ĐÃ GÂY RA</div>
+        <div style="font-size: 32px; font-weight: 900; color: #facc15; line-height: 1.15;">${damageDealt} <span style="font-size: 14px; font-weight: 700;">DMG</span></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+        <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px;">
+          <div style="font-size: 11px; color: var(--muted);">Sát thương nhận</div>
+          <div style="font-size: 16px; font-weight: 800; color: #ff85a1; margin-top: 2px;">${damageTaken}</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px;">
+          <div style="font-size: 11px; color: var(--muted);">Số vòng đấu</div>
+          <div style="font-size: 16px; font-weight: 800; color: #7dd3fc; margin-top: 2px;">${turnsPlayed} vòng</div>
+        </div>
+      </div>
+
+      ${rewardCoins > 0
+        ? `<div style="margin-bottom: 14px; padding: 8px 12px; border-radius: 10px; background: rgba(250, 204, 21, 0.14); color: #fef08a; font-size: 13px; font-weight: 700;">🪙 Phần thưởng: +${rewardCoins} Xu</div>`
+        : ""
+      }
+
+      <button id="closeBattleSummaryBtn" type="button" style="width: 100%; padding: 12px 16px; border: none; border-radius: 12px; background: linear-gradient(135deg, #22c55e, #16a34a); color: #052e16; font-weight: 800; font-size: 14px; cursor: pointer;">
+        XÁC NHẬN & VỀ SẢNH
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  $("closeBattleSummaryBtn").addEventListener("click", () => {
+    removeBattleSummaryModal();
+    quitPveBattle();
+  });
+}
 
 function ensureRainKeyframes() {
   if ($("arenaRainKeyframesStyle")) return;
@@ -2039,6 +2108,7 @@ function startAdvancedPveBattle() {
   }
 
   cleanupBattleFxOverlays(true);
+  removeBattleSummaryModal();
 
   battleDeckState.botHp = 250;
   battleDeckState.maxBotHp = 250;
@@ -2057,6 +2127,9 @@ function startAdvancedPveBattle() {
   battleDeckState.timeLeft = 30;
   battleDeckState.playerRainTurnsLeft = 0;
   battleDeckState.botRainTurnsLeft = 0;
+  battleDeckState.totalDamageDealt = 0;
+  battleDeckState.totalDamageTaken = 0;
+  battleDeckState.turnsPlayed = 0;
 
   showScreen("pveBattleScreen");
   resetBattleScoreHud(false);
@@ -2346,6 +2419,8 @@ window.submitStatChoice = function (choice) {
 };
 
 async function resolveBattleClash() {
+  battleDeckState.turnsPlayed += 1;
+
   let pCharKey = battleDeckState.selectedCharacter;
   let pSkillKey = battleDeckState.selectedSkill;
   let pSitKey = battleDeckState.selectedSituation;
@@ -2848,37 +2923,53 @@ async function resolveBattleClash() {
 
   if (pScore >= bScore) {
     let diff = pScore - bScore;
+    const actualDealt = Math.min(battleDeckState.botHp, diff);
     battleDeckState.botHp = Math.max(0, battleDeckState.botHp - diff);
-    logAdvancedBattle(`⚔️ Bạn thắng vòng này! Lấy ${pScore} - ${bScore} = ${diff} sát thương vào HP Bot.`);
+    battleDeckState.totalDamageDealt += actualDealt;
+    logAdvancedBattle(`⚔️ Bạn thắng vòng này! Gây ${actualDealt} sát thương vào HP Bot (Tổng sát thương gây ra: ${battleDeckState.totalDamageDealt}).`);
   } else {
     let diff = bScore - pScore;
+    const actualTaken = Math.min(battleDeckState.playerHp, diff);
     battleDeckState.playerHp = Math.max(0, battleDeckState.playerHp - diff);
-    logAdvancedBattle(`💥 Bot thắng vòng này! Lấy ${bScore} - ${pScore} = ${diff} sát thương vào HP của bạn.`);
+    battleDeckState.totalDamageTaken += actualTaken;
+    logAdvancedBattle(`💥 Bot thắng vòng này! Bạn nhận ${actualTaken} sát thương vào HP.`);
   }
 
   renderBattleSlots();
 
   if (battleDeckState.botHp <= 0) {
-    logAdvancedBattle("🎉 CHIẾN THẮNG TUYỆT ĐỐI! Bạn đã hạ gục Bot và nhận 30 Xu thưởng!");
+    logAdvancedBattle(`🎉 CHIẾN THẮNG TUYỆT ĐỐI! Tổng sát thương bạn gây ra: ${battleDeckState.totalDamageDealt} (+30 Xu thưởng).`);
     const profile = getProfile();
+    let rewardCoins = 0;
     if (!isAdmin && profile) {
       profile.coins += 30;
+      rewardCoins = 30;
       saveState();
       renderProfile();
     }
     setTimeout(() => {
-      battleDeckState.isResolvingTurn = false;
-      quitPveBattle();
-    }, 3500);
+      showBattleSummaryModal({
+        isVictory: true,
+        damageDealt: battleDeckState.totalDamageDealt,
+        damageTaken: battleDeckState.totalDamageTaken,
+        turnsPlayed: battleDeckState.turnsPlayed,
+        rewardCoins
+      });
+    }, 1200);
     return;
   }
 
   if (battleDeckState.playerHp <= 0) {
-    logAdvancedBattle("💥 THẤT BẠI! Bạn đã hết HP.");
+    logAdvancedBattle(`💥 THẤT BẠI! Bạn đã hết HP. Tổng sát thương bạn gây ra: ${battleDeckState.totalDamageDealt}.`);
     setTimeout(() => {
-      battleDeckState.isResolvingTurn = false;
-      quitPveBattle();
-    }, 3500);
+      showBattleSummaryModal({
+        isVictory: false,
+        damageDealt: battleDeckState.totalDamageDealt,
+        damageTaken: battleDeckState.totalDamageTaken,
+        turnsPlayed: battleDeckState.turnsPlayed,
+        rewardCoins: 0
+      });
+    }, 1200);
     return;
   }
 
@@ -2918,6 +3009,7 @@ function logAdvancedBattle(msg) {
 window.quitPveBattle = function () {
   if (battleDeckState.timerInterval) clearInterval(battleDeckState.timerInterval);
   cleanupBattleFxOverlays(true);
+  removeBattleSummaryModal();
   battleDeckState.isResolvingTurn = false;
   resetBattleScoreHud(false);
   showScreen("gameScreen");
