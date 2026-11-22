@@ -1474,16 +1474,20 @@ async function zoomCardAndFloatScore({ slotKey, targetSide, prevScore, nextScore
   await sleep(160);
 }
 
-/* Hiệu ứng tách nhân vật ra khỏi lá bài và khoác long bào (Long Bào Số 7) */
-async function triggerLongBaoRobesEffect(charSlotKey, charId, targetSide, prevScore, nextScore, badgeText) {
+/* Hiệu ứng tách nhân vật khỏi lá bài, long bào mở rộng ra rồi khoác lên nhân vật */
+async function triggerLongBaoRobesEffect(skillSlotKey, charSlotKey, charId, targetSide, prevScore, nextScore, badgeText) {
+  const skillEl = getSlotElementByKey(skillSlotKey);
   const charEl = getSlotElementByKey(charSlotKey);
   const charCard = cards[charId];
-  if (!charEl || !charCard) return;
+  const robeCard = cards.longBaoSo7;
+  if (!charEl || !charCard || !robeCard) return;
 
-  const rect = charEl.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const baseY = rect.top + rect.height / 2;
-  const floatY = rect.top - 16;
+  const cRect = charEl.getBoundingClientRect();
+  const sRect = skillEl ? skillEl.getBoundingClientRect() : cRect;
+
+  const centerX = cRect.left + cRect.width / 2;
+  const baseY = cRect.top + cRect.height / 2;
+  const floatY = cRect.top - 22;
 
   const fxLayer = document.createElement("div");
   fxLayer.className = "long-bao-fx-layer";
@@ -1494,72 +1498,89 @@ async function triggerLongBaoRobesEffect(charSlotKey, charId, targetSide, prevSc
     z-index: 9999;
   `;
 
+  /* 1. Tách nhân vật ra khỏi lá bài và bay nổi lên */
   const charCutout = document.createElement("div");
+  const cutW = Math.max(68, cRect.width * 0.92);
+  const cutH = Math.max(88, cRect.height * 0.92);
   charCutout.style.cssText = `
     position: fixed;
     left: ${centerX}px;
     top: ${baseY}px;
-    width: ${Math.max(64, rect.width * 0.9)}px;
-    height: ${Math.max(84, rect.height * 0.9)}px;
+    width: ${cutW}px;
+    height: ${cutH}px;
     transform: translate(-50%, -50%);
     border-radius: 12px;
     overflow: hidden;
     border: 2px solid #facc15;
-    box-shadow: 0 0 22px rgba(250, 204, 21, 0.85);
+    box-shadow: 0 0 24px rgba(250, 204, 21, 0.9);
     background: #0f172a;
+    z-index: 10000;
     transition: top 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s ease;
   `;
   charCutout.innerHTML = `<img src="${charCard.file}" alt="${charCard.name}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
 
-  const robeOverlay = document.createElement("div");
-  robeOverlay.style.cssText = `
+  /* 2. Long bào bay từ ô skill / phía trên tới và mở rộng ra */
+  const robeCloak = document.createElement("div");
+  robeCloak.style.cssText = `
     position: fixed;
-    left: ${centerX}px;
-    top: ${floatY - 56}px;
-    transform: translate(-50%, -50%) scale(0.7);
+    left: ${sRect.left + sRect.width / 2}px;
+    top: ${floatY - 24}px;
+    width: ${Math.max(62, cutW * 0.85)}px;
+    height: ${Math.max(76, cutH * 0.85)}px;
+    transform: translate(-50%, -50%) scaleX(0.35) scaleY(0.75);
     opacity: 0;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, rgba(185, 28, 28, 0.95), rgba(202, 138, 4, 0.95));
-    border: 1.5px solid #fef08a;
-    color: #fffbeb;
-    font-size: 13px;
-    font-weight: 800;
-    white-space: nowrap;
-    box-shadow: 0 0 18px rgba(250, 204, 21, 0.9);
-    transition: top 0.45s ease, transform 0.45s ease, opacity 0.35s ease;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid #fef08a;
+    box-shadow: 0 0 28px rgba(251, 191, 36, 0.95);
+    background: linear-gradient(160deg, rgba(153, 27, 27, 0.92), rgba(202, 138, 4, 0.92));
+    z-index: 10001;
+    transition: left 0.5s cubic-bezier(0.22, 1, 0.36, 1), top 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.45s ease, opacity 0.3s ease;
   `;
-  robeOverlay.innerHTML = `👘 LONG BÀO SỐ 7`;
+  robeCloak.innerHTML = `
+    <img src="${robeCard.file}" alt="${robeCard.name}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0.88;">
+    <div style="position:absolute;inset:0;background:radial-gradient(circle, rgba(254,240,138,0.28) 0%, rgba(185,28,28,0.35) 100%);"></div>
+  `;
 
   fxLayer.appendChild(charCutout);
-  fxLayer.appendChild(robeOverlay);
+  fxLayer.appendChild(robeCloak);
   document.body.appendChild(fxLayer);
 
-  await sleep(90);
+  await sleep(80);
 
+  /* Nhân vật bay tách lên */
   charCutout.style.top = `${floatY}px`;
   charCutout.style.transform = "translate(-50%, -50%) scale(1.12)";
 
-  await sleep(420);
+  /* Long bào bay tới vị trí nhân vật & mở rộng ra */
+  robeCloak.style.opacity = "0.95";
+  robeCloak.style.left = `${centerX}px`;
+  robeCloak.style.top = `${floatY - 6}px`;
+  robeCloak.style.transform = "translate(-50%, -50%) scaleX(1.36) scaleY(1.06)";
 
-  robeOverlay.style.opacity = "1";
-  robeOverlay.style.top = `${floatY + 12}px`;
-  robeOverlay.style.transform = "translate(-50%, -50%) scale(1.08)";
+  await sleep(520);
+
+  /* Long bào khép/khoác lên nhân vật */
+  robeCloak.style.top = `${floatY + 4}px`;
+  robeCloak.style.transform = "translate(-50%, -50%) scaleX(1.08) scaleY(1.04)";
+  robeCloak.style.opacity = "0.78";
 
   const totalEl = $(targetSide === "player" ? "playerCalcTotal" : "botCalcTotal");
   const formulaEl = $(targetSide === "player" ? "playerCalcFormula" : "botCalcFormula");
   const pillEl = $(targetSide === "player" ? "playerCalcPill" : "botCalcPill");
 
-  spawnScreenFloatingNumber(charEl, badgeText, "gold", -22);
+  spawnScreenFloatingNumber(charEl, `👘 ${badgeText}`, "gold", -24);
   if (pillEl) pillEl.classList.add("bump");
   if (formulaEl && badgeText) {
     formulaEl.textContent = formulaEl.textContent ? `${formulaEl.textContent} ${badgeText}` : badgeText;
   }
   animateScoreNumber(totalEl, prevScore, nextScore, 420);
 
-  await sleep(750);
+  await sleep(760);
 
-  robeOverlay.style.opacity = "0";
+  /* Thu gọn & hạ nhân vật trở về sân */
+  robeCloak.style.opacity = "0";
+  robeCloak.style.transform = "translate(-50%, -50%) scale(0.75)";
   charCutout.style.top = `${baseY}px`;
   charCutout.style.transform = "translate(-50%, -50%) scale(1)";
 
@@ -2382,7 +2403,7 @@ async function resolveBattleClash() {
           pScore = pDef;
           skillBadge = "x2 DEF";
           isLongBaoBuffApplied = true;
-          logAdvancedBattle(`👘 [Long Bào Số 7] Khoác long bào cho Ronaldo -> x2 điểm DEF (${pScore})!`);
+          logAdvancedBattle(`👘 [Long Bào Số 7] Mở long bào khoác lên Ronaldo -> x2 điểm DEF (${pScore})!`);
         } else {
           skillBadge = "DEF Only";
           logAdvancedBattle(`👘 [Long Bào Số 7] Ronaldo chỉ x2 khi chọn DEF (hiện chọn ${pChoice}).`);
@@ -2397,7 +2418,7 @@ async function resolveBattleClash() {
         }
         skillBadge = `+30 ${pChoice}`;
         isLongBaoBuffApplied = true;
-        logAdvancedBattle(`👘 [Long Bào Số 7] Khoác long bào cho ${pChar.name} (không phải Ronaldo) -> +30 ${pChoice} (${pScore})!`);
+        logAdvancedBattle(`👘 [Long Bào Số 7] Mở long bào khoác lên ${pChar.name} -> +30 ${pChoice} (${pScore})!`);
       }
     } else if (pSkillKey === "doiTrangThayDen") {
       skillBadge = `🔄 ÉP ${pChoice}`;
@@ -2435,8 +2456,8 @@ async function resolveBattleClash() {
     }
 
     if (pSkillKey === "longBaoSo7") {
-      await triggerLongBaoRobesEffect("P_SKILL", "P_SKILL", "player", prevP, prevP, "👘 LONG BÀO");
       await triggerLongBaoRobesEffect(
+        "P_SKILL",
         "P_CHAR",
         pCharKey,
         "player",
@@ -2548,7 +2569,7 @@ async function resolveBattleClash() {
           bScore = bDef;
           botSkillBadge = "x2 DEF";
           isBotLongBaoBuffApplied = true;
-          logAdvancedBattle(`👘 Bot khoác [Long Bào Số 7] cho Ronaldo -> x2 DEF (${bScore})!`);
+          logAdvancedBattle(`👘 Bot mở long bào khoác lên Ronaldo -> x2 DEF (${bScore})!`);
         } else {
           botSkillBadge = "DEF Only";
         }
@@ -2562,7 +2583,7 @@ async function resolveBattleClash() {
         }
         botSkillBadge = `+30 ${bChoice}`;
         isBotLongBaoBuffApplied = true;
-        logAdvancedBattle(`👘 Bot khoác [Long Bào Số 7] cho ${bChar.name} -> +30 ${bChoice} (${bScore})!`);
+        logAdvancedBattle(`👘 Bot mở long bào khoác lên ${bChar.name} -> +30 ${bChoice} (${bScore})!`);
       }
     } else if (bSkillKey === "doiTrangThayDen") {
       botSkillBadge = `🔄 ÉP ${bChoice}`;
@@ -2597,6 +2618,7 @@ async function resolveBattleClash() {
 
     if (bSkillKey === "longBaoSo7") {
       await triggerLongBaoRobesEffect(
+        "B_SKILL",
         "B_CHAR",
         bCharKey,
         "bot",
